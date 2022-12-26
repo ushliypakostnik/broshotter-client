@@ -8,8 +8,8 @@ import { LANGUAGES, MESSAGES } from '@/utils/constants';
 
 const i18n = createI18n({
   legacy: true,
-  locale: store.getters['layout/language']
-    ? store.getters['layout/language']
+  locale: store.getters['persist/language']
+    ? store.getters['persist/language']
     : LANGUAGES[0],
   fallbackLocale: LANGUAGES[0],
   messages: MESSAGES,

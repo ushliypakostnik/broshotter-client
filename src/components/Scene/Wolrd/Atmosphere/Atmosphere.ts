@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 // Constants
-import { Names, Colors, DESIGN, OBJECTS, Textures } from '@/utils/constants';
+import { Names, Colors, DESIGN, OBJECTS } from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
@@ -46,7 +46,7 @@ export default class Atmosphere extends SimpleModule {
     // Текстура и материал
     self.helper.map = self.assets.getTexture(Names.sand);
     self.helper.material = new THREE.MeshStandardMaterial({
-      color: Colors.yellowLight,
+      color: Colors.yellow,
       map: self.helper.map,
     });
 

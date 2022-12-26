@@ -22,15 +22,12 @@ import type {
 } from 'three';
 
 // Modules
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import Helper from '@/utils/helper';
 import Assets from '@/utils/assets';
 import Events from '@/utils/events';
 import AudioBus from '@/utils/audio';
 import World from '@/components/Scene/World';
-
-// Utils
-import { distance2D } from '@/utils/utilities';
 
 // Stats
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -58,9 +55,10 @@ export default defineComponent({
     // let delta: number;
 
     // Controls
-
-    let controls: MapControls = new MapControls(camera, renderer.domElement);
-    let distance = 0;
+    let controls: PointerLockControls = new PointerLockControls(
+      camera,
+      renderer.domElement,
+    );
 
     // Helpers
     let helper: Helper = new Helper();
@@ -75,7 +73,6 @@ export default defineComponent({
     let init: () => void;
     let animate: () => void;
     let render: () => void;
-    let change: () => void;
     let onWindowResize: () => void;
     let onKeyDown: (event: KeyboardEvent) => void;
     let onKeyUp: (event: KeyboardEvent) => void;
@@ -121,28 +118,14 @@ export default defineComponent({
       scene.add(camera);
 
       // Controls
-      controls = new MapControls(camera, renderer.domElement);
-      controls.minDistance = 50;
-      controls.maxDistance = 750;
-      controls.minPolarAngle = -0.15;
-      controls.maxPolarAngle = Math.PI / 3;
-
-      controls.addEventListener('change', change);
-
-      if (!store.getters['layout/controls'].camera.x) {
-        camera.position.x = 0;
-        camera.position.y = 150;
-        camera.position.z = 400;
-      } else {
-        camera.position.x = store.getters['layout/controls'].camera.x;
-        camera.position.y = store.getters['layout/controls'].camera.y;
-        camera.position.z = store.getters['layout/controls'].camera.z;
-        controls.target.x = store.getters['layout/controls'].target.x;
-        controls.target.y = store.getters['layout/controls'].target.y;
-        controls.target.z = store.getters['layout/controls'].target.z;
-      }
-
-      controls.update();
+      controls = new PointerLockControls(camera, renderer.domElement);
+      controls.addEventListener('unlock', () => {
+        store.dispatch('layout/setField', {
+          field: 'isPause',
+          value: true,
+        });
+      });
+      scene.add(controls.getObject());
 
       // Listeners
       window.addEventListener('resize', onWindowResize, false);
@@ -161,34 +144,6 @@ export default defineComponent({
       render();
     };
 
-    // Controls update
-    change = () => {
-      // Не выпускаем камеру слишком далеко
-      distance = distance2D(0, 0, camera.position.x, camera.position.z);
-      if (distance > DESIGN.SIZE / 2) {
-        camera.position.x *= DESIGN.SIZE / distance / 2;
-        camera.position.z *= DESIGN.SIZE / distance / 2;
-      }
-
-      store.dispatch('layout/setField', {
-        field: 'controls',
-        value: {
-          camera: {
-            x: camera.position.x,
-            y: camera.position.y,
-            z: camera.position.z,
-          },
-          target: {
-            x: controls?.target.x,
-            y: controls?.target.y,
-            z: controls?.target.z,
-          },
-        },
-      });
-
-      render();
-    };
-
     // Клавиша клавиатуры нажата
     onKeyDown = (event) => {
       switch (event.keyCode) {
@@ -200,7 +155,7 @@ export default defineComponent({
     // Клавиша клавиатуры отпущена
     onKeyUp = (event) => {
       switch (event.keyCode) {
-        case 27: // Esc
+        case 80: // P
           store.dispatch('layout/setField', {
             field: 'isPause',
             value: !isPause.value,
@@ -213,7 +168,7 @@ export default defineComponent({
 
     animate = () => {
       if (!isPause.value) {
-        events.animate(self);
+        events.animate();
         world.animate(self);
 
         render();
@@ -257,8 +212,10 @@ export default defineComponent({
       (value) => {
         if (value) {
           events.pause();
+          controls.unlock();
         } else {
-          events.start(self);
+          events.start();
+          controls.lock();
         }
         audio.toggle(value);
       },

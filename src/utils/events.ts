@@ -12,18 +12,12 @@ import { Clock } from 'three';
 export default class Events {
   private _clock: Clock;
   private _delta!: number;
-  private _time: number;
-  private _timer: number;
-
   private _bus!: Array<TEvents>;
   private _id!: number;
   private _pause!: number;
 
   constructor() {
     this._clock = new Clock(false);
-    this._time = 0;
-    this._timer = 0;
-
     this._bus = [];
     this._id = 1;
   }
@@ -80,22 +74,10 @@ export default class Events {
       });
   }
 
-  public animate(self: ISelf): void {
-    if (!this._clock.running) this.start(self);
+  public animate(): void {
+    if (!this._clock.running) this.start();
 
     this._delta = this._clock.getDelta();
-    this._timer += this._delta;
-    this._time += this._delta;
-
-    // Обновляем часы раз в секунду игрового времени
-    if (this._timer >= 1) {
-      this._timer = 0;
-      self.store.dispatch('layout/setField', {
-        field: 'clock',
-        value: this._time,
-      });
-    }
-
     this._bus.forEach((record) => {
       record.time += this._delta;
       if (record.time > record.delay) {
@@ -109,11 +91,7 @@ export default class Events {
     if (this._clock.running) this._clock.stop();
   }
 
-  public start(self: ISelf): void {
-    if (!this._clock.running) {
-      this._time = self.store.getters['layout/clock'];
-      this._timer = 0;
-      this._clock.start();
-    }
+  public start(): void {
+    if (!this._clock.running) this._clock.start();
   }
 }

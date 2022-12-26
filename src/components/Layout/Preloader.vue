@@ -31,29 +31,15 @@ export default defineComponent({
 
     const isReload = computed(() => store.getters['layout/isReload']);
 
-    // Следим загрузилась ли игра чтобы проверить с начала ли
+    // Следим загрузилась ли игра
     watch(
       () => store.getters['preloader/isGameLoaded'],
       (value) => {
         if (value) {
-          // First balance
-          store.dispatch('layout/balanceBase');
           store.dispatch('layout/setField', {
             field: 'isReload',
             value: false,
           });
-
-          // Check is start
-          if (store.getters['objects/isStart']) {
-            store.dispatch('layout/setField', {
-              field: 'health',
-              value: 100,
-            });
-            store.dispatch('objects/setField', {
-              field: 'isStart',
-              value: false,
-            });
-          }
         }
       },
     );
