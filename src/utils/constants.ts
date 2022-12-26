@@ -57,14 +57,13 @@ export const DESIGN: TConfig = {
   V: '1.0.0',
   BREAKPOINTS: Breakpoints,
   SIZE: size(1),
-  CELL: 20,
   CAMERA: {
     fov: 70,
     fog: 0xa48ed8,
   },
   MESSAGES_TIMEOUT: 3000, // ms
   VOLUME: {
-    [Audios.wind]: 0.1,
+    [Audios.wind]: 0.3,
   },
 };
 

@@ -10,8 +10,9 @@ import type { TEvents, TEventsData } from '@/models/utils';
 import { Clock } from 'three';
 
 export default class Events {
+  public delta!: number;
+
   private _clock: Clock;
-  private _delta!: number;
   private _bus!: Array<TEvents>;
   private _id!: number;
   private _pause!: number;
@@ -77,9 +78,9 @@ export default class Events {
   public animate(): void {
     if (!this._clock.running) this.start();
 
-    this._delta = this._clock.getDelta();
+    this.delta = this._clock.getDelta();
     this._bus.forEach((record) => {
-      record.time += this._delta;
+      record.time += this.delta;
       if (record.time > record.delay) {
         record.callback(record.data as number);
         this._removeEventsFromBus(record.id);

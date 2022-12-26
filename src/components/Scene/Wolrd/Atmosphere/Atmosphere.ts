@@ -10,11 +10,9 @@ import type { HemisphereLight, Mesh } from 'three';
 // Modules
 import { SimpleModule } from '@/models/modules';
 
-// Utils
-import { plusOrMinus, distance2D } from '@/utils/utilities';
-
 export default class Atmosphere extends SimpleModule {
   private _light: HemisphereLight;
+  private _sky!: Mesh;
   private _sand!: Mesh;
 
   constructor() {
@@ -57,13 +55,15 @@ export default class Atmosphere extends SimpleModule {
       vertex.fromBufferAttribute(position, i);
 
       if (
-        distance2D(0, 0, vertex.x, vertex.y) > OBJECTS.sand.radius / 1.5 &&
-        distance2D(0, 0, vertex.x, vertex.y) < OBJECTS.sand.radius * 3
+        self.helper.distance2D(0, 0, vertex.x, vertex.y) >
+          OBJECTS.sand.radius / 1.5 &&
+        self.helper.distance2D(0, 0, vertex.x, vertex.y) <
+          OBJECTS.sand.radius * 3
       ) {
-        vertex.x += (Math.random() * plusOrMinus() * DESIGN.CELL) / 10;
-        vertex.y += (Math.random() * plusOrMinus() * DESIGN.CELL) / 10;
-        vertex.z += (Math.random() * plusOrMinus() * DESIGN.CELL) / 10;
-        vertex.z *= Math.random() * 33;
+        vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
+        vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
+        vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
+        vertex.z *= Math.random() * 40;
       }
 
       position.setXYZ(i, vertex.x, vertex.y, vertex.z);

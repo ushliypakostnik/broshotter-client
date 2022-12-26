@@ -4,14 +4,11 @@
 import * as THREE from 'three';
 
 // Constants
-import { Names, Textures, Audios } from '@/utils/constants';
+import { Names, Textures, Audios, DESIGN } from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
 import type { Texture, AudioLoader } from 'three';
-
-// Utils
-import { getTextureByName } from '@/utils/utilities';
 
 // Modules
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -54,9 +51,20 @@ export default class Assets {
     }); */
   }
 
+  // Texture utils
+
+  // Текстура по имени
+  private _getTextureByName(name: Names): Textures {
+    switch (name) {
+      case Names.sand:
+        return Textures.sand;
+    }
+    return Textures.sand;
+  }
+
   // Получить текстуру
   public getTexture(name: Names | Textures): Texture {
-    const n = name in Names ? getTextureByName(name as Names) : name;
+    const n = name in Names ? this._getTextureByName(name as Names) : name;
     switch (n) {
       case Textures.sand:
       default:
@@ -64,9 +72,32 @@ export default class Assets {
     }
   }
 
+  // Повторения текстуры по имени
+  public getRepeatByName(name: Names | Textures): number {
+    switch (name) {
+      case Names.sand:
+        return 2048;
+    }
+    return 2;
+  }
+
+  // Audio utils
+
   // Получить звук
   public getAudio(name: Audios): AudioBuffer {
     console.log('getAudio', name);
     return this._plants; // пример
   }
+
+  // Громкость по имени
+  public getVolumeByName(name: Audios): number {
+    return DESIGN.VOLUME[name];
+  }
+
+  // Аудио по имени
+  /*
+  public getAudioByName(name: Names): Audios => {
+    return Audios[name as keyof typeof Audios];
+  }
+  */
 }

@@ -115,6 +115,8 @@ export default defineComponent({
       renderer.shadowMap.enabled = false;
       // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
+
+      camera.position.y = 1.8; // Убрать!!!
       scene.add(camera);
 
       // Controls

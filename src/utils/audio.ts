@@ -11,9 +11,6 @@ import type { ISelf } from '@/models/modules';
 import type { TAudio, TPositionalAudio } from '@/models/utils';
 import type { Audio, PositionalAudio, Mesh, Group } from 'three';
 
-// Utils
-import { getVolumeByName, getIsLoopByName } from '@/utils/utilities';
-
 export default class AudioBus {
   private _bus!: Array<TAudio>;
   private _bus2!: Array<TPositionalAudio>;
@@ -113,10 +110,10 @@ export default class AudioBus {
   public addAudioToHero(self: ISelf, buffer: AudioBuffer, name: Audios): void {
     this._audio = new THREE.Audio(self.listener);
 
-    this._is = getIsLoopByName(name);
+    this._is = this._getIsLoopByName(name);
 
     this._audio.setBuffer(buffer);
-    this._audio.setVolume(getVolumeByName(name));
+    this._audio.setVolume(self.assets.getVolumeByName(name));
     this._audio.setLoop(this._is);
 
     this.addHeroAudioToBus(this._heroSound.uuid, this._audio, name, this._is);
@@ -124,9 +121,19 @@ export default class AudioBus {
     this._heroSound.add(this._audio);
   }
 
+  // Узнать закольцован ли звук по имени
+  private _getIsLoopByName(name: Audios): boolean {
+    switch (name) {
+      case Audios.wind:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   // Добавить трек на группу объектоа
   public addAudioToObject(id: string, name: Audios): void {
-    this._is = getIsLoopByName(name);
+    this._is = this._getIsLoopByName(name);
     this.addPositionalAudioToBus(id, name, this._is);
   }
 
@@ -138,7 +145,7 @@ export default class AudioBus {
     isLoop: boolean,
   ) {
     audio.setBuffer(self.assets.getAudio(name));
-    audio.setVolume(getVolumeByName(name));
+    audio.setVolume(self.assets.getVolumeByName(name));
     audio.setLoop(isLoop);
     audio.setRefDistance(50);
     audio.setMaxDistance(200);
@@ -177,7 +184,7 @@ export default class AudioBus {
     this._record = this._getRecordByIdAndName(id, name);
     if (this._record) {
       this._positionalAudio = new THREE.PositionalAudio(self.listener);
-      this._is = getIsLoopByName(name);
+      this._is = this._getIsLoopByName(name);
 
       this._setPositionalAudio(self, this._positionalAudio, name, this._is);
 
@@ -203,7 +210,7 @@ export default class AudioBus {
     buffer: AudioBuffer,
     name: Audios,
   ): void {
-    this._is = getIsLoopByName(name);
+    this._is = this._getIsLoopByName(name);
     this.addPositionalAudioToBus(id, name, this._is);
 
     this._positionalAudio = new THREE.PositionalAudio(self.listener);
