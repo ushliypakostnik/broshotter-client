@@ -16,11 +16,12 @@ import {
 import type { Store } from 'vuex';
 import type { State } from '@/store';
 import type { ISelf } from '@/models/modules';
-// import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Helper {
   // Private working variables
   private _number = 0;
+  private _is = false;
+  private _string = '';
 
   // Utils
   public material: MeshStandardMaterial = new THREE.MeshStandardMaterial();
@@ -28,6 +29,7 @@ export default class Helper {
   public geometry!: PlaneBufferGeometry | BoxGeometry;
 
   // Math
+  ///////////////////////////////////////////////////////////
 
   public randomInteger(min: number, max: number): number {
     const rand = min + Math.random() * (max + 1 - min);
@@ -47,11 +49,17 @@ export default class Helper {
   }
 
   // Loading helpers
+  ///////////////////////////////////////////////////////////
 
   // Помощник прелодера
-  public loaderDispatchHelper(store: Store<State>, field: string): void {
+  public loaderDispatchHelper(
+    store: Store<State>,
+    name: Names | Textures | Audios,
+    isBuild = false,
+  ): void {
+    this._string = isBuild ? `${name}IsBuild` : `${name}IsLoaded`;
     store
-      .dispatch('preloader/preloadOrBuilt', field)
+      .dispatch('preloader/preloadOrBuilt', this._string)
       .then(() => {
         store.dispatch('preloader/isAllLoadedAndBuilt');
       })
@@ -61,13 +69,13 @@ export default class Helper {
   }
 
   // Помощник загрузки и установки текстур
-  public setMapHelper(self: ISelf, name: Names | Textures): Texture {
+  public setMapHelper(self: ISelf, name: Textures): Texture {
     this._number = self.assets.getRepeatByName(name);
     this.map = self.assets.textureLoader.load(
       `./images/textures/${name}.jpg`,
       () => {
         self.render();
-        this.loaderDispatchHelper(self.store, `${name}IsLoaded`);
+        this.loaderDispatchHelper(self.store, name);
       },
     );
     this.map.repeat.set(this._number, this._number);
@@ -81,7 +89,7 @@ export default class Helper {
   public setAudioToHeroHelper(self: ISelf, name: Audios): void {
     self.assets.audioLoader.load(`./audio/${name}.mp3`, (buffer) => {
       self.audio.addAudioToHero(self, buffer, name);
-      this.loaderDispatchHelper(self.store, `${name}IsLoaded`);
+      this.loaderDispatchHelper(self.store, name);
 
       // Ветер
       if (name === Audios.wind) {

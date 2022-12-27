@@ -11,6 +11,7 @@ export enum Names {
   world = 'world',
   atmosphere = 'atmosphere',
   sand = 'sand',
+  enemies = 'enemies',
 }
 
 // GUI
@@ -26,10 +27,8 @@ export enum Audios {
 export enum Colors {
   white = 0xffffff,
   black = 0x000000,
-  blue = 0x88ccff,
+  blue = 0x6699ff,
   yellow = 0xfed564,
-  yellowLight = 0xffe064,
-  dark = 0x13334c,
 }
 
 enum Breakpoints {

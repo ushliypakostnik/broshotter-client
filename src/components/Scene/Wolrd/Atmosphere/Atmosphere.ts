@@ -5,24 +5,23 @@ import { Names, Colors, DESIGN, OBJECTS } from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
-import type { HemisphereLight, Mesh } from 'three';
+import type { HemisphereLight, Mesh, Color } from 'three';
 
 // Modules
-import { SimpleModule } from '@/models/modules';
+import { StaticModule } from '@/models/modules';
 
-export default class Atmosphere extends SimpleModule {
-  private _light: HemisphereLight;
-  private _sky!: Mesh;
+export default class Atmosphere extends StaticModule {
+  private _light!: HemisphereLight;
   private _sand!: Mesh;
+  private _counter = 1;
 
   constructor() {
     super(Names.atmosphere);
-
-    this._light = new THREE.HemisphereLight(0x6699ff, 0x295826, 1);
   }
 
   init(self: ISelf): void {
     // Lights
+    this._light = new THREE.HemisphereLight(self.scene.background as Color, 0x295826, 0.5);
 
     // Hemisphere
     this._light.position.set(0, DESIGN.SIZE * 2, 0).normalize();
@@ -76,6 +75,6 @@ export default class Atmosphere extends SimpleModule {
     this._sand.updateMatrix();
     self.scene.add(this._sand);
 
-    self.helper.loaderDispatchHelper(self.store, 'atmosphereIsBuild');
+    self.helper.loaderDispatchHelper(self.store, this.name, true);
   }
 }

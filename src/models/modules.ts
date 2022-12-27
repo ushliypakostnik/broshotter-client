@@ -29,12 +29,12 @@ export interface ISelf {
 }
 
 // Статичный модуль без копий - например Атмосфера
-export interface ISimpleModule {
+export interface IStaticModule {
   init(self: ISelf): void;
 }
 
 // Aнимированные модули
-interface IAnimatedModule extends ISimpleModule {
+export interface IAnimatedModule extends IStaticModule {
   animate(self: ISelf): void;
 }
 
@@ -42,7 +42,7 @@ interface IAnimatedModule extends ISimpleModule {
 ///////////////////////////////////////////////////////
 
 // Статичный модуль - например Атмосфера
-export abstract class SimpleModule implements ISimpleModule {
+export abstract class StaticModule implements IStaticModule {
   constructor(public name: Names) {
     this.name = name;
   }
@@ -51,7 +51,7 @@ export abstract class SimpleModule implements ISimpleModule {
   public abstract init(self: ISelf): void;
 }
 
-// Анимированные модули
+// Анимированные модули - например сам Мир
 export abstract class AnimatedModule implements IAnimatedModule {
   constructor(public name: Names) {
     this.name = name;

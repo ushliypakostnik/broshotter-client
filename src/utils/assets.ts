@@ -12,6 +12,7 @@ import type { Texture, AudioLoader } from 'three';
 
 // Modules
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 
 export default class Assets {
   // Textures
@@ -19,6 +20,7 @@ export default class Assets {
 
   // Loaders
   public GLTFLoader: GLTFLoader;
+  public FBXLoader: FBXLoader;
   public audioLoader: AudioLoader;
   public textureLoader: THREE.TextureLoader;
 
@@ -27,6 +29,7 @@ export default class Assets {
 
   constructor() {
     this.GLTFLoader = new GLTFLoader();
+    this.FBXLoader = new FBXLoader();
     this.audioLoader = new THREE.AudioLoader();
     this.textureLoader = new THREE.TextureLoader();
   }

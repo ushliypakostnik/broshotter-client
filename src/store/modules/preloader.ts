@@ -14,11 +14,15 @@ const initialState: IPreloader = {
   // Textures
   sandIsLoaded: false,
 
+  // Models
+  enemiesIsLoaded: false,
+
   // Audio
   windIsLoaded: false,
 
   // World build
   atmosphereIsBuild: false,
+  enemiesIsBuild: false,
 };
 
 const preloader: Module<IPreloader, IStore> = {
