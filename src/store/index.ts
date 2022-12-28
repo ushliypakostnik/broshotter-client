@@ -3,6 +3,7 @@ import { createStore, Store } from 'vuex';
 import createPersistedState from 'vuex-persistedstate';
 
 import preloader from '@/store/modules/preloader';
+import api from '@/store/modules/api';
 import layout from '@/store/modules/layout';
 import persist from '@/store/modules/persist';
 
@@ -35,6 +36,7 @@ export const store = createStore<State>({
   },
   modules: {
     preloader,
+    api,
     layout,
     persist,
   },

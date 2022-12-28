@@ -21,7 +21,11 @@ export default class Atmosphere extends StaticModule {
 
   init(self: ISelf): void {
     // Lights
-    this._light = new THREE.HemisphereLight(self.scene.background as Color, 0x295826, 0.5);
+    this._light = new THREE.HemisphereLight(
+      self.scene.background as Color,
+      0x295826,
+      0.5,
+    );
 
     // Hemisphere
     this._light.position.set(0, DESIGN.SIZE * 2, 0).normalize();

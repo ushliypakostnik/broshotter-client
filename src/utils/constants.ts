@@ -8,10 +8,51 @@ import type { TConfig, TMessages } from '@/models/utils';
 
 // Modules
 export enum Names {
+  // Modules
   world = 'world',
   atmosphere = 'atmosphere',
-  sand = 'sand',
+  hero = 'hero',
   enemies = 'enemies',
+
+  // Others
+  sand = 'sand',
+}
+
+export enum Modes {
+  idle = 'idle',
+  active = 'active',
+  dead = 'dead',
+}
+
+export enum Motions {
+  // Idle mode
+  idle = 'idle',
+  sad = 'sad',
+  guitar = 'guitar',
+
+  // Active mode
+  // Stand
+  standdisturbed = 'standdisturbed',
+  standwalking = 'standwalking',
+  standbackwalking = 'standbackwalking',
+  run = 'run',
+
+  // Hide
+  hidedisturbed = 'hidedisturbed',
+  hidewalking = 'hidewalking',
+  hidebackwalking = 'hidebackwalking',
+
+  // Fire
+  firedisturbed = 'firedisturbed',
+  firewalking = 'firewalking',
+  firerun = 'firerun',
+  firehidedisturbed = 'firehidedisturbed',
+  firehidewalking = 'firehidewalking',
+
+  // Others
+  hit = 'hit',
+  jump = 'jump',
+  dead = 'dead',
 }
 
 // GUI
@@ -27,7 +68,7 @@ export enum Audios {
 export enum Colors {
   white = 0xffffff,
   black = 0x000000,
-  blue = 0x6699ff,
+  blue = 0x77aaff,
   yellow = 0xfed564,
 }
 
@@ -41,6 +82,12 @@ enum Languages {
 }
 
 // Configuration
+
+const isProd = process.env.NODE_ENV === 'production';
+const apiUrl = process.env.VUE_APP_API_URL;
+export const API_URL = isProd
+  ? apiUrl || '//api.robot-game.ru'
+  : apiUrl || 'http://localhost:3000';
 
 export const LANGUAGES: string[] = [Languages.en, Languages.ru];
 
@@ -85,22 +132,24 @@ export const OBJECTS: TConfig = {
 
 export const MESSAGES: TMessages = {
   [Languages.en]: {
+    enter: 'Enter',
+    nick: 'Your nickname:',
     name: 'Three',
     gadgetsgate: 'The game is for desktop browsers only!',
     chromegate:
       'In order to play, open in the Google Chrome (or Yandex) browser (Firefox not recommended)',
     startbutton: 'Play',
-    restartbutton: 'Start over',
     key1: 'Ecs - pause',
     copyright: '© Levon Gambaryan Bro Games',
   },
   [Languages.ru]: {
+    enter: 'Играть',
+    nick: 'Тебя зовут:',
     name: 'Three',
     gadgetsgate: 'Игра только для десктопных браузеров!',
     chromegate:
       'Для того чтобы играть откройте в браузере Google Chrome (или Яндекс), Firefox не рекомендуется',
     startbutton: 'Играть',
-    restartbutton: 'Начать сначала',
     key1: 'Ecs - пауза',
     copyright: '© Levon Gambaryan Bro Games',
   },

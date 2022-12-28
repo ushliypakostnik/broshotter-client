@@ -9,9 +9,10 @@ import type {
 } from '@/models/store';
 
 const initialState: IStoreModule = {
-  isPause: true,
-  isReload: true,
-  messages: [],
+  isGame: false, // Осуществлен ли вход на сервер
+  isPause: true, // Сейчас пауза
+  isReload: true, // Сейчас происходит перезагрузка приложения
+  messages: [], // Сообщение сейчас
 };
 
 let array: Array<TEventMessagePayload> = [];
@@ -21,6 +22,7 @@ const layout: Module<IStoreModule, IStore> = {
   state: initialState,
 
   getters: {
+    isGame: (state: IStoreModule) => state.isGame,
     isPause: (state: IStoreModule) => state.isPause,
     isReload: (state: IStoreModule) => state.isReload,
     messages: (state: IStoreModule) => state.messages,

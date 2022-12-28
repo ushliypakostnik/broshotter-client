@@ -78,6 +78,7 @@ export default defineComponent({
     let onKeyUp: (event: KeyboardEvent) => void;
 
     // Store getters
+    const isGame = computed(() => store.getters['layout/isGame']);
     const isPause = computed(() => store.getters['layout/isPause']);
 
     // Stats
@@ -158,10 +159,11 @@ export default defineComponent({
     onKeyUp = (event) => {
       switch (event.keyCode) {
         case 80: // P
-          store.dispatch('layout/setField', {
-            field: 'isPause',
-            value: !isPause.value,
-          });
+          if (isGame.value)
+            store.dispatch('layout/setField', {
+              field: 'isPause',
+              value: !isPause.value,
+            });
           break;
         default:
           break;
@@ -169,7 +171,7 @@ export default defineComponent({
     };
 
     animate = () => {
-      if (!isPause.value) {
+      if (isGame.value && !isPause.value) {
         events.animate();
         world.animate(self);
 

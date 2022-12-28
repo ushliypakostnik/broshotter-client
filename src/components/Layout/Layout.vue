@@ -5,50 +5,71 @@
 
       <div class="layout__overlay" />
 
-      <transition-group name="fade2" tag="ul" class="layout__messages">
-        <li
-          class="layout__message"
-          v-for="(message, index) in messages"
-          :key="`message${index}`"
-        >
-          {{ $t(`${message.text}`) }}
-        </li>
-      </transition-group>
-
-      <transition name="fade">
-        <div v-if="isPause && isGameLoaded" class="layout__blocker">
+      <template v-if="!isGame">
+        <div class="layout__blocker layout__blocker--enter">
           <div class="layout__name">{{ $t('name') }}</div>
 
           <LangSwitch />
 
-          <div class="layout__buttons">
+          <div class="layout__nick">{{ $t('nick') }}</div>
+          <input class="layout__input" v-model="nickname" />
+
+          <div>
             <button
-              class="layout__button"
+              class="layout__button layout__button--enter"
+              :class="{ 'layout__button--disabled': nickname.length === 0 }"
               type="button"
-              @click.prevent.stop="play"
+              @click.prevent.stop="enter"
             >
-              {{ $t('startbutton') }}
-            </button>
-            <button
-              class="layout__button"
-              type="button"
-              @click.prevent.stop="restart"
-            >
-              {{ $t('restartbutton') }}
+              {{ $t('enter') }}
             </button>
           </div>
 
-          <div class="layout__help">
-            <div class="layout__keys">
-              <p>{{ $t('key1') }}</p>
-            </div>
-
-            <div class="layout__copy">
-              <p>{{ $t('copyright') }}</p>
-            </div>
+          <div class="layout__copy">
+            <p>{{ $t('copyright') }}</p>
           </div>
         </div>
-      </transition>
+      </template>
+
+      <template v-else>
+        <transition-group name="fade2" tag="ul" class="layout__messages">
+          <li
+            class="layout__message"
+            v-for="(message, index) in messages"
+            :key="`message${index}`"
+          >
+            {{ $t(`${message.text}`) }}
+          </li>
+        </transition-group>
+
+        <transition name="fade">
+          <div v-if="isPause && isGameLoaded" class="layout__blocker">
+            <div class="layout__name">{{ $t('name') }}</div>
+
+            <LangSwitch />
+
+            <div class="layout__buttons">
+              <button
+                class="layout__button"
+                type="button"
+                @click.prevent.stop="play"
+              >
+                {{ $t('startbutton') }}
+              </button>
+            </div>
+
+            <div class="layout__help">
+              <div class="layout__keys">
+                <p>{{ $t('key1') }}</p>
+              </div>
+
+              <div class="layout__copy">
+                <p>{{ $t('copyright') }}</p>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </template>
     </Preloader>
   </div>
 
@@ -86,15 +107,17 @@ export default defineComponent({
     const store = useStore(key);
 
     let isDesktop: Ref<boolean> = ref(false);
+    const nickname: Ref<string> = ref('');
     const isBro = ScreenHelper.isBro();
     let onWindowResize: () => void;
     let play: () => void;
     let restart: () => void;
+    let enter: () => void;
 
     const isGameLoaded = computed(
       () => store.getters['preloader/isGameLoaded'],
     );
-
+    const isGame = computed(() => store.getters['layout/isGame']);
     const isPause = computed(() => store.getters['layout/isPause']);
     const messages = computed(() => store.getters['layout/messages']);
 
@@ -118,15 +141,24 @@ export default defineComponent({
       restartDispatchHelper(store);
     };
 
+    enter = () => {
+      store.dispatch('api/enter', {
+        name: nickname.value,
+      });
+    };
+
     return {
       t,
       isDesktop,
       isBro,
       isGameLoaded,
+      isGame,
       isPause,
       messages,
       play,
       restart,
+      enter,
+      nickname,
     };
   },
 });
@@ -135,13 +167,34 @@ export default defineComponent({
 <style lang="stylus" scoped>
 .layout
   @extend $viewport
+  text-align center
 
   &__name
     color $colors.sea
-    text-align center
     margin-top 15vh
-    position relative
+    margin-bottom 7vh
     $text("olga")
+
+  &__enter
+    color $colors.sea
+    margin-bottom 9vh
+    $text("katya")
+
+  &__nick
+    color $colors.sea
+    margin-top 7vh
+    margin-bottom 2vh
+    $text("elena")
+
+  &__input
+    width 25vw
+    padding-left 10px
+    padding-right 10px
+    margin-bottom 5vh
+    color $colors.sea
+    border 4px solid $colors.sea
+    background transparent
+    $text("elena")
 
   &__overlay
     @extend $viewport
@@ -169,6 +222,9 @@ export default defineComponent({
     background linear-gradient(0deg, rgba($colors.primary, $opacites.funky) 0%, rgba($colors.ghost, $opacites.psy) 100%)
     z-index 2000
 
+    &--enter
+      background linear-gradient(0deg, $colors.primary 0%, $colors.ghost 100%)
+
   &__buttons
     display flex
     align-items center
@@ -178,6 +234,13 @@ export default defineComponent({
   &__button
     margin-top $gutter * 2
     @extend $button
+
+    &--disabled
+      pointer-events none
+      opacity 0.5
+
+    &--enter
+      margin-bottom 9vh
 
   p
     margin-bottom $gutter

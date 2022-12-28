@@ -99,7 +99,7 @@ export default class Assets {
 
   // Аудио по имени
   /*
-  public getAudioByName(name: Names): Audios => {
+  public getAudioByName(name: Names): Audios {
     return Audios[name as keyof typeof Audios];
   }
   */
