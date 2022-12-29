@@ -5,30 +5,28 @@ import { APIService } from '@/utils/api';
 
 // Types
 import type { IStore, IStoreModule } from '@/models/store';
-import type { IEnter } from '@/models/api';
+import type { IIndex } from '@/models/api';
 
-const initialState: IStoreModule = {
-  language: null,
-};
+const initialState: IStoreModule = {};
 
 const api: Module<IStoreModule, IStore> = {
   namespaced: true,
   state: initialState,
 
-  getters: {
-    language: (state: IStoreModule) => state.language,
-  },
+  getters: {},
 
   actions: {
-    enter: ({ commit }, payload: IEnter): void => {
-      APIService.enter(payload).then((res: IEnter) => {
-        commit('setUser', res);
+    // Test REST API
+    index: ({ commit }, payload: IIndex): void => {
+      APIService.index(payload).then((res: IIndex) => {
+        commit('index', res);
       });
     },
   },
 
   mutations: {
-    enter: (state: IStoreModule): void => {
+    // Test REST API
+    index: (state: IStoreModule): void => {
       console.log('api.js mutation: ', state);
     },
   },

@@ -12,8 +12,10 @@
   "dependencies": {
     "axios": "^1.2.1",
     "core-js": "^3.6.5",
+    "mitt": "^3.0.0",
     "three": "^0.134.0",
     "vue": "^3.0.0",
+    "vue-3-socket.io": "^1.0.5",
     "vue-i18n": "^9.2.0-beta.17",
     "vuex": "^4.0.0-0",
     "vuex-persistedstate": "^4.1.0"

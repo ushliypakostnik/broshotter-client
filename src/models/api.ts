@@ -1,10 +1,6 @@
 // API Interfaces
 ///////////////////////////////////////////////////////
 
-export interface IAPIService {
-  enter: (payload: IEnter) => Promise<unknown>,
-}
-
-export interface IEnter {
+export interface IIndex {
   name: string,
 }

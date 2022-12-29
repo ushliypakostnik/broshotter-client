@@ -1,6 +1,8 @@
 <template>
   <div v-if="isDesktop && isBro" class="layout">
     <Preloader>
+      <Connect />
+
       <Scene />
 
       <div class="layout__overlay" />
@@ -8,6 +10,8 @@
       <template v-if="!isGame">
         <div class="layout__blocker layout__blocker--enter">
           <div class="layout__name">{{ $t('name') }}</div>
+
+          <TestEvents />
 
           <LangSwitch />
 
@@ -83,6 +87,8 @@ import { useStore } from 'vuex';
 import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
 
+import Connect from '@/components/Connect.vue';
+import TestEvents from '@/components/TestEvents.vue';
 import Preloader from '@/components/Layout/Preloader.vue';
 import Gate from '@/components/Layout/Gate.vue';
 import Scene from '@/components/Scene/Scene.vue';
@@ -95,6 +101,8 @@ export default defineComponent({
   name: 'Layout',
 
   components: {
+    Connect,
+    TestEvents,
     Preloader,
     Scene,
     LangSwitch,
@@ -107,7 +115,7 @@ export default defineComponent({
     const store = useStore(key);
 
     let isDesktop: Ref<boolean> = ref(false);
-    const nickname: Ref<string> = ref('');
+    let nickname: Ref<string> = ref('');
     const isBro = ScreenHelper.isBro();
     let onWindowResize: () => void;
     let play: () => void;

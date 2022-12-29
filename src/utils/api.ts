@@ -5,7 +5,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { API_URL } from '@/utils/constants';
 
 // Types
-import type { IEnter } from '@/models/api';
+import type { IIndex } from '@/models/api';
 
 const instance: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -15,6 +15,7 @@ const instance: AxiosInstance = axios.create({
 const responseBody = (response: AxiosResponse) => response.data;
 
 export const APIService = {
-  enter: (payload: IEnter): Promise<IEnter> =>
-    instance.post<IEnter>('/', payload).then(responseBody),
+  // Test REST API
+  index: (payload: IIndex): Promise<IIndex> =>
+    instance.post<IIndex>('/', payload).then(responseBody),
 };
