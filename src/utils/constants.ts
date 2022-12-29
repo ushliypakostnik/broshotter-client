@@ -81,6 +81,14 @@ enum Languages {
   ru = 'ru',
 }
 
+export enum EmitterEvents {
+  onConnect = 'onConnect', // Ответ сервера на соединение
+  onOnConnect = 'onOnConnect', // Ответ клиента серверу на соединение
+  updateToClients = 'updateToClients', // Ответ сервера на соединение
+  updateToServer = 'updateToServer', // Пришло обновление от клиента
+  onUpdateToServer = 'onUpdateToServer', // На обновление от клиента
+}
+
 // Configuration
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -112,6 +120,28 @@ export const DESIGN: TConfig = {
     [Audios.wind]: 0.3,
   },
 };
+
+// Экранный помощник
+export const ScreenHelper = (() => {
+  const DESKTOP = DESIGN.BREAKPOINTS.desktop;
+
+  const isDesktop = () => {
+    return window.matchMedia(`(min-width: ${DESKTOP}px)`).matches;
+  };
+
+  const isBro = () => {
+    const isChrome =
+      /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    const isYandex = navigator.userAgent.search(/YaBrowser/) > 0;
+    const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    return isChrome || isYandex || isFirefox;
+  };
+
+  return {
+    isDesktop,
+    isBro,
+  };
+})();
 
 // Все объекты
 

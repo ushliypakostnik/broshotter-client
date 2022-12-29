@@ -16,13 +16,13 @@ const persist: Module<IStoreModule, IStore> = {
   },
 
   actions: {
-    setField: ({ commit }, payload: TFieldPayload): void => {
-      commit('setField', payload);
+    setPersistState: ({ commit }, payload: TFieldPayload): void => {
+      commit('setPersistState', payload);
     },
   },
 
   mutations: {
-    setField: (state: IStoreModule, payload: TFieldPayload): void => {
+    setPersistState: (state: IStoreModule, payload: TFieldPayload): void => {
       state[payload.field] = payload.value;
     },
   },

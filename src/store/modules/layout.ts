@@ -11,7 +11,7 @@ import type {
 const initialState: IStoreModule = {
   isGame: false, // Осуществлен ли вход на сервер
   isPause: true, // Сейчас пауза
-  isReload: true, // Сейчас происходит перезагрузка приложения
+  isReload: true, // Если нужно принудительно перезагрузить, сейчас не используется
   messages: [], // Сообщение сейчас
 };
 
@@ -29,8 +29,8 @@ const layout: Module<IStoreModule, IStore> = {
   },
 
   actions: {
-    setField: ({ commit }, payload: TFieldPayload): void => {
-      commit('setField', payload);
+    setLayoutState: ({ commit }, payload: TFieldPayload): void => {
+      commit('setLayoutState', payload);
     },
 
     showMessage: ({ commit }, payload: TEventMessagePayload): void => {
@@ -43,7 +43,7 @@ const layout: Module<IStoreModule, IStore> = {
   },
 
   mutations: {
-    setField: (state: IStoreModule, payload: TFieldPayload): void => {
+    setLayoutState: (state: IStoreModule, payload: TFieldPayload): void => {
       state[payload.field] = payload.value;
     },
 

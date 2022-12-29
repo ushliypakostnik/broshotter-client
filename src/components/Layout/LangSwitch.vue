@@ -44,7 +44,7 @@ export default defineComponent({
 
     const changeLanguage = (value: TLanguage) => {
       locale.value = value;
-      store.dispatch('persist/setField', { field: 'language', value });
+      store.dispatch('persist/setPersistState', { field: 'language', value });
     };
 
     const languages = LANGUAGES.map((language): TLanguage => {

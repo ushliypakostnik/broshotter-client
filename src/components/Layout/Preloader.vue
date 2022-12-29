@@ -36,7 +36,7 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
       (value) => {
         if (value) {
-          store.dispatch('layout/setField', {
+          store.dispatch('layout/setLayoutState', {
             field: 'isReload',
             value: false,
           });

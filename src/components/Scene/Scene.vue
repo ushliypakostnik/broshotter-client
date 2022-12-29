@@ -123,7 +123,7 @@ export default defineComponent({
       // Controls
       controls = new PointerLockControls(camera, renderer.domElement);
       controls.addEventListener('unlock', () => {
-        store.dispatch('layout/setField', {
+        store.dispatch('layout/setLayoutState', {
           field: 'isPause',
           value: true,
         });
@@ -160,7 +160,7 @@ export default defineComponent({
       switch (event.keyCode) {
         case 80: // P
           if (isGame.value)
-            store.dispatch('layout/setField', {
+            store.dispatch('layout/setLayoutState', {
               field: 'isPause',
               value: !isPause.value,
             });

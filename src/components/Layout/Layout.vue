@@ -8,17 +8,15 @@
       <div class="layout__overlay" />
 
       <template v-if="!isGame">
-        <div class="layout__blocker layout__blocker--enter">
+        <div class="layout__blocker">
           <div class="layout__name">{{ $t('name') }}</div>
-
-          <TestEvents />
 
           <LangSwitch />
 
           <div class="layout__nick">{{ $t('nick') }}</div>
           <input class="layout__input" v-model="nickname" />
 
-          <div>
+          <div class="layout__buttons">
             <button
               class="layout__button layout__button--enter"
               :class="{ 'layout__button--disabled': nickname.length === 0 }"
@@ -52,7 +50,7 @@
 
             <LangSwitch />
 
-            <div class="layout__buttons">
+            <div class="layout__buttons layout__buttons--game">
               <button
                 class="layout__button"
                 type="button"
@@ -87,22 +85,24 @@ import { useStore } from 'vuex';
 import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
 
+// Emmiter
+import emitter from '@/utils/emitter';
+
+// Constants
+import { EmitterEvents, ScreenHelper } from '@/utils/constants';
+
+// Components
 import Connect from '@/components/Connect.vue';
-import TestEvents from '@/components/TestEvents.vue';
 import Preloader from '@/components/Layout/Preloader.vue';
 import Gate from '@/components/Layout/Gate.vue';
 import Scene from '@/components/Scene/Scene.vue';
 import LangSwitch from '@/components/Layout/LangSwitch.vue';
-
-// Utils
-import { ScreenHelper, restartDispatchHelper } from '@/utils/utilities';
 
 export default defineComponent({
   name: 'Layout',
 
   components: {
     Connect,
-    TestEvents,
     Preloader,
     Scene,
     LangSwitch,
@@ -111,7 +111,6 @@ export default defineComponent({
 
   setup() {
     const { t } = useI18n();
-
     const store = useStore(key);
 
     let isDesktop: Ref<boolean> = ref(false);
@@ -119,9 +118,7 @@ export default defineComponent({
     const isBro = ScreenHelper.isBro();
     let onWindowResize: () => void;
     let play: () => void;
-    let restart: () => void;
     let enter: () => void;
-
     const isGameLoaded = computed(
       () => store.getters['preloader/isGameLoaded'],
     );
@@ -139,19 +136,17 @@ export default defineComponent({
     };
 
     play = () => {
-      store.dispatch('layout/setField', {
+      store.dispatch('layout/setLayoutState', {
         field: 'isPause',
         value: !isPause.value,
       });
     };
 
-    restart = () => {
-      restartDispatchHelper(store);
-    };
-
     enter = () => {
-      store.dispatch('api/enter', {
-        name: nickname.value,
+      emitter.emit(EmitterEvents.updateToServer, { name: nickname.value });
+      store.dispatch('layout/setLayoutState', {
+        field: 'isGame',
+        value: true,
       });
     };
 
@@ -164,7 +159,6 @@ export default defineComponent({
       isPause,
       messages,
       play,
-      restart,
       enter,
       nickname,
     };
@@ -230,14 +224,15 @@ export default defineComponent({
     background linear-gradient(0deg, rgba($colors.primary, $opacites.funky) 0%, rgba($colors.ghost, $opacites.psy) 100%)
     z-index 2000
 
-    &--enter
-      background linear-gradient(0deg, $colors.primary 0%, $colors.ghost 100%)
-
   &__buttons
     display flex
     align-items center
     flex-direction column
     justify-content center
+
+    &--game
+      margin-top 4vh
+      margin-bottom 9vh
 
   &__button
     margin-top $gutter * 2
