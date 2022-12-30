@@ -81,14 +81,6 @@ enum Languages {
   ru = 'ru',
 }
 
-export enum EmitterEvents {
-  onConnect = 'onConnect', // Ответ сервера на соединение
-  onOnConnect = 'onOnConnect', // Ответ клиента серверу на соединение
-  updateToClients = 'updateToClients', // Ответ сервера на соединение
-  updateToServer = 'updateToServer', // Пришло обновление от клиента
-  onUpdateToServer = 'onUpdateToServer', // На обновление от клиента
-}
-
 // Configuration
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -164,7 +156,7 @@ export const MESSAGES: TMessages = {
   [Languages.en]: {
     enter: 'Enter',
     nick: 'Your nickname:',
-    name: 'Three',
+    name: 'BroShotter',
     gadgetsgate: 'The game is for desktop browsers only!',
     chromegate:
       'In order to play, open in the Google Chrome (or Yandex) browser (Firefox not recommended)',
@@ -175,7 +167,7 @@ export const MESSAGES: TMessages = {
   [Languages.ru]: {
     enter: 'Играть',
     nick: 'Тебя зовут:',
-    name: 'Three',
+    name: 'BroShotter',
     gadgetsgate: 'Игра только для десктопных браузеров!',
     chromegate:
       'Для того чтобы играть откройте в браузере Google Chrome (или Яндекс), Firefox не рекомендуется',

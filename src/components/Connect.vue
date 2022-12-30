@@ -4,16 +4,22 @@
 
 <script>
 /* eslint-disable */
-import { mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 
 // Constants
-import { EmitterEvents } from '@/utils/constants';
+import { EmitterEvents } from '@/models/api';
 
 // Services
-import emitter from "@/utils/emitter";
+import emitter from '@/utils/emitter';
 
 export default {
   name: 'Connect',
+
+  data() {
+    return {
+      timeout: null,
+    };
+  },
 
   sockets: {
     connect: () => {
@@ -21,74 +27,124 @@ export default {
     },
 
     // Ответ сервера на соединение
-    onConnect: (data) => {
-      console.log('Connect sockets onConnect', data);
-      emitter.emit(EmitterEvents.onConnect, data);
+    onConnect: (game) => {
+      console.log('Connect sockets onConnect', game);
+      emitter.emit(EmitterEvents.onConnect, game);
+    },
+
+    // Установка нового игрока
+    setNewPlayer: (id) => {
+      console.log('Connect sockets setNewPlayer', id);
+      emitter.emit(EmitterEvents.setNewPlayer, id);
     },
 
     // Пришло обновление
-    updateToClients: (data) => {
-      // console.log('Connect sockets updateToClients', data);
-      emitter.emit(EmitterEvents.updateToClients, data);
+    updateToClients: (game) => {
+      // console.log('Connect sockets updateToClients', game);
+      emitter.emit(EmitterEvents.updateToClients, game);
     },
+  },
 
-    // Ответ сервера на обноеления от клиента
-    onUpdateToServer: (data) => {
-      // console.log('Connect sockets onUpdateToServer', data);
-      emitter.emit(EmitterEvents.onUpdateToServer, data);
-    },
+  computed: {
+    ...mapGetters({
+      id: 'persist/id',
+      isGame: 'layout/isGame',
+      updates: 'api/updates',
+    }),
   },
 
   created() {
     // Среагировать на ответ сервера на соединение
-    this.emitter.on(EmitterEvents.onConnect, (data) => {
-      console.log('Connect created onConnect', data);
-      this.$socket.emit(EmitterEvents.onOnConnect, data);
-      this.onConnect(data);
+    this.emitter.on(EmitterEvents.onConnect, (game) => {
+      console.log('Connect created onConnect', game);
+      this.$socket.emit(EmitterEvents.onOnConnect, { id: this.id });
+      this.onConnect(game);
     });
 
     // Реагировать на обновления
-    this.emitter.on(EmitterEvents.updateToClients, (data) => {
-      // console.log('Connect created updateToClients', data);
-      this.updateToClients(data);
+    this.emitter.on(EmitterEvents.updateToClients, (game) => {
+      // console.log('Connect created updateToClients', game);
+      this.updateToClients(game);
     });
 
+    // Реагировать на установку нового игрока
+    this.emitter.on(EmitterEvents.setNewPlayer, (id) => {
+      // console.log('Connect created setNewPlayer', id);
+      this.setNewPlayer(id);
+    });
 
     // Отправить обновления
-    this.emitter.on(EmitterEvents.updateToServer, (data) => {
-      console.log('Connect created updateToServer', data);
-      this.$socket.emit(EmitterEvents.updateToServer, data);
+    this.emitter.on(EmitterEvents.updateToServer, (updates) => {
+      console.log('Connect created updateToServer', updates);
+      this.sendUpdates(updates);
     });
 
-    // Среагировать на ответ на обновления
-    this.emitter.on(EmitterEvents.onUpdateToServer, () => {
-      console.log('Connect onUpdateToServer');
-      this.onUpdateToServer();
-    });
+    // Запускаем регулярную отправку обновлений на сервер
+    this.timeout = setInterval(() => {
+      this.sendUpdates(this.getUpdates());
+    }, process.env.VUE_APP_TIMEOUT || 75);
+  },
+
+  beforeDestroy() {
+    clearInterval(this.timeout);
   },
 
   methods: {
     ...mapActions({
       setApiState: 'api/setApiState',
+      setPersistState: 'persist/setPersistState',
+      setLayoutState: 'layout/setLayoutState',
     }),
 
     // Произошло соединение с сервером
-    onConnect(data) {
-      console.log('Запускаем процесс!!!', data);
+    onConnect(game) {
+      console.log('Запускаем процесс!!!', game);
     },
 
-    // Постоянные обновления от сервера
-    updateToClients(data) {
-      // console.log('Обновление!!!', data);
-      this.setApiState({
-        field: 'game',
-        value: data,
+    // Реагировать на установку нового игрока
+    setNewPlayer(player) {
+      console.log('Connect setNewPlayer', player);
+      this.setPersistState({
+        field: 'id',
+        value: player.id,
       });
     },
 
-    // Обновления серверу
-    onUpdateToServer() {
-      console.log('Connect onUpdateToServer!!!');
+    // Постоянные на обновления от сервера
+    updateToClients(game) {
+      // console.log('Connect updateToClients!!!', game);
+      this.setApiState({
+        field: 'game',
+        value: game,
+      }).then(() => {
+        // Проверяем есть ли имя у юзера (не пускаем в игру без имени)
+        if (!this.isGame && game.users && game.users.length) {
+          const item = game.users.find((player) => player.id === this.id);
+          if (item && item.updates && item.updates.name)
+            this.setLayoutState({
+              field: 'isGame',
+              value: true,
+            });
+        }
+      });
+    },
+
+    // Отобрать обновления для отправки
+    getUpdates() {
+      return JSON.parse(JSON.stringify(this.updates));
+    },
+
+    // Отправить обновления серверу
+    sendUpdates(updates) {
+      this.setApiState({
+        field: 'updates',
+        value: null,
+      }).then(() => {
+        this.$socket.emit(EmitterEvents.updateToServer, {
+          id: this.id,
+          updates,
+        });
+      });
     },
   },
 };

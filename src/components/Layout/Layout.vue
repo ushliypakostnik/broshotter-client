@@ -86,10 +86,13 @@ import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
 
 // Emmiter
-import emitter from '@/utils/emitter';
+// import emitter from '@/utils/emitter';
 
 // Constants
-import { EmitterEvents, ScreenHelper } from '@/utils/constants';
+import { ScreenHelper } from '@/utils/constants';
+
+// Types
+// import { EmitterEvents } from '@/models/api';
 
 // Components
 import Connect from '@/components/Connect.vue';
@@ -143,10 +146,10 @@ export default defineComponent({
     };
 
     enter = () => {
-      emitter.emit(EmitterEvents.updateToServer, { name: nickname.value });
-      store.dispatch('layout/setLayoutState', {
-        field: 'isGame',
-        value: true,
+      // emitter.emit(EmitterEvents.updateToServer, { name: nickname.value });
+      store.dispatch('api/setApiState', {
+        field: 'updates',
+        value: { name: nickname.value },
       });
     };
 

@@ -5,6 +5,7 @@ import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
 
 const initialState: IStoreModule = {
   language: null,
+  id: null,
 };
 
 const persist: Module<IStoreModule, IStore> = {
@@ -13,6 +14,7 @@ const persist: Module<IStoreModule, IStore> = {
 
   getters: {
     language: (state: IStoreModule) => state.language,
+    id: (state: IStoreModule) => state.id,
   },
 
   actions: {

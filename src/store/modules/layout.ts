@@ -9,10 +9,10 @@ import type {
 } from '@/models/store';
 
 const initialState: IStoreModule = {
-  isGame: false, // Осуществлен ли вход на сервер
-  isPause: true, // Сейчас пауза
+  isGame: false, // Cервер знает имя пользователя?
+  isPause: true, // Сейчас пауза?
   isReload: true, // Если нужно принудительно перезагрузить, сейчас не используется
-  messages: [], // Сообщение сейчас
+  messages: [], // Сообщения сейчас
 };
 
 let array: Array<TEventMessagePayload> = [];
