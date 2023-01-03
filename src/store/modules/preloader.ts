@@ -17,6 +17,7 @@ const initialState: IPreloader = {
   groundIsLoaded: false,
   concretteIsLoaded: false,
   metallIsLoaded: false,
+  fireIsLoaded: false,
 
   // Models
   enemiesIsLoaded: false,

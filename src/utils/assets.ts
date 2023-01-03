@@ -28,6 +28,7 @@ export default class Assets {
   private _concrette!: Texture;
   private _metall!: Texture;
   public sky!: Texture;
+  private _fire!: Texture;
 
   // Loaders
   public GLTFLoader: GLTFLoader;
@@ -106,6 +107,19 @@ export default class Assets {
       },
     );
 
+    this.textureLoader.load(
+      `./images/textures/${Textures.fire}.jpg`,
+      (map) => {
+        this._number = this.getRepeatByName(Textures.fire);
+        map.repeat.set(this._number, this._number);
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.encoding = THREE.sRGBEncoding;
+        this._fire = map;
+        // self.render();
+        self.helper.loaderDispatchHelper(self.store, Textures.fire);
+      },
+    );
+
     // Audio
     self.helper.setAudioToHeroHelper(self, Audios.wind);
     self.helper.setAudioToHeroHelper(self, Audios.steps);
@@ -140,6 +154,8 @@ export default class Assets {
           child.material = self.assets.getMaterial(Textures.glassspecial);
         } else if (child.name.includes(Textures.metall)) {
           child.material = self.assets.getMaterial(Textures.metall);
+        } else if (child.name.includes(Textures.fire)) {
+          child.material = self.assets.getMaterial(Textures.fire);
         }
       }
     });
@@ -157,6 +173,8 @@ export default class Assets {
         return this._concrette;
       case Textures.metall:
         return this._metall;
+      case Textures.fire:
+        return this._fire;
       case Textures.sand:
       default:
         return this._sand;
@@ -174,6 +192,8 @@ export default class Assets {
         return 8;
       case Textures.metall:
         return 2;
+      case Textures.fire:
+        return 4;
     }
     return 2;
   }
@@ -192,6 +212,11 @@ export default class Assets {
         return new THREE.MeshPhongMaterial({
           map: this.getTexture(name),
           color: Colors.ground,
+        });
+      case Textures.fire:
+        return new THREE.MeshPhongMaterial({
+          map: this.getTexture(name),
+          color: Colors.white,
         });
       case Textures.concrette:
         return new THREE.MeshPhongMaterial({
@@ -229,9 +254,9 @@ export default class Assets {
       case Audios.jumpend:
         return 0.4;
       case Audios.shot:
-        return 0.7;
+        return 0.3;
       case Audios.hit:
-        return 0.9;
+        return 0.8;
     }
     return DESIGN.DEFAULT_VOLUME;
   }

@@ -46,16 +46,19 @@ export default class Hero {
   private _weaponUpVelocity!: Vector3;
   private _weaponFire!: Object3D;
   private _opticalFire!: Object3D;
-  private _isFire = false;
   private _is = false;
   private _isPause = false;
   private _isHide = false;
   private _isRun = false;
   private _isTired = false;
+  private _isOptical = false;
   private _endurance!: number;
   private _enduranceClock!: Clock;
   private _isEnduranceRecoveryStart = false;
   private _enduranceTime = 0;
+  private _isFire = false;
+  private _isFireOff = false;
+  private _fireScale = 0;
 
   constructor() {
     this._velocity = new THREE.Vector3();
@@ -247,6 +250,47 @@ export default class Hero {
     }
   }
 
+  // Когда получен толчек извне
+  /* this.onShot = (scope, direction) => {
+    playerVelocity.add(direction.multiplyScalar(-1 * DESIGN.HERO.recoil.shot * scope.delta));
+  }; */
+
+  public shot(self: ISelf) {
+    self.audio.replayHeroSound(Audios.shot);
+    this._isOptical = self.store.getters['layout/isOptical'];
+
+    // Update fire;
+    this._isFire = true;
+    this._isFireOff = false;
+    this._fireScale = 0;
+    this._toggleFire(this._isOptical);
+
+    // recoil
+    if (this._isOptical)
+      this._velocity.add(
+        this._getForwardVector(self).multiplyScalar(
+          -1 * 60 * self.events.delta,
+        ),
+      );
+    else
+      this._velocity.add(
+        this._getForwardVector(self).multiplyScalar(
+          -1 * 30 * self.events.delta,
+        ),
+      );
+    this._weaponVelocity.add(
+      this._getForwardVector(self).multiplyScalar(
+        -1 * self.events.delta,
+      ),
+    );
+    this._weaponUpVelocity.add(
+      self.camera
+        .getWorldDirection(this._direction)
+        .normalize()
+        .multiplyScalar(-1 * self.events.delta),
+    );
+  }
+
   private _toggleFire(value: boolean): void {
     if (this._isFire) {
       if (!value) {
@@ -313,12 +357,63 @@ export default class Hero {
     }
   };
 
+  private _redrawFire(self: ISelf) {
+    if (!this._isFireOff) this._fireScale += self.events.delta * 50;
+    else this._fireScale -= self.events.delta * 50;
+
+    if (this._fireScale > 5) this._isFireOff = true;
+
+    if (!this._isOptical) {
+      if (this._fireScale >= 0) this._weaponFire.scale.set(this._fireScale, this._fireScale, this._fireScale);
+      if (this._fireScale >= 5) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._weaponFire.material.opacity = 1;
+      } else if (this._fireScale < 0) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._weaponFire.material.opacity = 0;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+      } else this._weaponFire.material.opacity = this._fireScale / 5;
+      this._weaponFire.rotateX(self.events.delta * -3);
+      this._weaponFire.rotateZ(self.events.delta * -3);
+      this._weaponFire.rotateY(self.events.delta * -3);
+    } else {
+      if (this._fireScale >= 0) this._opticalFire.scale.set(this._fireScale / 1.5, this._fireScale / 1.5, this._fireScale / 1.5);
+      if (this._fireScale >= 5) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._opticalFire.material.opacity = 1;
+      } else if (this._fireScale < 0) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._opticalFire.material.opacity = 0;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+      } else this._opticalFire.material.opacity = this._fireScale / 5;
+      this._opticalFire.rotateX(self.events.delta * -3);
+      this._opticalFire.rotateZ(self.events.delta * -3);
+      this._opticalFire.rotateY(self.events.delta * -3);
+    }
+
+    if (this._fireScale < 0) {
+      this._isFire = false;
+      this._isFireOff = false;
+      this._fireScale = 0;
+      this._weaponFire.visible = false;
+      this._opticalFire.visible = false;
+    }
+  }
+
   public animate(self: ISelf): void {
     this._endurance = self.store.getters['layout/endurance'];
     this._isHide = self.store.getters['layout/isHide'];
     this._isPause = self.store.getters['layout/isPause'];
     this._isRun = self.store.getters['layout/isRun'];
     this._isTired = self.store.getters['layout/isTired'];
+
+    if (this._isFire) this._redrawFire(self);
 
     // Усталость и ее восстановление
     if (

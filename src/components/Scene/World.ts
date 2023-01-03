@@ -1,14 +1,12 @@
 // Constants
-import { Names } from '@/utils/constants';
-
+import {Audios, Names} from '@/utils/constants';
 // Types
-import type { Group } from 'three';
-import type { ISelf } from '@/models/modules';
-
+import {Group} from 'three';
+import {ISelf} from '@/models/modules';
 // Modules
 import Atmosphere from '@/components/Scene/World/Atmosphere/Atmosphere';
 import Players from '@/components/Scene/World/Players';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import {GLTF} from 'three/examples/jsm/loaders/GLTFLoader';
 import Octree from '@/components/Scene/World/Math/Octree';
 
 export default class World {
@@ -57,7 +55,7 @@ export default class World {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public shot(self: ISelf): void {
-    console.log('shot!!! ');
+    this._players.shot(self);
   }
 
   public animate(self: ISelf): void {

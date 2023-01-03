@@ -68,6 +68,7 @@ export enum Textures {
   concrette = 'concrette',
   glassspecial = 'glassspecial',
   metall = 'metall',
+  fire = 'fire',
 }
 
 export enum Audios {
@@ -90,6 +91,7 @@ export enum Colors {
   concrette = 0xfedeaa,
   glassspecial = 0xffffff,
   metall = 0x666666,
+  fire = 0xff6666,
 }
 
 enum Breakpoints {

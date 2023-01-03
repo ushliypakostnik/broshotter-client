@@ -7,6 +7,7 @@ import type { Group } from 'three';
 import type Octree from '@/components/Scene/World/Math/Octree';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
+
 // Modules
 import Hero from '@/components/Scene/World/Hero/Hero';
 import Enemies from '@/components/Scene/World/Enemies/Enemies';
@@ -43,6 +44,10 @@ export default class Players {
         self.helper.loaderDispatchHelper(self.store, this.name, true);
       },
     );
+  }
+
+  public shot(self: ISelf) {
+    this._hero.shot(self);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
