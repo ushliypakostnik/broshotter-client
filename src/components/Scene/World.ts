@@ -2,37 +2,67 @@
 import { Names } from '@/utils/constants';
 
 // Types
-import type { ISelf, IAnimatedModule, IStaticModule } from '@/models/modules';
+import type { Group } from 'three';
+import type { ISelf } from '@/models/modules';
 
 // Modules
-import { AnimatedModule } from '@/models/modules';
-import Atmosphere from '@/components/Scene/Wolrd/Atmosphere/Atmosphere';
-import Enemies from '@/components/Scene/Wolrd/Enemies/Enemies';
+import Atmosphere from '@/components/Scene/World/Atmosphere/Atmosphere';
+import Players from '@/components/Scene/World/Players';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import Octree from '@/components/Scene/World/Math/Octree';
 
-class World extends AnimatedModule {
+export default class World {
+  public name = Names.world;
+
+  private _model!: Group;
+
   // Modules
-  private _athmosphere: IStaticModule;
-  private _enemies: IAnimatedModule;
+  private _athmosphere: Atmosphere;
+  private _players: Players;
+  private _octree!: Octree;
 
   constructor() {
-    super(Names.world);
+    // Scene
+    this._octree = new Octree();
 
     // Modules
     this._athmosphere = new Atmosphere();
-    this._enemies = new Enemies();
+    this._players = new Players();
   }
 
   public init(self: ISelf): void {
-    // Modules
-    this._athmosphere.init(self);
-    this._enemies.init(self);
+    self.assets.GLTFLoader.load(
+      `./images/models/${this.name}.glb`,
+      (model: GLTF) => {
+        self.helper.loaderDispatchHelper(self.store, this.name);
+
+        this._model = self.assets.traverseHelper(self, model).scene;
+
+        model.scene.position.y = -1.1;
+
+        // Создаем октодерево
+        this._octree.fromGraphNode(model.scene);
+
+        self.scene.add(model.scene);
+
+        // Modules
+        this._athmosphere.init(self);
+        this._players.init(self, this._octree);
+
+        self.render();
+        self.helper.loaderDispatchHelper(self.store, this.name, true);
+      },
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public shot(self: ISelf): void {
+    console.log('shot!!! ');
+  }
+
   public animate(self: ISelf): void {
     // Animated modules
-    this._enemies.animate(self);
+    this._athmosphere.animate(self);
+    this._players.animate(self);
   }
 }
-
-export default World;

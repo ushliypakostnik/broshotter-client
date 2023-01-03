@@ -301,6 +301,13 @@ export default class AudioBus {
     }
   }
 
+  // Переиграть звук на герое
+  public setPlaybackRateOnHeroSound(name: Audios, rate: number): void {
+    this._record = this._getRecordByName(name);
+    if (this._record && this._record.audio)
+      this._record.audio.setPlaybackRate(rate);
+  }
+
   // Запустить звук на объекте
   public startObjectSound(id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);

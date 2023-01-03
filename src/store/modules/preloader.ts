@@ -12,17 +12,32 @@ const initialState: IPreloader = {
   [`${FLAG}`]: false,
 
   // Textures
+  skyIsLoaded: false,
   sandIsLoaded: false,
+  groundIsLoaded: false,
+  concretteIsLoaded: false,
+  metallIsLoaded: false,
 
   // Models
   enemiesIsLoaded: false,
+  heroIsLoaded: false,
+  worldIsLoaded: false,
+  playersIsLoaded: false,
 
   // Audio
   windIsLoaded: false,
+  stepsIsLoaded: false,
+  jumpstartIsLoaded: false,
+  jumpendIsLoaded: false,
+  shotIsLoaded: false,
+  hitIsLoaded: false,
 
   // World build
   atmosphereIsBuild: false,
+  playersIsBuild: false,
+  heroIsBuild: false,
   enemiesIsBuild: false,
+  worldIsBuild: false,
 };
 
 const preloader: Module<IPreloader, IStore> = {

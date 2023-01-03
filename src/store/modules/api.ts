@@ -10,6 +10,16 @@ import type { IGameUpdates, IIndex } from '@/models/api';
 const initialState: IStoreModule = {
   game: null,
   updates: {},
+  hero: {
+    health: 100,
+
+    positionX: 0,
+    positionY: 30,
+    positionZ: 0,
+    directionX: 0.7,
+    directionY: 0.7,
+    directionZ: 0.7,
+  },
 };
 
 const api: Module<IStoreModule, IStore> = {
@@ -19,6 +29,7 @@ const api: Module<IStoreModule, IStore> = {
   getters: {
     game: (state: IStoreModule) => state.game,
     updates: (state: IStoreModule) => state.updates,
+    hero: (state: IStoreModule) => state.hero,
   },
 
   actions: {

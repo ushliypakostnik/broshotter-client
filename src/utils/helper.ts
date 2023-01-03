@@ -1,5 +1,5 @@
 // Modules Helper
-//////////////////////////////////////////////////////
+/////////////////////////////////////////////
 
 import * as THREE from 'three';
 
@@ -7,11 +7,12 @@ import * as THREE from 'three';
 import { Names, Textures, Audios } from '@/utils/constants';
 
 // Types
-import {
+import type {
   Texture,
   MeshStandardMaterial,
   PlaneBufferGeometry,
   BoxGeometry,
+  ConeGeometry,
 } from 'three';
 import type { Store } from 'vuex';
 import type { State } from '@/store';
@@ -26,7 +27,7 @@ export default class Helper {
   // Utils
   public material: MeshStandardMaterial = new THREE.MeshStandardMaterial();
   public map!: Texture;
-  public geometry!: PlaneBufferGeometry | BoxGeometry;
+  public geometry!: PlaneBufferGeometry | BoxGeometry | ConeGeometry;
 
   // Math
   ///////////////////////////////////////////////////////////
@@ -46,6 +47,10 @@ export default class Helper {
 
   public distance2D(x1: number, y1: number, x2: number, y2: number): number {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  }
+
+  public damping(delta: number): number {
+    return Math.exp(-3 * delta) - 1;
   }
 
   // Loading helpers
@@ -68,23 +73,6 @@ export default class Helper {
       });
   }
 
-  // Помощник загрузки и установки текстур
-  public setMapHelper(self: ISelf, name: Textures): Texture {
-    this._number = self.assets.getRepeatByName(name);
-    this.map = self.assets.textureLoader.load(
-      `./images/textures/${name}.jpg`,
-      () => {
-        self.render();
-        this.loaderDispatchHelper(self.store, name);
-      },
-    );
-    this.map.repeat.set(this._number, this._number);
-    this.map.wrapS = this.map.wrapT = THREE.RepeatWrapping;
-    this.map.encoding = THREE.sRGBEncoding;
-
-    return this.map;
-  }
-
   // Помощник загрузки звуков
   public setAudioToHeroHelper(self: ISelf, name: Audios): void {
     self.assets.audioLoader.load(`./audio/${name}.mp3`, (buffer) => {
@@ -92,38 +80,8 @@ export default class Helper {
       this.loaderDispatchHelper(self.store, name);
 
       // Ветер
-      if (name === Audios.wind) {
-        if (!self.store.getters['layout/isPause']) {
-          /* self.listener.context.resume().then(() => {
-            console.log('Playback resumed successfully');
-          }); */
-          self.audio.startHeroSound(Audios.wind);
-        }
-      }
+      if (name === Audios.wind && !self.store.getters['layout/isPause'])
+        self.audio.startHeroSound(Audios.wind);
     });
   }
-
-  /*
-  public traverseHelper(self: ISelf, model: GLTF, name: Names): GLTF {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    model.scene.traverse((child: any) => {
-      if (child.isMesh) {
-        if (child.name.includes(Textures.concrette)) {
-          child.material = self.assets.getMaterial(Textures.concrette);
-        } else if (child.name.includes(Textures.metall2)) {
-          child.material = self.assets.getMaterial(Textures.metall2);
-        } else if (child.name.includes(Textures.metall)) {
-          child.material = self.assets.getMaterial(Textures.metall);
-        } else if (child.name.includes(Textures.glass)) {
-          child.material = self.assets.getMaterial(Textures.glass);
-        } else if (child.name.includes(Textures.hole)) {
-          child.material = self.assets.getMaterial(Textures.hole);
-        } else if (child.name.includes(Textures.player)) {
-          child.material = self.assets.getMaterial(Textures.player);
-        }
-      }
-    });
-
-    return model;
-  } */
 }

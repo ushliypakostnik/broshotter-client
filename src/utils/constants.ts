@@ -10,7 +10,11 @@ import type { TConfig, TMessages } from '@/models/utils';
 export enum Names {
   // Modules
   world = 'world',
+
+  // Static
   atmosphere = 'atmosphere',
+
+  players = 'players',
   hero = 'hero',
   enemies = 'enemies',
 
@@ -58,18 +62,34 @@ export enum Motions {
 // GUI
 
 export enum Textures {
+  sky = 'sky',
   sand = 'sand',
+  ground = 'ground',
+  concrette = 'concrette',
+  glassspecial = 'glassspecial',
+  metall = 'metall',
 }
 
 export enum Audios {
   wind = 'wind',
+  steps = 'steps',
+  jumpstart = 'jumpstart',
+  jumpend = 'jumpend',
+  shot = 'shot',
+  hit = 'hit',
 }
 
 export enum Colors {
   white = 0xffffff,
   black = 0x000000,
-  blue = 0x77aaff,
   yellow = 0xfed564,
+
+  sun = 0xffff99,
+  sky = 0x77deac,
+  ground = 0xffffff,
+  concrette = 0xfedeaa,
+  glassspecial = 0xffffff,
+  metall = 0x666666,
 }
 
 enum Breakpoints {
@@ -93,7 +113,7 @@ export const LANGUAGES: string[] = [Languages.en, Languages.ru];
 
 // Тут главный размер, относительно которого все по ширине,
 // кроме того что должно быть адекватным росту по высоте
-export const GROUND = 4000;
+export const GROUND = 1500;
 export const size = (size: number): number => {
   return size * GROUND;
 };
@@ -104,12 +124,16 @@ export const DESIGN: TConfig = {
   BREAKPOINTS: Breakpoints,
   SIZE: size(1),
   CAMERA: {
-    fov: 70,
+    fov: 80,
     fog: 0xa48ed8,
   },
   MESSAGES_TIMEOUT: 3000, // ms
-  VOLUME: {
-    [Audios.wind]: 0.3,
+  DEFAULT_VOLUME: 0.3,
+  GAMEPLAY: {
+    PLAYER_SPEED: 30,
+    PLAYER_HEIGHT: 2,
+    JUMP: 15,
+    GRAVITY: 40,
   },
 };
 
@@ -163,6 +187,11 @@ export const MESSAGES: TMessages = {
     startbutton: 'Play',
     key1: 'Ecs - pause',
     copyright: '© Levon Gambaryan Bro Games',
+
+    hiddenMoveEnabled: 'You move in stealth mode',
+    hiddenMoveDisabled: 'Stealth mode disabled',
+    tired: 'Your is tired of running',
+    recovered: 'Your can run again',
   },
   [Languages.ru]: {
     enter: 'Играть',
@@ -174,5 +203,10 @@ export const MESSAGES: TMessages = {
     startbutton: 'Играть',
     key1: 'Ecs - пауза',
     copyright: '© Levon Gambaryan Bro Games',
+
+    hiddenMoveEnabled: 'Вы двигаетесь в скрытном режиме',
+    hiddenMoveDisabled: 'Скрытный режим отключен',
+    tired: 'Вы устали от бега',
+    recovered: 'Вы снова можете бегать',
   },
 };

@@ -19,6 +19,7 @@ export default class Events {
 
   constructor() {
     this._clock = new Clock(false);
+    this.delta = this._clock.getDelta();
     this._bus = [];
     this._id = 1;
   }
@@ -65,14 +66,13 @@ export default class Events {
 
     self.store
       .dispatch('layout/showMessage', { id: this._id, text })
-      .then(() => {
-        this.addEventsToBus(this._pause, this._id, (data) => {
-          self.store.dispatch('layout/hideMessage', data);
-        });
-      })
       .catch((error) => {
         console.log(error);
       });
+
+    this.addEventsToBus(this._pause, this._id, (data) => {
+      self.store.dispatch('layout/hideMessage', data);
+    });
   }
 
   public animate(): void {

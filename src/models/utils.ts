@@ -1,4 +1,4 @@
-import type { Audio, PositionalAudio } from 'three';
+import type { Audio, PositionalAudio, Vector3 } from 'three';
 
 export type TPosition = {
   x: number;
@@ -38,3 +38,10 @@ export type TPositionalAudio = {
   isLoop: boolean;
   audio?: PositionalAudio;
 };
+
+type TResultTrue = {
+  normal: Vector3;
+  point?: Vector3;
+  depth: number;
+};
+export type TResult = TResultTrue | false;

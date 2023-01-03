@@ -7,6 +7,25 @@
 
       <div class="layout__overlay" />
 
+      <div class="layout__background" />
+
+      <div class="layout__scales">
+        <Scale face="health" :progress="!isGameOver ? health : 0" />
+        <Scale
+          face="endurance"
+          :progress="endurance"
+          :lock="isTired && !isGameOver"
+          :not="isTired && !isGameOver"
+        />
+      </div>
+
+      <div class="layout__optical-preload" />
+      <div class="layout__optical" v-if="isOptical">
+        <div class="layout__optical--side" />
+        <div class="layout__optical--center" />
+        <div class="layout__optical--side" />
+      </div>
+
       <template v-if="!isGame">
         <div class="layout__blocker">
           <div class="layout__name">{{ $t('name') }}</div>
@@ -100,6 +119,7 @@ import Preloader from '@/components/Layout/Preloader.vue';
 import Gate from '@/components/Layout/Gate.vue';
 import Scene from '@/components/Scene/Scene.vue';
 import LangSwitch from '@/components/Layout/LangSwitch.vue';
+import Scale from '@/components/Layout/Scale.vue';
 
 export default defineComponent({
   name: 'Layout',
@@ -110,6 +130,7 @@ export default defineComponent({
     Scene,
     LangSwitch,
     Gate,
+    Scale,
   },
 
   setup() {
@@ -126,7 +147,12 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
     );
     const isGame = computed(() => store.getters['layout/isGame']);
+    const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
+    const health = computed(() => store.getters['api/health']);
+    const endurance = computed(() => store.getters['layout/endurance']);
+    const isOptical = computed(() => store.getters['layout/isOptical']);
+    const isTired = computed(() => store.getters['layout/isTired']);
     const messages = computed(() => store.getters['layout/messages']);
 
     onMounted(() => {
@@ -159,7 +185,12 @@ export default defineComponent({
       isBro,
       isGameLoaded,
       isGame,
+      isGameOver,
       isPause,
+      isOptical,
+      isTired,
+      health,
+      endurance,
       messages,
       play,
       enter,
@@ -209,8 +240,38 @@ export default defineComponent({
     background linear-gradient(0deg, rgba($colors.primary, $opacites.jazz) 0%, rgba($colors.ghost, $opacites.rock) 100%)
     z-index 500
 
+  &__background
+    @extend $viewport
+    background rgba(112, 66, 20, 0.1)
+    box-shadow inset 0 0 $gutter * 6 $colors.sea
+
+  &__optical
+    @extend $viewport
+    display flex
+    background-color rgba(255, 255, 255, 0.15)
+    transform scale(1.1, 1.1)
+
+    &--side
+      background $colors.cosmos
+      flex-grow 1
+      transform scale(1.1, 1.1)
+
+    &--center
+      flex-grow 0
+      background url("../../assets/optical.png") no-repeat center top
+      background-size cover
+      width 100vh
+      height 100vh
+
+    &-preload
+      position absolute
+      left 99999px
+      opacity 0
+      background url("../../assets/optical.png") no-repeat center top
+
   &__messages
     @extend $viewport
+    text-align left
     list-style none
     padding 0.5vw 1vw
     pointer-events none
@@ -261,4 +322,10 @@ export default defineComponent({
 
   &__copy
     margin-top $gutter * 2
+
+  &__scales
+    position absolute
+    bottom 10px
+    left 10px
+    width 15vw
 </style>
