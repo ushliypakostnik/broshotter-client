@@ -1,5 +1,7 @@
 import type { Text } from 'troika-three-text';
 
+import { AnimationAction, AnimationMixer } from 'three';
+
 // API Interfaces
 ///////////////////////////////////////////////////////
 // Тест REST API
@@ -56,8 +58,8 @@ export interface IExplosion extends IShot {
 
 export interface IExplosionThree extends IShot {
   mesh: string;
-  scale: number,
-  isOff: boolean,
+  scale: number;
+  isOff: boolean;
 }
 
 // Игрок
@@ -66,14 +68,24 @@ export interface IUser extends IMoveObject {
   id: string;
   name: string;
   animation: string;
+  isFire: boolean;
 }
 
 export interface IUserThree extends IUser {
   mesh: string;
   pseudo: string;
   scale: string;
+  weapon: string;
+  fire: string;
   text: typeof Text;
   isHide: boolean;
+  isRun: boolean;
+  mixer: AnimationMixer;
+  prevAction: AnimationAction;
+  nextAction: AnimationAction;
+  isFire: boolean;
+  isFireOff: boolean;
+  fireScale: number;
 }
 
 // Обновления игрока

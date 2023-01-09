@@ -27,30 +27,27 @@ export enum Modes {
   dead = 'dead',
 }
 
-export enum Motions {
-  // Idle mode
-  idle = 'idle',
-  sad = 'sad',
-  guitar = 'guitar',
-
-  // Active mode
+export enum Animations {
   // Stand
-  standdisturbed = 'standdisturbed',
-  standwalking = 'standwalking',
-  standbackwalking = 'standbackwalking',
+  stand = 'stand',
+  standforward = 'standforward',
+  standback = 'standback',
+  standleft = 'standleft',
+  standright = 'standright',
   run = 'run',
 
   // Hide
-  hidedisturbed = 'hidedisturbed',
-  hidewalking = 'hidewalking',
-  hidebackwalking = 'hidebackwalking',
+  hide = 'hide',
+  hideback = 'hideback',
+  hideleft = 'hideleft',
+  hideright = 'hideright',
+  hideforward = 'hideforward',
 
   // Fire
-  firedisturbed = 'firedisturbed',
-  firewalking = 'firewalking',
-  firerun = 'firerun',
-  firehidedisturbed = 'firehidedisturbed',
-  firehidewalking = 'firehidewalking',
+  firestand = 'firestand',
+  firestandforward = 'firestandforward',
+  firehide = 'firehide',
+  firehideforward = 'firehideforward',
 
   // Others
   hit = 'hit',

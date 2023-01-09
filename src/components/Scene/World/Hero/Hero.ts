@@ -841,6 +841,7 @@ export default class Hero {
           directionZ: this._direction.z,
 
           animation: this._animation,
+          isFire: this._isFire,
         },
       });
 

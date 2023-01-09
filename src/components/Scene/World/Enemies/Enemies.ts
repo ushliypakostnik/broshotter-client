@@ -1,29 +1,24 @@
 import * as THREE from 'three';
+import {AnimationAction, AnimationMixer, Group, Mesh, Object3D, Vector3} from 'three';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { clone } from '@/components/Scene/World/Math/SkeletonUtils.js';
-import { Text } from 'troika-three-text';
-
+import {clone} from '@/components/Scene/World/Math/SkeletonUtils.js';
+import {Text} from 'troika-three-text';
 // Types
-import type { ISelf } from '@/models/modules';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import type { AnimationAction, AnimationMixer, Group, Mesh } from 'three';
-
+import {ISelf} from '@/models/modules';
+import {GLTF} from 'three/examples/jsm/loaders/GLTFLoader';
 // Constants
-import { Names, Textures, DESIGN } from '@/utils/constants';
-
+import {Animations, DESIGN, Names, Textures} from '@/utils/constants';
 // Modules
 import Octree from '@/components/Scene/World/Math/Octree';
-import { IUser, IUserThree } from '@/models/api';
-import { Vector3 } from 'three';
+import {IUser, IUserThree} from '@/models/api';
 
 export default class Enemies {
   public name = Names.enemies;
 
+  private _gltf!: GLTF;
   private _model!: Group;
   private _modelClone!: Group;
-  // private _mixer!: AnimationMixer;
-  // private _action!: AnimationAction;
   private _pseudo!: Mesh;
   private _pseudoClone!: Mesh;
   private _group!: Group;
@@ -36,39 +31,26 @@ export default class Enemies {
   private _name!: Text;
   private _isHide = false;
   private _isRun = false;
+  private _isNotJump = false;
+  private _isForward = false;
+  private _isBackward = false;
+  private _isLeft = false;
+  private _isRight = false;
   private _isFire = false;
   private _user!: IUser;
   private _userThree!: IUserThree;
   private _target!: Vector3;
   private _direction = new THREE.Vector3();
   private _speed!: number;
+  private _weapon!: Group;
+  private _weaponClone!: Group;
+  private _weaponFire!: Object3D;
+  private _animation!: string;
 
   private _list: IUserThree[];
   private _listNew: IUserThree[];
 
-  // Animations
-  private _animation!: string;
-  private _dead!: AnimationAction;
-  private _hide!: AnimationAction;
-  private _hideback!: AnimationAction;
-  private _hideleft!: AnimationAction;
-  private _hideright!: AnimationAction;
-  private _hideforward!: AnimationAction;
-  private _hit!: AnimationAction;
-  private _stand!: AnimationAction;
-  private _standforward!: AnimationAction;
-  private _standback!: AnimationAction;
-  private _standleft!: AnimationAction;
-  private _standright!: AnimationAction;
-  private _jump!: AnimationAction;
-  private _run!: AnimationAction;
-  private _firestand!: AnimationAction;
-  private _firestandforward!: AnimationAction;
-  private _firehide!: AnimationAction;
-  private _firehideforward!: AnimationAction;
-
-  private _prevAction!: AnimationAction;
-  private _nextAction!: AnimationAction;
+  private _mixer!: AnimationMixer;
 
   constructor() {
     this._group = new THREE.Group();
@@ -85,7 +67,9 @@ export default class Enemies {
       (model: GLTF) => {
         self.helper.loaderDispatchHelper(self.store, this.name);
 
-        this._model = model.scene;
+        this._gltf = model;
+
+        this._model = this._gltf.scene;
         this._model.traverse((child: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -93,11 +77,6 @@ export default class Enemies {
             child.castShadow = true;
           }
         });
-
-        // this._mixer = new THREE.AnimationMixer(this._model);
-        // this._action = this._mixer.clipAction(model.animations[13]);
-        // this._action.play();
-
         this._model.rotation.y = Math.PI / 2;
         this._model.name = this.name;
 
@@ -116,6 +95,9 @@ export default class Enemies {
           scaleGeometry,
           self.assets.getMaterial(Textures.scale),
         );
+
+        this._weapon = weapon.clone();
+        this._weapon.scale.set(0.03, 0.03, 0.03);
 
         self.helper.loaderDispatchHelper(self.store, this.name, true);
       },
@@ -145,7 +127,7 @@ export default class Enemies {
     this._modelClone = clone(this._model);
 
     this._pseudoClone = this._pseudo.clone();
-    if (this._isHide) this._pseudoClone.scale.set(1, 0.5, 1);
+    if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
     else this._pseudoClone.scale.set(1, 1, 1);
 
     this._scaleClone = this._scale.clone();
@@ -167,20 +149,39 @@ export default class Enemies {
     // @ts-ignore
     self.scene.add(this._name);
 
+    this._weaponClone = this._weapon.clone();
+    this._weaponClone.traverse((child: Object3D) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (child.isMesh && child.name.includes('fire')) {
+        this._weaponFire = child;
+        this._weaponFire.visible = false;
+      }
+    });
+
+    this._mixer = new THREE.AnimationMixer(this._modelClone);
     this._userThree = {
       ...player,
       mesh: this._modelClone.uuid,
       pseudo: this._pseudoClone.uuid,
       scale: this._scaleClone.uuid,
+      weapon: this._weaponClone.uuid,
+      fire: this._weaponFire.uuid,
       text: this._name,
       isHide: this._isHide,
+      mixer: this._mixer,
+      prevAction: this._getAnimation(this._mixer, player.animation as Animations),
+      nextAction: this._getAnimation(this._mixer, player.animation as Animations),
+      isFire: false,
+      isFireOff: false,
+      fireScale: 0,
     };
-    this._list.push(this._userThree);
+    this._userThree.prevAction.play();
     self.scene.add(this._modelClone);
     self.scene.add(this._pseudoClone);
     self.scene.add(this._scaleClone);
-
-    this._animatePlayer(self, this._userThree);
+    self.scene.add(this._weaponClone);
+    this._list.push(this._userThree);
   }
 
   private _removePlayer(self: ISelf, player: IUserThree): void {
@@ -193,15 +194,6 @@ export default class Enemies {
       this._updateOctree2(self);
       this._time = 0;
     }
-
-    /* if (this._pseudo && this._model)
-      this._pseudo.position.set(
-        this._model.position.x,
-        this._model.position.y + DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.1,
-        this._model.position.z,
-      );
-
-    if (this._mixer) this._mixer.update(self.events.delta); */
 
     if (
       self.store.getters['api/game'] &&
@@ -241,64 +233,63 @@ export default class Enemies {
     }
   }
 
-  private _redrawFire(self: ISelf) {
-    /*
-    if (!this._isFireOff) this._fireScale += self.events.delta * 50;
-    else this._fireScale -= self.events.delta * 50;
+  private _redrawFire(self: ISelf, user: IUserThree) {
+    if (!user.isFireOff) user.fireScale += self.events.delta * 50;
+    else user.fireScale -= self.events.delta * 50;
 
-    if (this._fireScale > 5) this._isFireOff = true;
+    if (user.fireScale > 5) user.isFireOff = true;
 
-    if (this._fireScale >= 0)
-      this._weaponFire.scale.set(
-        this._fireScale * 1.5,
-        this._fireScale * 1.5,
-        this._fireScale * 1.5,
-      );
-    if (this._fireScale >= 5) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._modelWeaponFire.material.opacity = 1;
-    } else if (this._fireScale < 0) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._modelWeaponFire.material.opacity = 0;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    } else this._modelWeaponFire.material.opacity = this._fireScale / 5;
-    this._modelWeaponFire.rotateX(self.events.delta * -3);
-    this._modelWeaponFire.rotateZ(self.events.delta * -3);
-    this._modelWeaponFire.rotateY(self.events.delta * -3);
+    this._weaponFire = self.scene.getObjectByProperty(
+      'uuid',
+      user.fire,
+    ) as Mesh;
+    if (this._weaponFire) {
+      if (user.fireScale >= 0)
+        this._weaponFire.scale.set(
+          user.fireScale * 1.5,
+          user.fireScale * 1.5,
+          user.fireScale * 1.5,
+        );
+      if (user.fireScale >= 5) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._weaponFire.material.opacity = 1;
+      } else if (user.fireScale < 0) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._weaponFire.material.opacity = 0;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+      } else this._weaponFire.material.opacity = user.fireScale / 5;
+      this._weaponFire.rotateX(self.events.delta * -3);
+      this._weaponFire.rotateZ(self.events.delta * -3);
+      this._weaponFire.rotateY(self.events.delta * -3);
 
-    if (this._fireScale >= 0)
-      this._weaponFire.scale.set(
-        this._fireScale,
-        this._fireScale,
-        this._fireScale,
-      );
-    if (this._fireScale >= 5) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._weaponFire.material.opacity = 1;
-    } else if (this._fireScale < 0) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._weaponFire.material.opacity = 0;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    } else this._weaponFire.material.opacity = this._fireScale / 5;
-    this._weaponFire.rotateX(self.events.delta * -3);
-    this._weaponFire.rotateZ(self.events.delta * -3);
-    this._weaponFire.rotateY(self.events.delta * -3);
-
-    if (this._fireScale < 0) {
-      this._isFire = false;
-      this._isFireOff = false;
-      this._fireScale = 0;
-      this._weaponFire.visible = false;
-      this._opticalFire.visible = false;
-      this._modelWeaponFire.visible = false;
-    } */
+      if (user.fireScale < 0) {
+        user.isFire = false;
+        user.isFireOff = false;
+        user.fireScale = 0;
+        this._weaponFire.visible = false;
+      }
+    }
   }
+
+  private _getForwardVectorFromObject(obj: Object3D): Vector3 {
+    obj.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+
+    return this._direction;
+  }
+
+  private _getSideVectorFromObject = (obj: Object3D) => {
+    obj.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+    this._direction.cross(obj.up);
+
+    return this._direction;
+  };
 
   private _animatePlayer(self: ISelf, user: IUserThree) {
     this._user = self.store.getters['api/game'].users.find(
@@ -306,11 +297,35 @@ export default class Enemies {
     );
     if (this._user && user.animation) {
       user.animation = this._user.animation;
-      this._isFire = user.animation.includes('fire');
+      this._isFire = this._user.isFire;
       this._isHide = user.animation.includes('hide');
       this._isRun = user.animation.includes('run');
+      this._isNotJump = !user.animation.includes('jump');
+      this._isForward = user.animation.includes('forward');
+      this._isBackward = user.animation.includes('back');
+      this._isLeft = user.animation.includes('left');
+      this._isRight = user.animation.includes('right');
 
-      if (this._isFire) this._redrawFire(self);
+      if (this._isFire !== user.isFire) {
+        this._weaponFire = self.scene.getObjectByProperty(
+          'uuid',
+          user.fire,
+        ) as Mesh;
+        if (this._weaponFire) {
+          if (this._isFire) {
+            user.isFireOff = false;
+            user.fireScale = 0;
+            this._weaponFire.visible = true;
+          } else {
+            user.isFire = false;
+            user.isFireOff = false;
+            user.fireScale = 0;
+            this._weaponFire.visible = false;
+          }
+        }
+        user.isFire = this._isFire;
+      }
+      if (this._isFire) this._redrawFire(self, user);
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -319,13 +334,49 @@ export default class Enemies {
         user.mesh,
       ) as Mesh;
 
+      if (this._modelClone) {
+        if (!this._isHide && this._isRun !== user.isRun) {
+          if (this._isRun)
+            user.nextAction = this._getAnimation(
+              user.mixer,
+              Animations.run,
+            );
+          else user.nextAction = this._getMove(user.mixer);
+          user.isRun = this._isRun;
+        } else {
+          if (!this._isNotJump)
+            user.nextAction = this._getAnimation(
+              user.mixer,
+              Animations.jump,
+            );
+          else {
+            if (this._isRun)
+              user.nextAction = this._getAnimation(
+                user.mixer,
+                Animations.run,
+              );
+            else
+              user.nextAction = this._getMove(user.mixer);
+          }
+        }
+
+        console.log('AAAAAAAAAAAAA', user.name, user.animation, user.prevAction, user.nextAction);
+        if (user.prevAction !== user.nextAction) {
+          user.prevAction.fadeOut(0.25);
+          user.nextAction.reset().fadeIn(0.25).play();
+          user.prevAction = user.nextAction;
+        }
+
+        user.mixer.update(self.events.delta);
+      }
+
       this._pseudoClone = self.scene.getObjectByProperty(
         'uuid',
         user.pseudo,
       ) as Mesh;
       if (this._pseudoClone) {
         if (this._isHide !== user.isHide) {
-          if (this._isHide) this._pseudoClone.scale.set(1, 0.5, 1);
+          if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
           else this._pseudoClone.scale.set(1, 1, 1);
           user.isHide = this._isHide;
         }
@@ -358,8 +409,8 @@ export default class Enemies {
         this._modelClone.position.x,
         this._modelClone.position.y +
           (!this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2
-            : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.5),
+            ? DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.1
+            : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.4),
         this._modelClone.position.z,
       );
 
@@ -407,6 +458,174 @@ export default class Enemies {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this._name.position.z = this._modelClone.position.z;
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this._weaponClone = self.scene.getObjectByProperty(
+        'uuid',
+        user.weapon,
+      ) as Mesh;
+      if (this._weaponClone) {
+        this._weaponClone.position.copy(this._modelClone.position);
+        this._weaponClone.rotation.y = -1 * this._modelClone.rotation.y;
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._animation = user.nextAction['_clip'].name;
+        if (this._animation === 'jump') {
+          this._weaponClone.position.add(
+            this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
+              -0.3,
+            ),
+          );
+          this._weaponClone.position.y += 1.8;
+        } else if (this._animation === 'stand') {
+          this._weaponClone.position
+            .add(
+              this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
+                -0.2,
+              ),
+            )
+            .add(
+              this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
+                -0.1,
+              ),
+            );
+          if (this._animation.includes('fire'))
+            this._weaponClone.position.y += 1.5;
+          else this._weaponClone.position.y += 1.28;
+          this._weaponClone.rotation.y -= 1.2;
+        } else if (this._animation.includes('hide')) {
+          if (
+            this._animation === 'hide' ||
+            this._animation === 'firehide'
+          ) {
+            this._weaponClone.position
+              .add(
+                this._getForwardVectorFromObject(
+                  this._weaponClone,
+                ).multiplyScalar(
+                  this._animation === 'firehide' ? -0.3 : -0.2,
+                ),
+              )
+              .add(
+                this._getSideVectorFromObject(this._weaponClone)
+                  .negate()
+                  .multiplyScalar(0.25),
+              );
+            this._weaponClone.position.y +=
+              this._animation === 'firehide' ? 0.95 : 0.9;
+          } else {
+            this._weaponClone.position
+              .add(
+                this._getForwardVectorFromObject(
+                  this._weaponClone,
+                ).multiplyScalar(-0.4),
+              )
+              .add(
+                this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
+                  this._isBackward ? 0 : 0.1,
+                ),
+              );
+            this._weaponClone.position.y += 1.2;
+          }
+        } else {
+          this._weaponClone.position
+            .add(
+              this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
+                -0.2,
+              ),
+            )
+            .add(
+              this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
+                -0.15,
+              ),
+            );
+          this._weaponClone.position.y +=
+            this._isForward || this._isBackward
+              ? 1.45
+              : this._animation.includes('fire')
+              ? 1.5
+              : 1.3;
+        }
+      }
     }
+  }
+
+  private _getMove(mixer: AnimationMixer): AnimationAction {
+    if (this._isHide) {
+      if (this._isForward) {
+        if (this._isFire)
+          return this._getAnimation(mixer, Animations.firehideforward);
+        else return this._getAnimation(mixer, Animations.hideforward);
+      } else if (this._isBackward)
+        return this._getAnimation(mixer, Animations.hideback);
+      else if (this._isLeft)
+        return this._getAnimation(mixer, Animations.hideleft);
+      else if (this._isRight)
+        return this._getAnimation(mixer, Animations.hideright);
+      if (this._isFire)
+        return this._getAnimation(mixer, Animations.firehide);
+      else return this._getAnimation(mixer, Animations.hide);
+    } else {
+      if (this._isForward) {
+        if (this._isFire)
+          return this._getAnimation(mixer, Animations.firestandforward);
+        else return this._getAnimation(mixer, Animations.standforward);
+      } else if (this._isBackward)
+        return this._getAnimation(mixer, Animations.standback);
+      else if (this._isLeft)
+        return this._getAnimation(mixer, Animations.standleft);
+      else if (this._isRight)
+        return this._getAnimation(mixer, Animations.standright);
+    }
+    if (this._isFire)
+      return this._getAnimation(mixer, Animations.firestand);
+    return this._getAnimation(mixer, Animations.stand);
+  }
+
+  private _getAnimation(
+    mixer: AnimationMixer,
+    name: Animations,
+  ): AnimationAction {
+    switch (name) {
+      case Animations.dead:
+        return mixer.clipAction(this._gltf.animations[0]);
+      case Animations.hide:
+        return mixer.clipAction(this._gltf.animations[5]);
+      case Animations.hideback:
+        return mixer.clipAction(this._gltf.animations[6]);
+      case Animations.hideleft:
+        return mixer.clipAction(this._gltf.animations[8]);
+      case Animations.hideright:
+        return mixer.clipAction(this._gltf.animations[9]);
+      case Animations.hideforward:
+        return mixer.clipAction(this._gltf.animations[7]);
+      case Animations.hit:
+        return mixer.clipAction(this._gltf.animations[10]);
+      case Animations.stand:
+        return mixer.clipAction(this._gltf.animations[13]);
+      case Animations.standforward:
+        return mixer.clipAction(this._gltf.animations[15]);
+      case Animations.standback:
+        return mixer.clipAction(this._gltf.animations[14]);
+      case Animations.standleft:
+        return mixer.clipAction(this._gltf.animations[16]);
+      case Animations.standright:
+        return mixer.clipAction(this._gltf.animations[17]);
+      case Animations.jump:
+        return mixer.clipAction(this._gltf.animations[11]);
+      case Animations.run:
+        return mixer.clipAction(this._gltf.animations[12]);
+      case Animations.firestand:
+        return mixer.clipAction(this._gltf.animations[3]);
+      case Animations.firestandforward:
+        return mixer.clipAction(this._gltf.animations[4]);
+      case Animations.firehide:
+        return mixer.clipAction(this._gltf.animations[1]);
+      case Animations.firehideforward:
+        return mixer.clipAction(this._gltf.animations[2]);
+    }
+    return mixer.clipAction(this._gltf.animations[13]);
   }
 }
