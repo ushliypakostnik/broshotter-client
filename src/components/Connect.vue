@@ -38,18 +38,54 @@ export default {
       emitter.emit(EmitterEvents.setNewPlayer, id);
     },
 
+    // Подтверждение старого игрока
+    onUpdatePlayer: () => {
+      console.log('Connect sockets onUpdatePlayer');
+      emitter.emit(EmitterEvents.onUpdatePlayer);
+    },
+
+    // Реакция на заход в игру
+    onEnter: (id) => {
+      console.log('Connect sockets onEnter', id);
+      emitter.emit(EmitterEvents.onEnter, id);
+    },
+
     // Пришло обновление
     updateToClients: (game) => {
       // console.log('Connect sockets updateToClients', game);
       emitter.emit(EmitterEvents.updateToClients, game);
     },
+
+    // Реакция на ответ на выстрел
+    onShot: (shot) => {
+      // console.log('Connect sockets onShot', shot);
+      emitter.emit(EmitterEvents.onShot, shot);
+    },
+
+    // Реакция на ответ на удаление выстрела
+    onUnshot: (id) => {
+      // console.log('Connect sockets onUnshot', id);
+      emitter.emit(EmitterEvents.onUnshot, id);
+    },
+
+    // Реакция на ответ на взрыв
+    onExplosion: (message) => {
+      // console.log('Connect sockets onExplosion', message);
+      emitter.emit(EmitterEvents.onUnshot, message.id);
+      emitter.emit(EmitterEvents.onExplosion, message);
+    },
   },
 
   computed: {
     ...mapGetters({
-      id: 'persist/id',
-      isGame: 'layout/isGame',
+      game: 'api/game',
       updates: 'api/updates',
+
+      id: 'layout/id',
+      name: 'layout/name',
+      isHide: 'layout/isHide',
+      isRun: 'layout/isRun',
+      isPause: 'layout/isPause',
     }),
   },
 
@@ -61,21 +97,42 @@ export default {
       this.onConnect(game);
     });
 
-    // Реагировать на обновления
-    this.emitter.on(EmitterEvents.updateToClients, (game) => {
-      // console.log('Connect created updateToClients', game);
-      this.updateToClients(game);
-    });
-
     // Реагировать на установку нового игрока
     this.emitter.on(EmitterEvents.setNewPlayer, (id) => {
       // console.log('Connect created setNewPlayer', id);
       this.setNewPlayer(id);
     });
 
+    // Реагировать на подтверждение старого игрока
+    this.emitter.on(EmitterEvents.onUpdatePlayer, () => {
+      // console.log('Connect created onUpdatePlayer');
+      this.onUpdatePlayer();
+    });
+
+    // Реагировать на отклик о входе в игру
+    this.emitter.on(EmitterEvents.onEnter, (id) => {
+      // console.log('Connect created onEnter', id);
+      this.onEnter();
+    });
+
+    // Реагировать на вход нового игрока
+    this.emitter.on(EmitterEvents.enter, (name) => {
+      // console.log('Connect created enter', id);
+      this.$socket.emit(EmitterEvents.enter, {
+        id: this.id,
+        name,
+      });
+    });
+
+    // Реагировать на обновления
+    this.emitter.on(EmitterEvents.updateToClients, (game) => {
+      // console.log('Connect created updateToClients', game);
+      this.updateToClients(game);
+    });
+
     // Отправить обновления
     this.emitter.on(EmitterEvents.updateToServer, (updates) => {
-      console.log('Connect created updateToServer', updates);
+      // console.log('Connect created updateToServer', updates);
       this.sendUpdates(updates);
     });
 
@@ -83,6 +140,24 @@ export default {
     this.timeout = setInterval(() => {
       this.sendUpdates(this.getUpdates());
     }, process.env.VUE_APP_TIMEOUT || 75);
+
+    // Реагировать на выстрел
+    this.emitter.on(EmitterEvents.shot, (shot) => {
+      // console.log('Connect created shot', shot);
+      this.shot(shot);
+    });
+
+    // Реагировать на удаление выстрела
+    this.emitter.on(EmitterEvents.unshot, (id) => {
+      // console.log('Connect created unshot', id);
+      this.unshot(id);
+    });
+
+    // Реагировать на взрыв
+    this.emitter.on(EmitterEvents.explosion, (message) => {
+      // console.log('Connect created explosion', message);
+      this.explosion(message);
+    });
   },
 
   beforeDestroy() {
@@ -92,7 +167,6 @@ export default {
   methods: {
     ...mapActions({
       setApiState: 'api/setApiState',
-      setPersistState: 'persist/setPersistState',
       setLayoutState: 'layout/setLayoutState',
     }),
 
@@ -104,10 +178,42 @@ export default {
     // Реагировать на установку нового игрока
     setNewPlayer(player) {
       console.log('Connect setNewPlayer', player);
-      this.setPersistState({
+      this.setLayoutState({
         field: 'id',
         value: player.id,
       });
+    },
+
+    // Заход в игру
+    onEnter() {
+      setTimeout(() => {
+        // Проверяем есть ли имя у юзера (не пускаем в игру без имени)
+        if (this.game.users && this.game.users.length) {
+          const item = this.game.users.find((player) => player.id === this.id);
+          if (item && item.name) {
+            this.setLayoutState({
+              field: 'isPause',
+              value: false,
+            }).then(() => {
+              this.setApiState({
+                field: 'isEnter',
+                value: true,
+              });
+            });
+          }
+        }
+      }, process.env.VUE_APP_TIMEOUT || 25);
+    },
+
+    // Подтверждение старого игрока
+    onUpdatePlayer() {
+      const item = this.game.users.find((player) => player.id === this.id);
+      if (this.name && item && item.name && this.name === item.name) {
+        this.setApiState({
+          field: 'isEnter',
+          value: true,
+        });
+      }
     },
 
     // Постоянные на обновления от сервера
@@ -116,16 +222,6 @@ export default {
       this.setApiState({
         field: 'game',
         value: game,
-      }).then(() => {
-        // Проверяем есть ли имя у юзера (не пускаем в игру без имени)
-        if (!this.isGame && game.users && game.users.length) {
-          const item = game.users.find((player) => player.id === this.id);
-          if (item && item.updates && item.updates.name)
-            this.setLayoutState({
-              field: 'isGame',
-              value: true,
-            });
-        }
       });
     },
 
@@ -136,15 +232,35 @@ export default {
 
     // Отправить обновления серверу
     sendUpdates(updates) {
-      this.setApiState({
-        field: 'updates',
-        value: null,
-      }).then(() => {
-        this.$socket.emit(EmitterEvents.updateToServer, {
-          id: this.id,
-          updates,
+      if (!this.isPause) {
+        this.setApiState({
+          field: 'updates',
+          value: {},
+        }).then(() => {
+          this.$socket.emit(EmitterEvents.updateToServer, {
+            id: this.id,
+            ...updates,
+          });
         });
-      });
+      }
+    },
+
+    // Выстрел
+    shot(shot) {
+      // console.log('Connect shot()', shot);
+      this.$socket.emit(EmitterEvents.shot, shot);
+    },
+
+    // Выстрел улетел
+    unshot(id) {
+      // console.log('Connect unshot()', id);
+      this.$socket.emit(EmitterEvents.unshot, id);
+    },
+
+    // Взрыв
+    explosion(message) {
+      // console.log('Connect explosion()', message);
+      this.$socket.emit(EmitterEvents.explosion, message);
     },
   },
 };

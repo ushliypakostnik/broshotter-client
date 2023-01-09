@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 // Constants
-import { Colors, Audios /* NOT_START_AUDIOS */ } from '@/utils/constants';
+import {Colors, Audios, Names /* NOT_START_AUDIOS */} from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
@@ -12,6 +12,8 @@ import type { TAudio, TPositionalAudio } from '@/models/utils';
 import type { Audio, PositionalAudio, Mesh, Group } from 'three';
 
 export default class AudioBus {
+  public name = Names.audio;
+
   private _bus!: Array<TAudio>;
   private _bus2!: Array<TPositionalAudio>;
   private _heroSound!: Mesh;
@@ -43,6 +45,8 @@ export default class AudioBus {
     );
     this._heroSound.visible = false;
     self.scene.add(this._heroSound);
+
+    self.helper.loaderDispatchHelper(self.store, this.name, true);
   }
 
   // Добавить трек на шину
@@ -224,6 +228,7 @@ export default class AudioBus {
     if (this._record) this._record.audio = this._positionalAudio;
 
     this._item = self.scene.getObjectByProperty('uuid', id) as Mesh;
+
     this._item.add(this._positionalAudio);
 
     this._positionalAudio.play();

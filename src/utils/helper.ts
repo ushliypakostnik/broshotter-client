@@ -17,6 +17,7 @@ import type {
 import type { Store } from 'vuex';
 import type { State } from '@/store';
 import type { ISelf } from '@/models/modules';
+import type { TPosition, TPositions } from '@/models/utils';
 
 export default class Helper {
   // Private working variables
@@ -24,10 +25,17 @@ export default class Helper {
   private _is = false;
   private _string = '';
 
+  // Loaders
+  public textureLoader: THREE.TextureLoader;
+
   // Utils
   public material: MeshStandardMaterial = new THREE.MeshStandardMaterial();
   public map!: Texture;
   public geometry!: PlaneBufferGeometry | BoxGeometry | ConeGeometry;
+
+  constructor() {
+    this.textureLoader = new THREE.TextureLoader();
+  }
 
   // Math
   ///////////////////////////////////////////////////////////
@@ -49,12 +57,84 @@ export default class Helper {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
   }
 
+  public degreesToRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
+  }
+
+  public radiansToDegrees(radians: number): number {
+    return radians * (180 / Math.PI);
+  }
+
   public damping(delta: number): number {
     return Math.exp(-3 * delta) - 1;
   }
 
+  public getRandomPosition(
+    centerX: number,
+    centerZ: number,
+    radius: number,
+    isSafeCenter: boolean,
+  ): TPosition {
+    const safe = isSafeCenter ? 16 : 8;
+    const a = this.plusOrMinus();
+    const b = this.plusOrMinus();
+    return {
+      x: Math.round(centerX + Math.random() * a * radius) + safe * a,
+      z: Math.round(centerZ + Math.random() * b * radius) + safe * b,
+    };
+  }
+
+  private _isBadPosition(
+    positions: TPositions,
+    position: TPosition,
+    distance: number,
+  ): boolean {
+    return !!positions.find(
+      (place: TPosition) =>
+        this.distance2D(place.x, place.z, position.x, position.z) < distance,
+    );
+  }
+
+  public getUniqueRandomPosition(
+    positions: TPositions,
+    centerX: number,
+    centerZ: number,
+    distance: number,
+    radius: number,
+    isSafeCenter: boolean,
+  ): TPosition {
+    let position: TPosition = this.getRandomPosition(
+      centerX,
+      centerZ,
+      radius,
+      isSafeCenter,
+    );
+    while (this._isBadPosition(positions, position, distance)) {
+      position = this.getRandomPosition(centerX, centerZ, radius, isSafeCenter);
+    }
+    return position;
+  }
+
   // Loading helpers
   ///////////////////////////////////////////////////////////
+
+  // Помощник загрузки текстур
+  public textureLoaderHelper(self: ISelf, name: Textures): Texture {
+    return this.textureLoader.load(
+      `./images/textures/${name}.jpg`,
+      (map: Texture) => {
+        this._number = self.assets.getRepeatByName(name);
+        map.repeat.set(this._number, this._number);
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.encoding = THREE.sRGBEncoding;
+
+        self.render();
+        this.loaderDispatchHelper(self.store, name);
+
+        return map;
+      },
+    );
+  }
 
   // Помощник прелодера
   public loaderDispatchHelper(
@@ -66,7 +146,7 @@ export default class Helper {
     store
       .dispatch('preloader/preloadOrBuilt', this._string)
       .then(() => {
-        store.dispatch('preloader/isAllLoadedAndBuilt');
+        store.dispatch('preloader/isAllLoadedAndBuild');
       })
       .catch((error) => {
         console.log(error);

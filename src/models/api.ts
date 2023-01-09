@@ -1,3 +1,5 @@
+import type { Text } from 'troika-three-text';
+
 // API Interfaces
 ///////////////////////////////////////////////////////
 // Тест REST API
@@ -7,39 +9,80 @@ export interface IIndex {
 
 // Websockets
 export enum EmitterEvents {
-  onConnect = 'onConnect', // Ответ сервера на соединение
+  onConnect = 'onConnect', // На присоединение пользователя
   onOnConnect = 'onOnConnect', // Ответ клиента серверу на соединение
   setNewPlayer = 'setNewPlayer', // Установить нового игрока
-  updateToClients = 'updateToClients', // Ответ сервера на соединение
+  onUpdatePlayer = 'onUpdatePlayer', // Подтвердить нового игрока
+  enter = 'enter', // Назваться и зайти в игру
+  onEnter = 'onEnter', // Отклик сервера о заходе
+
+  updateToClients = 'updateToClients', // Постоянные обновления клиентам
   updateToServer = 'updateToServer', // Пришло обновление от клиента
+
+  shot = 'shot', // Выстрел
+  onShot = 'onShot', // На выстрел
+  unshot = 'unshot', // Удаление выстрела
+  onUnshot = 'onUnshot', // На удаление выстрела
+  explosion = 'explosion', // На взрыв
+  onExplosion = 'onExplosion', // На ответ взрыв
+}
+
+// Движущийся объект принадлежащий игроку (выстрел) или сам игрок
+export interface IMoveObject {
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  directionX: number;
+  directionY: number;
+  directionZ: number;
+}
+
+// Выстрел
+export interface IShot extends IMoveObject {
+  id: number | null;
+  player: string;
+  startX: number;
+  startY: number;
+  startZ: number;
+}
+
+export interface IShotThree extends IShot {
+  mesh: string;
+}
+
+export interface IExplosion extends IShot {
+  isOnEnemy: boolean;
+}
+
+export interface IExplosionThree extends IShot {
+  mesh: string;
+  scale: number,
+  isOff: boolean,
 }
 
 // Игрок
 
-interface IUserId {
-  id: string;
-}
-
-export interface IUser extends IUserId {
+export interface IUser extends IMoveObject {
   id: string;
   name: string;
+  animation: string;
+}
+
+export interface IUserThree extends IUser {
+  mesh: string;
+  pseudo: string;
+  scale: string;
+  text: typeof Text;
+  isHide: boolean;
 }
 
 // Обновления игрока
-export interface IUpdateMessage extends IUserId {
-  updates: {
-    [key: string]: number | string | boolean | null;
-  };
-}
-
-// Игра
-export interface IGameState {
-  users: {
-    [key: string]: IUser;
-  };
+export interface IUpdateMessage {
+  [key: string]: number | string | boolean | null;
 }
 
 // Обновления игры
 export interface IGameUpdates {
-  users: IUpdateMessage[];
+  users: IUser[];
+  shots: IShot[];
 }

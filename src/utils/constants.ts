@@ -9,17 +9,16 @@ import type { TConfig, TMessages } from '@/models/utils';
 // Modules
 export enum Names {
   // Modules
+  audio = 'audio',
   world = 'world',
-
-  // Static
   atmosphere = 'atmosphere',
-
   players = 'players',
   hero = 'hero',
   enemies = 'enemies',
 
   // Others
-  sand = 'sand',
+  tree = 'tree',
+  lenin = 'lenin',
 }
 
 export enum Modes {
@@ -69,6 +68,9 @@ export enum Textures {
   glassspecial = 'glassspecial',
   metall = 'metall',
   fire = 'fire',
+  pseudo = 'pseudo',
+  scale = 'scale',
+  hole = 'hole',
 }
 
 export enum Audios {
@@ -78,20 +80,26 @@ export enum Audios {
   jumpend = 'jumpend',
   shot = 'shot',
   hit = 'hit',
+  explosion = 'explosion',
 }
 
 export enum Colors {
   white = 0xffffff,
   black = 0x000000,
   yellow = 0xfed564,
+  yellowDark = 0xe6a800,
 
-  sun = 0xffff99,
+  fog = 0xa48ed8,
+
+  sun = 0xfdb813,
+  toruch = 0xffff99,
   sky = 0x77deac,
   ground = 0xffffff,
-  concrette = 0xfedeaa,
+  concrette = 0xffffff,
   glassspecial = 0xffffff,
-  metall = 0x666666,
+  metall = 0x222222,
   fire = 0xff6666,
+  scale = 0x681a13,
 }
 
 enum Breakpoints {
@@ -113,21 +121,14 @@ export const API_URL = isProd
 
 export const LANGUAGES: string[] = [Languages.en, Languages.ru];
 
-// Тут главный размер, относительно которого все по ширине,
-// кроме того что должно быть адекватным росту по высоте
-export const GROUND = 1500;
-export const size = (size: number): number => {
-  return size * GROUND;
-};
-
 // Конфиг
 export const DESIGN: TConfig = {
   V: '1.0.0',
   BREAKPOINTS: Breakpoints,
-  SIZE: size(1),
+  SIZE: 300,
   CAMERA: {
     fov: 80,
-    fog: 0xa48ed8,
+    fog: Colors.fog,
   },
   MESSAGES_TIMEOUT: 3000, // ms
   DEFAULT_VOLUME: 0.3,
@@ -136,6 +137,15 @@ export const DESIGN: TConfig = {
     PLAYER_HEIGHT: 2,
     JUMP: 15,
     GRAVITY: 40,
+    SHOTS: 50,
+    START: {
+      positionX: 0,
+      positionY: 30,
+      positionZ: 0,
+      directionX: 0.7,
+      directionY: 0,
+      directionZ: 0.7,
+    },
   },
 };
 
@@ -161,21 +171,6 @@ export const ScreenHelper = (() => {
   };
 })();
 
-// Все объекты
-
-// Префикс псевдообъектов
-export const PSEUDO = 'pseudo/';
-
-// Части моделей
-export const CHILD = 'child/';
-
-export const OBJECTS: TConfig = {
-  [Names.sand]: {
-    radius: size(0.5),
-    positionY: 0,
-  },
-};
-
 // Переводы
 
 export const MESSAGES: TMessages = {
@@ -187,6 +182,7 @@ export const MESSAGES: TMessages = {
     chromegate:
       'In order to play, open in the Google Chrome (or Yandex) browser (Firefox not recommended)',
     startbutton: 'Play',
+    restartbutton: 'Restart',
     key1: 'Ecs - pause',
     copyright: '© Levon Gambaryan Bro Games',
 
@@ -203,6 +199,7 @@ export const MESSAGES: TMessages = {
     chromegate:
       'Для того чтобы играть откройте в браузере Google Chrome (или Яндекс), Firefox не рекомендуется',
     startbutton: 'Играть',
+    restartbutton: 'Cначала',
     key1: 'Ecs - пауза',
     copyright: '© Levon Gambaryan Bro Games',
 

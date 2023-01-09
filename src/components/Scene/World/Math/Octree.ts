@@ -1,10 +1,9 @@
 /* eslint-disable */
-
 import * as THREE from 'three';
 
 // Types
 import type { Box3, Group, Ray, Sphere, Vector3 } from 'three';
-import type { TResult } from "@/models/utils";
+import type { TResult } from '@/models/utils';
 
 // Modules
 import { Triangle } from 'three';
@@ -140,7 +139,10 @@ export default class Octree {
     return triangles;
   }
 
-  private _triangleCapsuleIntersect(capsule: Capsule, triangle: Triangle): TResult {
+  private _triangleCapsuleIntersect(
+    capsule: Capsule,
+    triangle: Triangle,
+  ): TResult {
     let point1, point2, line1, line2;
 
     triangle.getPlane(this._plane);
@@ -189,7 +191,10 @@ export default class Octree {
     return false;
   }
 
-  private _triangleSphereIntersect(sphere: Sphere, triangle: Triangle): TResult {
+  private _triangleSphereIntersect(
+    sphere: Sphere,
+    triangle: Triangle,
+  ): TResult {
     triangle.getPlane(this._plane);
 
     if (!sphere.intersectsPlane(this._plane)) return false;
@@ -356,6 +361,7 @@ export default class Octree {
   }
 
   fromGraphNode(group: Group): void {
+    let is = false;
     group.traverse((obj: any) => {
       if (obj.type === 'Mesh') {
         obj.updateMatrix();
@@ -393,13 +399,26 @@ export default class Octree {
           v2.applyMatrix4(transform);
           v3.applyMatrix4(transform);
 
-          this._addTriangle(new Triangle(v1, v2, v3));
+          if (
+            !isNaN(v1.x) &&
+            !isNaN(v1.y) &&
+            !isNaN(v1.z) &&
+            !isNaN(v2.x) &&
+            !isNaN(v2.y) &&
+            !isNaN(v2.z) &&
+            !isNaN(v3.x) &&
+            !isNaN(v3.y) &&
+            !isNaN(v3.z)
+          ) {
+            is = true;
+            this._addTriangle(new Triangle(v1, v2, v3));
+          }
         }
 
         if (isTemp) geometry.dispose();
       }
     });
 
-    this._build();
+    if (is) this._build();
   }
 }

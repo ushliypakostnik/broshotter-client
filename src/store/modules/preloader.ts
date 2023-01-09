@@ -24,6 +24,8 @@ const initialState: IPreloader = {
   heroIsLoaded: false,
   worldIsLoaded: false,
   playersIsLoaded: false,
+  treeIsLoaded: false,
+  leninIsLoaded: false,
 
   // Audio
   windIsLoaded: false,
@@ -32,6 +34,7 @@ const initialState: IPreloader = {
   jumpendIsLoaded: false,
   shotIsLoaded: false,
   hitIsLoaded: false,
+  explosionIsLoaded: false,
 
   // World build
   atmosphereIsBuild: false,
@@ -54,8 +57,8 @@ const preloader: Module<IPreloader, IStore> = {
       commit('preloadOrBuilt', field);
     },
 
-    isAllLoadedAndBuilt: ({ commit }): void => {
-      commit('isAllLoadedAndBuilt');
+    isAllLoadedAndBuild: ({ commit }): void => {
+      commit('isAllLoadedAndBuild');
     },
   },
 
@@ -64,11 +67,13 @@ const preloader: Module<IPreloader, IStore> = {
       state[field] = true;
     },
 
-    isAllLoadedAndBuilt: (state: IPreloader) => {
+    isAllLoadedAndBuild: (state: IPreloader) => {
       stateCopy = Object.assign({}, state);
       delete stateCopy[FLAG];
       result = Object.values(stateCopy).every((field) => field === true);
-      if (result) state[FLAG] = true;
+      if (result) {
+        state[FLAG] = true;
+      }
     },
   },
 };

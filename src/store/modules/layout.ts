@@ -9,16 +9,21 @@ import type {
 } from '@/models/store';
 
 const initialState: IStoreModule = {
-  isGame: false, // Cервер знает имя пользователя?
+  id: null,
+  name: null,
+
+  language: null,
   isPause: true, // Сейчас пауза?
   isGameOver: false, // Умер?
   isReload: true, // Если нужно принудительно перезагрузить, сейчас не используется
   messages: [], // Сообщения сейчас
 
   // Gameplay
+  health: 100,
   endurance: 100,
   isHide: false,
   isRun: false,
+  isJump: false,
   isOptical: false,
   isTired: false,
 };
@@ -30,12 +35,15 @@ const layout: Module<IStoreModule, IStore> = {
   state: initialState,
 
   getters: {
-    isGame: (state: IStoreModule) => state.isGame,
+    id: (state: IStoreModule) => state.id,
+    name: (state: IStoreModule) => state.name,
+    language: (state: IStoreModule) => state.language,
     isPause: (state: IStoreModule) => state.isPause,
     isReload: (state: IStoreModule) => state.isReload,
     endurance: (state: IStoreModule) => state.endurance,
     isHide: (state: IStoreModule) => state.isHide,
     isRun: (state: IStoreModule) => state.isRun,
+    isJump: (state: IStoreModule) => state.isJump,
     isOptical: (state: IStoreModule) => state.isOptical,
     isTired: (state: IStoreModule) => state.isTired,
     messages: (state: IStoreModule) => state.messages,
@@ -65,6 +73,10 @@ const layout: Module<IStoreModule, IStore> = {
     hideMessage: ({ commit }, payload: number): void => {
       commit('hideMessage', payload);
     },
+
+    reload: ({ commit }): void => {
+      commit('reload');
+    },
   },
 
   mutations: {
@@ -89,6 +101,19 @@ const layout: Module<IStoreModule, IStore> = {
         (message: TEventMessagePayload) => message.id !== payload,
       );
       state.messages = array;
+    },
+
+    reload: (state: IStoreModule): void => {
+      state.id = initialState.id;
+      state.name = initialState.name;
+      state.isPause = initialState.isPause;
+      state.endurance = initialState.endurance;
+      state.isHide = initialState.isHide;
+      state.isRun = initialState.isRun;
+      state.isJump = initialState.isJump;
+      state.isOptical = initialState.isOptical;
+      state.isTired = initialState.isTired;
+      state.messages = initialState.messages;
     },
   },
 };

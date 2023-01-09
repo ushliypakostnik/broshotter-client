@@ -8,18 +8,9 @@ import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
 import type { IGameUpdates, IIndex } from '@/models/api';
 
 const initialState: IStoreModule = {
+  isEnter: false, // Cервер знает имя пользователя?
   game: null,
   updates: {},
-  hero: {
-    health: 100,
-
-    positionX: 0,
-    positionY: 30,
-    positionZ: 0,
-    directionX: 0.7,
-    directionY: 0.7,
-    directionZ: 0.7,
-  },
 };
 
 const api: Module<IStoreModule, IStore> = {
@@ -29,13 +20,12 @@ const api: Module<IStoreModule, IStore> = {
   getters: {
     game: (state: IStoreModule) => state.game,
     updates: (state: IStoreModule) => state.updates,
-    hero: (state: IStoreModule) => state.hero,
+    isEnter: (state: IStoreModule) => state.isEnter,
   },
 
   actions: {
-    setApiState: (state, payload: TFieldPayload): void => {
-      // console.log('api store actions: ', payload);
-      state.commit('setApiState', payload);
+    setApiState: ({ commit }, payload: TFieldPayload): void => {
+      commit('setApiState', payload);
     },
 
     // Test REST API
@@ -43,6 +33,10 @@ const api: Module<IStoreModule, IStore> = {
       APIService.index(payload).then((res: IIndex) => {
         commit('index', res);
       });
+    },
+
+    reload: ({ commit }): void => {
+      commit('reload');
     },
 
     // Websockets
@@ -54,7 +48,6 @@ const api: Module<IStoreModule, IStore> = {
 
   mutations: {
     setApiState: (state: IStoreModule, payload: TFieldPayload): void => {
-      // console.log('api store mutations: ', payload);
       if (payload.field === 'updates') {
         if (!payload.value) state[payload.field] = {};
         else
@@ -68,6 +61,11 @@ const api: Module<IStoreModule, IStore> = {
     // Test REST API
     index: (state: IStoreModule): void => {
       console.log('api store mutation: ', state);
+    },
+
+    reload: (state: IStoreModule): void => {
+      state.game = initialState.game;
+      state.updates = initialState.updates;
     },
 
     // Websockets

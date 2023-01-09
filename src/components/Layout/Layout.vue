@@ -5,54 +5,55 @@
 
       <Scene />
 
-      <div class="layout__overlay" />
+      <template v-if="!isEnter">
+        <div class="layout__enter">
+          <div class="layout__overlay" />
+          <div class="layout__effect" />
 
-      <div class="layout__background" />
+          <div class="layout__dialog">
+            <div class="layout__name">{{ $t('name') }}</div>
 
-      <div class="layout__scales">
-        <Scale face="health" :progress="!isGameOver ? health : 0" />
-        <Scale
-          face="endurance"
-          :progress="endurance"
-          :lock="isTired && !isGameOver"
-          :not="isTired && !isGameOver"
-        />
-      </div>
+            <LangSwitch />
 
-      <div class="layout__optical-preload" />
-      <div class="layout__optical" v-if="isOptical">
-        <div class="layout__optical--side" />
-        <div class="layout__optical--center" />
-        <div class="layout__optical--side" />
-      </div>
+            <div class="layout__nick">{{ $t('nick') }}</div>
+            <input class="layout__input" v-model="nickname" />
 
-      <template v-if="!isGame">
-        <div class="layout__blocker">
-          <div class="layout__name">{{ $t('name') }}</div>
+            <div class="layout__buttons">
+              <button
+                class="layout__button layout__button--enter"
+                :class="{ 'layout__button--disabled': nickname.length === 0 }"
+                type="button"
+                @click.prevent.stop="enter"
+              >
+                {{ $t('enter') }}
+              </button>
+            </div>
 
-          <LangSwitch />
-
-          <div class="layout__nick">{{ $t('nick') }}</div>
-          <input class="layout__input" v-model="nickname" />
-
-          <div class="layout__buttons">
-            <button
-              class="layout__button layout__button--enter"
-              :class="{ 'layout__button--disabled': nickname.length === 0 }"
-              type="button"
-              @click.prevent.stop="enter"
-            >
-              {{ $t('enter') }}
-            </button>
-          </div>
-
-          <div class="layout__copy">
-            <p>{{ $t('copyright') }}</p>
+            <div class="layout__copy">
+              <p>{{ $t('copyright') }}</p>
+            </div>
           </div>
         </div>
       </template>
 
       <template v-else>
+        <div class="layout__scales">
+          <Scale face="health" :progress="!isGameOver ? health : 0" />
+          <Scale
+            face="endurance"
+            :progress="endurance"
+            :lock="isTired && !isGameOver"
+            :not="isTired && !isGameOver"
+          />
+        </div>
+
+        <div class="layout__optical-preload" />
+        <div class="layout__optical" v-if="isOptical">
+          <div class="layout__optical--side" />
+          <div class="layout__optical--center" />
+          <div class="layout__optical--side" />
+        </div>
+
         <transition-group name="fade2" tag="ul" class="layout__messages">
           <li
             class="layout__message"
@@ -62,6 +63,8 @@
             {{ $t(`${message.text}`) }}
           </li>
         </transition-group>
+
+        <div class="layout__effect" />
 
         <transition name="fade">
           <div v-if="isPause && isGameLoaded" class="layout__blocker">
@@ -76,6 +79,14 @@
                 @click.prevent.stop="play"
               >
                 {{ $t('startbutton') }}
+              </button>
+
+              <button
+                class="layout__button layout__button--enter"
+                type="button"
+                @click.prevent.stop="reenter"
+              >
+                {{ $t('restartbutton') }}
               </button>
             </div>
 
@@ -105,13 +116,13 @@ import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
 
 // Emmiter
-// import emitter from '@/utils/emitter';
+import emitter from '@/utils/emitter';
 
 // Constants
 import { ScreenHelper } from '@/utils/constants';
 
 // Types
-// import { EmitterEvents } from '@/models/api';
+import { EmitterEvents } from '@/models/api';
 
 // Components
 import Connect from '@/components/Connect.vue';
@@ -120,6 +131,9 @@ import Gate from '@/components/Layout/Gate.vue';
 import Scene from '@/components/Scene/Scene.vue';
 import LangSwitch from '@/components/Layout/LangSwitch.vue';
 import Scale from '@/components/Layout/Scale.vue';
+
+// Utils
+import { restartDispatchHelper } from '@/utils/utils';
 
 export default defineComponent({
   name: 'Layout',
@@ -143,13 +157,14 @@ export default defineComponent({
     let onWindowResize: () => void;
     let play: () => void;
     let enter: () => void;
+    let reenter: () => void;
     const isGameLoaded = computed(
       () => store.getters['preloader/isGameLoaded'],
     );
-    const isGame = computed(() => store.getters['layout/isGame']);
+    const isEnter = computed(() => store.getters['api/isEnter']);
     const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
-    const health = computed(() => store.getters['api/health']);
+    const health = computed(() => store.getters['layout/health']);
     const endurance = computed(() => store.getters['layout/endurance']);
     const isOptical = computed(() => store.getters['layout/isOptical']);
     const isTired = computed(() => store.getters['layout/isTired']);
@@ -164,18 +179,23 @@ export default defineComponent({
       isDesktop.value = ScreenHelper.isDesktop();
     };
 
+    reenter = () => {
+      console.log('reenter');
+      restartDispatchHelper(store);
+    };
+
+    enter = () => {
+      emitter.emit(EmitterEvents.enter, nickname.value);
+      store.dispatch('layout/setLayoutState', {
+        field: 'name',
+        value: nickname.value,
+      });
+    };
+
     play = () => {
       store.dispatch('layout/setLayoutState', {
         field: 'isPause',
         value: !isPause.value,
-      });
-    };
-
-    enter = () => {
-      // emitter.emit(EmitterEvents.updateToServer, { name: nickname.value });
-      store.dispatch('api/setApiState', {
-        field: 'updates',
-        value: { name: nickname.value },
       });
     };
 
@@ -184,7 +204,7 @@ export default defineComponent({
       isDesktop,
       isBro,
       isGameLoaded,
-      isGame,
+      isEnter,
       isGameOver,
       isPause,
       isOptical,
@@ -194,6 +214,7 @@ export default defineComponent({
       messages,
       play,
       enter,
+      reenter,
       nickname,
     };
   },
@@ -201,7 +222,9 @@ export default defineComponent({
 </script>
 
 <style lang="stylus" scoped>
-.layout
+$name = '.layout'
+
+{$name}
   @extend $viewport
   text-align center
 
@@ -212,9 +235,17 @@ export default defineComponent({
     $text("olga")
 
   &__enter
-    color $colors.sea
-    margin-bottom 9vh
-    $text("katya")
+    @extend $viewport
+    background url("../../assets/enter.jpg") no-repeat center top
+    background-size cover
+
+    {$name}__effect
+      z-index 20
+      box-shadow inset 0 0 $gutter * 20 $colors.sea
+
+  &__dialog
+    @extend $viewport
+    z-index 100
 
   &__nick
     color $colors.sea
@@ -234,13 +265,10 @@ export default defineComponent({
 
   &__overlay
     @extend $viewport
-    display flex
-    justify-content flex-end
-    pointer-events none
-    background linear-gradient(0deg, rgba($colors.primary, $opacites.jazz) 0%, rgba($colors.ghost, $opacites.rock) 100%)
-    z-index 500
+    z-index 10
+    background linear-gradient(0deg, rgba($colors.primary, $opacites.rock) 0%, rgba($colors.ghost, $opacites.rock) 100%)
 
-  &__background
+  &__effect
     @extend $viewport
     background rgba(112, 66, 20, 0.1)
     box-shadow inset 0 0 $gutter * 6 $colors.sea
@@ -275,7 +303,6 @@ export default defineComponent({
     list-style none
     padding 0.5vw 1vw
     pointer-events none
-    z-index 1000
     color $colors.sea
 
   &__message

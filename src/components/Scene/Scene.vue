@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, computed, watch, reactive } from 'vue';
+import { defineComponent, onMounted, computed, watch, reactive, ref } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 
@@ -12,7 +12,11 @@ import * as THREE from 'three';
 // Constants
 import { Colors, DESIGN } from '@/utils/constants';
 
+// Emmiter
+import emitter from '@/utils/emitter';
+
 // Types
+import { EmitterEvents } from '@/models/api';
 import type { ISelf, KeysState } from '@/models/modules';
 import type {
   PerspectiveCamera,
@@ -28,9 +32,11 @@ import Assets from '@/utils/assets';
 import Events from '@/utils/events';
 import AudioBus from '@/utils/audio';
 import World from '@/components/Scene/World';
+import Octree from '@/components/Scene/World/Math/Octree';
 
 // Stats
 import Stats from 'three/examples/jsm/libs/stats.module';
+import { IUser } from '@/models/api';
 
 export default defineComponent({
   name: 'Scene',
@@ -50,9 +56,6 @@ export default defineComponent({
     let renderer: WebGLRenderer = new THREE.WebGLRenderer({
       antialias: true,
     });
-
-    // let clock: Clock = new THREE.Clock();
-    // let delta: number;
 
     // Controls
     let controls: PointerLockControls = new PointerLockControls(
@@ -80,13 +83,16 @@ export default defineComponent({
     let onMouseUp: (event: MouseEvent) => void;
 
     // Store getters
-    const hero = computed(() => store.getters['api/hero']);
-    const isGame = computed(() => store.getters['layout/isGame']);
+    const isEnter = computed(() => store.getters['api/isEnter']);
+    const id = computed(() => store.getters['layout/id']);
+    const game = computed(() => store.getters['api/game']);
     const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
     const isOptical = computed(() => store.getters['layout/isOptical']);
     const isHide = computed(() => store.getters['layout/isHide']);
     const isRun = computed(() => store.getters['layout/isRun']);
+
+    const isSet = ref(false);
 
     // Utils
     const keys: KeysState = reactive({});
@@ -114,8 +120,8 @@ export default defineComponent({
       scene.background = new THREE.Color(Colors.sky);
       scene.fog = new THREE.Fog(
         DESIGN.CAMERA.fog,
-        DESIGN.SIZE / 100,
-        DESIGN.SIZE * 0.75,
+        DESIGN.SIZE / 10,
+        DESIGN.SIZE * 3,
       );
       self.scene = scene;
       self.render = render;
@@ -123,8 +129,8 @@ export default defineComponent({
       // Renderer
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.shadowMap.enabled = false;
-      // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
       // Controls
@@ -135,7 +141,8 @@ export default defineComponent({
           value: true,
         });
       });
-      scene.add(controls.getObject());
+      if (isPause.value) controls.unlock();
+      else controls.lock();
 
       // Listeners
       window.addEventListener('resize', onWindowResize, false);
@@ -147,6 +154,13 @@ export default defineComponent({
         false,
       );
       document.addEventListener('mouseup', (event) => onMouseUp(event), false);
+
+      // Реагировать на ответ на выстрел
+      emitter.on(EmitterEvents.onShot, (shot) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        world.onShot(self, shot);
+      });
 
       // Modules
       assets.init(self);
@@ -181,7 +195,7 @@ export default defineComponent({
           break;
 
         case 80: // P
-          if (isGame.value && !isGameOver.value)
+          if (isEnter.value && !isGameOver.value)
             store.dispatch('layout/setLayoutState', {
               field: 'isPause',
               value: !isPause.value,
@@ -203,7 +217,7 @@ export default defineComponent({
     // Нажата клавиша мыши
     onMouseDown = (event) => {
       if (!isPause.value && !isGameOver.value && event.button === 0)
-        world.shot(self);
+        emitter.emit(EmitterEvents.shot, world.shot(self));
 
       if (
         !isPause.value &&
@@ -262,8 +276,15 @@ export default defineComponent({
       events,
       audio,
 
+      // math
+      octree: new Octree(),
+      octree2: new Octree(),
+
       // state
       keys,
+
+      // emits
+      emitter,
 
       // Core
       store,
@@ -273,11 +294,37 @@ export default defineComponent({
       render,
     };
 
-    // Set camera start
-    self.camera.position.x = hero.value.positionX;
-    self.camera.position.y = hero.value.positionY;
-    self.camera.position.z = hero.value.positionZ;
     self.camera.fov = DESIGN.CAMERA.fov;
+
+    // Следим за данными мира чтобы установить правильную позицию игроку
+    watch(
+      () => store.getters['api/game'],
+      (value) => {
+        if (value && !isSet.value) {
+          // Set camera start
+          if (id.value && game.value) {
+            const user = game.value.users.find(
+              (player: IUser) => player.id === id.value,
+            );
+            if (user && user.name && user.name.length) {
+              self.camera.position.x = user.positionX;
+              self.camera.position.y = user.positionY;
+              self.camera.position.z = user.positionZ;
+            } else {
+              self.camera.position.x = DESIGN.GAMEPLAY.START.positionX;
+              self.camera.position.y = DESIGN.GAMEPLAY.START.positionY;
+              self.camera.position.z = DESIGN.GAMEPLAY.START.positionZ;
+            }
+          } else {
+            self.camera.position.x = DESIGN.GAMEPLAY.START.positionX;
+            self.camera.position.y = DESIGN.GAMEPLAY.START.positionY;
+            self.camera.position.z = DESIGN.GAMEPLAY.START.positionZ;
+          }
+
+          isSet.value = true;
+        }
+      },
+    );
 
     // Следим за паузой
     watch(
@@ -306,8 +353,6 @@ export default defineComponent({
     watch(
       () => store.getters['layout/isOptical'],
       (value) => {
-        // this.hero.checkWeapon(this);
-        // this.hero.toggleFire(value);
         if (value) self.camera.fov = DESIGN.CAMERA.fov / 4;
         else self.camera.fov = DESIGN.CAMERA.fov;
         self.camera.updateProjectionMatrix();
@@ -343,13 +388,12 @@ export default defineComponent({
     watch(
       () => store.getters['preloader/isGameLoaded'],
       (value) => {
-        if (value) render();
+        if (value) animate();
       },
     );
 
     onMounted(() => {
       init();
-      animate();
     });
   },
 });
