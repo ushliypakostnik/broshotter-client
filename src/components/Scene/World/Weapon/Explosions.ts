@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import { Mesh } from 'three';
+
 // Types
 import { ISelf } from '@/models/modules';
 import { EmitterEvents, IExplosion, IExplosionThree } from '@/models/api';
+
 // Constants
 import { Audios, Textures } from '@/utils/constants';
+
 // Module
 import emitter from '@/utils/emitter';
 
@@ -52,7 +55,6 @@ export default class Explosions {
       self.audio.addAndPlayAudioOnObject(
         self,
         this._explosionClone.uuid,
-        self.assets.explosion,
         Audios.explosion,
       );
     });

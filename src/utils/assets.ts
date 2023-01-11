@@ -35,6 +35,11 @@ export default class Assets {
 
   // Audios
   public explosion!: AudioBuffer;
+  public shot2!: AudioBuffer;
+  public steps2!: AudioBuffer;
+  public hit2!: AudioBuffer;
+  public jumpstart2!: AudioBuffer;
+  public jumpend2!: AudioBuffer;
 
   constructor() {
     this.GLTFLoader = new GLTFLoader();
@@ -70,6 +75,60 @@ export default class Assets {
       );
       this.explosion = buffer;
       self.audio.initAudioByName(self, Audios.explosion);
+    });
+
+    this.audioLoader.load(`./audio/${Audios.shot2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(
+        self.store,
+        Audios.shot2,
+        false,
+      );
+      this.shot2 = buffer;
+      self.audio.initAudioByName(self, Audios.shot2);
+    });
+
+    this.audioLoader.load(`./audio/${Audios.steps2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(
+        self.store,
+        Audios.steps2,
+        false,
+      );
+      this.steps2 = buffer;
+
+      self.audio.initAudioByName(self, Audios.steps2);
+    });
+
+    this.audioLoader.load(`./audio/${Audios.jumpstart2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(
+        self.store,
+        Audios.jumpstart2,
+        false,
+      );
+      this.jumpstart2 = buffer;
+
+      self.audio.initAudioByName(self, Audios.jumpstart2);
+    });
+
+    this.audioLoader.load(`./audio/${Audios.jumpend2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(
+        self.store,
+        Audios.jumpend2,
+        false,
+      );
+      this.jumpend2 = buffer;
+
+      self.audio.initAudioByName(self, Audios.jumpend2);
+    });
+
+    this.audioLoader.load(`./audio/${Audios.hit2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(
+        self.store,
+        Audios.hit2,
+        false,
+      );
+      this.hit2 = buffer;
+
+      self.audio.initAudioByName(self, Audios.hit2);
     });
   }
 
@@ -214,16 +273,25 @@ export default class Assets {
         return 0.3;
       case Audios.steps:
         return 0.3;
+      case Audios.steps2:
+        return 0.4;
       case Audios.jumpstart:
+      case Audios.jumpstart2:
         return 1;
       case Audios.jumpend:
+        return 0.3;
+      case Audios.jumpend2:
         return 0.4;
       case Audios.shot:
-        return 0.25;
+        return 0.8;
+      case Audios.shot2:
+        return 0.8;
       case Audios.explosion:
         return 0.9;
       case Audios.hit:
-        return 0.8;
+        return 0.15;
+      case Audios.hit2:
+        return 0.25;
     }
     return DESIGN.DEFAULT_VOLUME;
   }
@@ -231,6 +299,20 @@ export default class Assets {
   // Получить звук
   public getAudio(name: Audios): AudioBuffer {
     // console.log('Assets getAudio', name);
+    switch (name) {
+      case Audios.explosion:
+        return this.explosion;
+      case Audios.shot2:
+        return this.shot2;
+      case Audios.jumpstart2:
+        return this.jumpstart2;
+      case Audios.jumpend2:
+        return this.jumpend2;
+      case Audios.steps2:
+        return this.steps2;
+      case Audios.hit2:
+        return this.hit2;
+    }
     return this.explosion;
   }
 

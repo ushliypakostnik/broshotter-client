@@ -1,20 +1,32 @@
 import * as THREE from 'three';
-import {AnimationAction, AnimationMixer, Group, Mesh, Object3D, Vector3} from 'three';
+import {
+  AnimationAction,
+  AnimationMixer,
+  Group,
+  Mesh,
+  Object3D,
+  Vector3,
+} from 'three';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import {clone} from '@/components/Scene/World/Math/SkeletonUtils.js';
-import {Text} from 'troika-three-text';
+import { clone } from '@/components/Scene/World/Math/SkeletonUtils.js';
+import { Text } from 'troika-three-text';
+
 // Types
-import {ISelf} from '@/models/modules';
-import {GLTF} from 'three/examples/jsm/loaders/GLTFLoader';
+import { ISelf } from '@/models/modules';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+
 // Constants
-import {Animations, DESIGN, Names, Textures} from '@/utils/constants';
+import { Animations, Audios, Names, Textures, DESIGN } from '@/utils/constants';
+
 // Modules
 import Octree from '@/components/Scene/World/Math/Octree';
-import {IUser, IUserThree} from '@/models/api';
+import { IUser, IUserThree } from '@/models/api';
 
 export default class Enemies {
   public name = Names.enemies;
+
+  private _isTest = true;
 
   private _gltf!: GLTF;
   private _model!: Group;
@@ -30,8 +42,10 @@ export default class Enemies {
   private _ids: string[];
   private _name!: Text;
   private _isHide = false;
+  private _isMove = false;
   private _isRun = false;
   private _isNotJump = false;
+  private _isOnHit = false;
   private _isForward = false;
   private _isBackward = false;
   private _isLeft = false;
@@ -46,6 +60,7 @@ export default class Enemies {
   private _weaponClone!: Group;
   private _weaponFire!: Object3D;
   private _animation!: string;
+  private _dead!: AnimationAction;
 
   private _list: IUserThree[];
   private _listNew: IUserThree[];
@@ -70,6 +85,7 @@ export default class Enemies {
         this._gltf = model;
 
         this._model = this._gltf.scene;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._model.traverse((child: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -89,6 +105,7 @@ export default class Enemies {
           pseudoGeometry,
           self.assets.getMaterial(Textures.pseudo),
         );
+        this._pseudo.visible = false;
 
         const scaleGeometry = new THREE.PlaneBufferGeometry(1, 0.05);
         this._scale = new THREE.Mesh(
@@ -108,11 +125,13 @@ export default class Enemies {
   private _updateOctree2(self: ISelf): void {
     this._group = new THREE.Group();
     this._list.forEach((player) => {
-      this._pseudoClone = self.scene.getObjectByProperty(
-        'uuid',
-        player.pseudo,
-      ) as Mesh;
-      if (this._pseudoClone) this._group.add(this._pseudoClone);
+      if (player.animation !== 'dead') {
+        this._pseudoClone = self.scene.getObjectByProperty(
+          'uuid',
+          player.pseudo,
+        ) as Mesh;
+        if (this._pseudoClone) this._group.add(this._pseudoClone);
+      }
     });
     if (this._group.children.length) {
       self.scene.add(this._group);
@@ -159,6 +178,15 @@ export default class Enemies {
       }
     });
 
+    this._user = self.store.getters['api/game'].users.find(
+      (user: IUser) => user.id === player.id,
+    );
+    this._modelClone.position.set(
+      this._user.positionX,
+      this._user.positionY,
+      this._user.positionZ,
+    );
+
     this._mixer = new THREE.AnimationMixer(this._modelClone);
     this._userThree = {
       ...player,
@@ -170,8 +198,16 @@ export default class Enemies {
       text: this._name,
       isHide: this._isHide,
       mixer: this._mixer,
-      prevAction: this._getAnimation(this._mixer, player.animation as Animations),
-      nextAction: this._getAnimation(this._mixer, player.animation as Animations),
+      prevAction: this._getAnimation(
+        this._mixer,
+        player.animation as Animations,
+        true,
+      ),
+      nextAction: this._getAnimation(
+        this._mixer,
+        player.animation as Animations,
+        true,
+      ),
       isFire: false,
       isFireOff: false,
       fireScale: 0,
@@ -182,9 +218,37 @@ export default class Enemies {
     self.scene.add(this._scaleClone);
     self.scene.add(this._weaponClone);
     this._list.push(this._userThree);
+
+    if (this._pseudoClone) {
+      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.steps2);
+    }
+
+    if (this._pseudoClone) {
+      self.audio.addAudioOnObject(
+        self,
+        this._pseudoClone.uuid,
+        Audios.jumpstart2,
+      );
+    }
+
+    if (this._pseudoClone) {
+      self.audio.addAudioOnObject(
+        self,
+        this._pseudoClone.uuid,
+        Audios.jumpend2,
+      );
+    }
+
+    if (this._pseudoClone) {
+      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.hit2);
+    }
+
+    if (this._weaponFire) {
+      self.audio.addAudioOnObject(self, this._weaponFire.uuid, Audios.shot2);
+    }
   }
 
-  private _removePlayer(self: ISelf, player: IUserThree): void {
+  private _removePlayer(): void {
     // console.log('Enemies _removePlayer!!!', player);
   }
 
@@ -207,7 +271,11 @@ export default class Enemies {
         this._time2 = 0;
       }
 
-      this._listNew = self.store.getters['api/game'].users; // TODO: перед релизом отфильтровать юзера!
+      if (this._isTest) this._listNew = self.store.getters['api/game'].users;
+      else
+        this._listNew = self.store.getters['api/game'].users.filter(
+          (user: IUser) => user.id !== self.store.getters['layout/id'],
+        );
 
       this._listNew.forEach((user) => {
         if (user.animation && user.animation.length) {
@@ -224,7 +292,7 @@ export default class Enemies {
 
       if (this._is) {
         this._list.forEach((player) => {
-          if (!this._ids.includes(player.id)) this._removePlayer(self, player);
+          if (!this._ids.includes(player.id)) this._removePlayer();
         });
         this._list = this._list.filter((player) =>
           this._ids.includes(player.id as string),
@@ -295,37 +363,61 @@ export default class Enemies {
     this._user = self.store.getters['api/game'].users.find(
       (player: IUser) => player.id === user.id,
     );
-    if (this._user && user.animation) {
-      user.animation = this._user.animation;
-      this._isFire = this._user.isFire;
+
+    if (this._user) {
+      if (this._user.animation) user.animation = this._user.animation;
+      if (this._user.isOnHit) user.isOnHit = this._user.isOnHit;
+      else this._isOnHit = false;
+      if (this._user.isFire) this._isFire = this._user.isFire;
+      else this._isFire = false;
+      this._isNotJump = !user.animation.includes('jump');
       this._isHide = user.animation.includes('hide');
       this._isRun = user.animation.includes('run');
-      this._isNotJump = !user.animation.includes('jump');
       this._isForward = user.animation.includes('forward');
       this._isBackward = user.animation.includes('back');
       this._isLeft = user.animation.includes('left');
       this._isRight = user.animation.includes('right');
 
-      if (this._isFire !== user.isFire) {
-        this._weaponFire = self.scene.getObjectByProperty(
-          'uuid',
-          user.fire,
-        ) as Mesh;
-        if (this._weaponFire) {
-          if (this._isFire) {
-            user.isFireOff = false;
-            user.fireScale = 0;
-            this._weaponFire.visible = true;
-          } else {
-            user.isFire = false;
-            user.isFireOff = false;
-            user.fireScale = 0;
-            this._weaponFire.visible = false;
-          }
-        }
-        user.isFire = this._isFire;
+      if (this._isOnHit !== user.isOnHit) {
+        self.audio.replayObjectSound(user.pseudo, Audios.hit2);
+        user.isOnHit = this._isOnHit;
       }
-      if (this._isFire) this._redrawFire(self, user);
+
+      if (user.animation === 'dead') {
+        user.isFire = false;
+        user.isFireOff = false;
+        user.fireScale = 0;
+        this._weaponFire.visible = false;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this._weaponClone = self.scene.getObjectByProperty(
+          'uuid',
+          user.weapon,
+        ) as Mesh;
+        if (this._weaponClone) this._weaponClone.visible = false;
+      } else {
+        if (this._isFire !== user.isFire) {
+          this._weaponFire = self.scene.getObjectByProperty(
+            'uuid',
+            user.fire,
+          ) as Mesh;
+          if (this._weaponFire) {
+            if (this._isFire) {
+              user.isFireOff = false;
+              user.fireScale = 0;
+              this._weaponFire.visible = true;
+              self.audio.replayObjectSound(user.fire, Audios.shot2);
+            } else {
+              user.isFire = false;
+              user.isFireOff = false;
+              user.fireScale = 0;
+              this._weaponFire.visible = false;
+            }
+          }
+          user.isFire = this._isFire;
+        }
+        if (this._isFire) this._redrawFire(self, user);
+      }
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -335,32 +427,70 @@ export default class Enemies {
       ) as Mesh;
 
       if (this._modelClone) {
-        if (!this._isHide && this._isRun !== user.isRun) {
-          if (this._isRun)
-            user.nextAction = this._getAnimation(
-              user.mixer,
-              Animations.run,
+        // Steps sound
+        this._isMove =
+          this._isRun ||
+          this._isForward ||
+          this._isBackward ||
+          this._isLeft ||
+          this._isRight;
+        if (this._isMove !== user.isMove) {
+          if (this._isMove) {
+            this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
+            self.audio.setPlaybackRateOnObjectSound(
+              user.pseudo,
+              Audios.steps2,
+              this._speed,
             );
-          else user.nextAction = this._getMove(user.mixer);
-          user.isRun = this._isRun;
-        } else {
+            self.audio.replayObjectSound(user.pseudo, Audios.steps2);
+          } else self.audio.stopObjectSound(user.pseudo, Audios.steps2);
+
+          user.isMove = this._isMove;
+        }
+
+        // Jumps sounds
+        if (
+          this._isNotJump !== user.isNotJump &&
+          self.store.getters['api/isEnter']
+        ) {
           if (!this._isNotJump)
-            user.nextAction = this._getAnimation(
-              user.mixer,
-              Animations.jump,
-            );
-          else {
-            if (this._isRun)
-              user.nextAction = this._getAnimation(
-                user.mixer,
-                Animations.run,
-              );
-            else
-              user.nextAction = this._getMove(user.mixer);
+            self.audio.replayObjectSound(user.pseudo, Audios.jumpstart2);
+          else self.audio.replayObjectSound(user.pseudo, Audios.jumpend2);
+
+          user.isNotJump = this._isNotJump;
+        }
+
+        this._pseudoClone = self.scene.getObjectByProperty(
+          'uuid',
+          user.pseudo,
+        ) as Mesh;
+        if (this._pseudoClone) {
+          if (this._isHide !== user.isHide) {
+            if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
+            else this._pseudoClone.scale.set(1, 1, 1);
+            user.isHide = this._isHide;
           }
         }
 
-        console.log('AAAAAAAAAAAAA', user.name, user.animation, user.prevAction, user.nextAction);
+        if (user.animation === 'dead')
+          user.nextAction = this._getAnimation(user.mixer, Animations.dead);
+        else if (!user.isHide && user.animation === 'hit')
+          user.nextAction = this._getAnimation(user.mixer, Animations.hit);
+        else if (!this._isHide && this._isRun !== user.isRun) {
+          if (this._isRun)
+            user.nextAction = this._getAnimation(user.mixer, Animations.run);
+          else user.nextAction = this._getMove(user.mixer);
+          user.isRun = this._isRun;
+        } else {
+          if (!this._isNotJump && !this._isHide)
+            user.nextAction = this._getAnimation(user.mixer, Animations.jump);
+          else {
+            if (this._isRun)
+              user.nextAction = this._getAnimation(user.mixer, Animations.run);
+            else user.nextAction = this._getMove(user.mixer);
+          }
+        }
+
         if (user.prevAction !== user.nextAction) {
           user.prevAction.fadeOut(0.25);
           user.nextAction.reset().fadeIn(0.25).play();
@@ -368,18 +498,6 @@ export default class Enemies {
         }
 
         user.mixer.update(self.events.delta);
-      }
-
-      this._pseudoClone = self.scene.getObjectByProperty(
-        'uuid',
-        user.pseudo,
-      ) as Mesh;
-      if (this._pseudoClone) {
-        if (this._isHide !== user.isHide) {
-          if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
-          else this._pseudoClone.scale.set(1, 1, 1);
-          user.isHide = this._isHide;
-        }
       }
 
       this._target.set(
@@ -441,6 +559,11 @@ export default class Enemies {
           this._modelClone.position.z,
         );
       }
+      this._scaleClone.scale.set(
+        this._user.health / 100,
+        1,
+        this._user.health / 100,
+      );
 
       this._name = user.text;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -454,7 +577,7 @@ export default class Enemies {
       this._name.position.y =
         this._modelClone.position.y +
         DESIGN.GAMEPLAY.PLAYER_HEIGHT +
-        (!this._isHide ? 1 : 0);
+        (user.animation === 'dead' ? -1 : !this._isHide ? 0.75 : 0);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this._name.position.z = this._modelClone.position.z;
@@ -482,9 +605,9 @@ export default class Enemies {
         } else if (this._animation === 'stand') {
           this._weaponClone.position
             .add(
-              this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
-                -0.2,
-              ),
+              this._getForwardVectorFromObject(
+                this._weaponClone,
+              ).multiplyScalar(-0.2),
             )
             .add(
               this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
@@ -496,17 +619,12 @@ export default class Enemies {
           else this._weaponClone.position.y += 1.28;
           this._weaponClone.rotation.y -= 1.2;
         } else if (this._animation.includes('hide')) {
-          if (
-            this._animation === 'hide' ||
-            this._animation === 'firehide'
-          ) {
+          if (this._animation === 'hide' || this._animation === 'firehide') {
             this._weaponClone.position
               .add(
                 this._getForwardVectorFromObject(
                   this._weaponClone,
-                ).multiplyScalar(
-                  this._animation === 'firehide' ? -0.3 : -0.2,
-                ),
+                ).multiplyScalar(this._animation === 'firehide' ? -0.3 : -0.2),
               )
               .add(
                 this._getSideVectorFromObject(this._weaponClone)
@@ -532,9 +650,9 @@ export default class Enemies {
         } else {
           this._weaponClone.position
             .add(
-              this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
-                -0.2,
-              ),
+              this._getForwardVectorFromObject(
+                this._weaponClone,
+              ).multiplyScalar(-0.2),
             )
             .add(
               this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
@@ -564,8 +682,7 @@ export default class Enemies {
         return this._getAnimation(mixer, Animations.hideleft);
       else if (this._isRight)
         return this._getAnimation(mixer, Animations.hideright);
-      if (this._isFire)
-        return this._getAnimation(mixer, Animations.firehide);
+      if (this._isFire) return this._getAnimation(mixer, Animations.firehide);
       else return this._getAnimation(mixer, Animations.hide);
     } else {
       if (this._isForward) {
@@ -579,18 +696,22 @@ export default class Enemies {
       else if (this._isRight)
         return this._getAnimation(mixer, Animations.standright);
     }
-    if (this._isFire)
-      return this._getAnimation(mixer, Animations.firestand);
+    if (this._isFire) return this._getAnimation(mixer, Animations.firestand);
     return this._getAnimation(mixer, Animations.stand);
   }
 
   private _getAnimation(
     mixer: AnimationMixer,
     name: Animations,
+    isStart = false,
   ): AnimationAction {
     switch (name) {
       case Animations.dead:
-        return mixer.clipAction(this._gltf.animations[0]);
+        this._dead = mixer.clipAction(this._gltf.animations[0]);
+        this._dead.setLoop(THREE.LoopOnce, 1);
+        this._dead.clampWhenFinished = true;
+        if (isStart) this._dead.setDuration(0);
+        return this._dead;
       case Animations.hide:
         return mixer.clipAction(this._gltf.animations[5]);
       case Animations.hideback:

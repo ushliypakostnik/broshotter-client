@@ -35,6 +35,9 @@ export default class Atmosphere {
 
   init(self: ISelf): void {
     // Lights
+    // Ambient
+    // self.scene.add(new THREE.AmbientLight(0x111111));
+
     this._light = new THREE.HemisphereLight(
       self.scene.background as Color,
       0x295826,
@@ -44,6 +47,11 @@ export default class Atmosphere {
     // Night
     // @ts-ignore
     self.scene.background = 0x000000;
+    self.scene.fog = new THREE.Fog(
+      Colors.metall,
+      DESIGN.SIZE / 10,
+      DESIGN.SIZE * 3,
+    );
     this._light = new THREE.HemisphereLight(
       self.scene.background as Color,
       0x000000,
@@ -54,9 +62,6 @@ export default class Atmosphere {
     this._light.position.set(0, DESIGN.SIZE, 0).normalize();
     self.scene.add(this._light);
 
-    // Ambient
-    // self.scene.add(new THREE.AmbientLight(0x111111));
-
     // Sun
     this._sun = new THREE.DirectionalLight(Colors.sun, 1.2);
     this._sun.position.x = 0;
@@ -64,7 +69,7 @@ export default class Atmosphere {
     this._sun.position.y = DESIGN.SIZE;
     this._sun.castShadow = true;
 
-    // Might
+    // Night
     // @ts-ignore
     this._sun.color = new THREE.Color(0xffffff);
     this._sun.intensity = 0.1;
@@ -131,7 +136,7 @@ export default class Atmosphere {
         vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
         vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
         vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
-        vertex.z *= Math.random() * 8;
+        vertex.z *= Math.random() * 10;
       }
 
       position.setXYZ(i, vertex.x, vertex.y, vertex.z);

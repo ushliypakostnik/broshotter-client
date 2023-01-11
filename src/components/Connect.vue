@@ -8,6 +8,7 @@ import { mapGetters, mapActions } from 'vuex';
 
 // Constants
 import { EmitterEvents } from '@/models/api';
+import { DESIGN } from '@/utils/constants';
 
 // Services
 import emitter from '@/utils/emitter';
@@ -39,9 +40,9 @@ export default {
     },
 
     // Подтверждение старого игрока
-    onUpdatePlayer: () => {
-      console.log('Connect sockets onUpdatePlayer');
-      emitter.emit(EmitterEvents.onUpdatePlayer);
+    onUpdatePlayer: (player) => {
+      console.log('Connect sockets onUpdatePlayer', player);
+      emitter.emit(EmitterEvents.onUpdatePlayer, player);
     },
 
     // Реакция на заход в игру
@@ -69,10 +70,11 @@ export default {
     },
 
     // Реакция на ответ на взрыв
-    onExplosion: (message) => {
+    onExplosion: (updates) => {
       // console.log('Connect sockets onExplosion', message);
-      emitter.emit(EmitterEvents.onUnshot, message.id);
-      emitter.emit(EmitterEvents.onExplosion, message);
+      emitter.emit(EmitterEvents.onUnshot, updates.message.id);
+      emitter.emit(EmitterEvents.onExplosion, updates.message);
+      emitter.emit(EmitterEvents.hits, updates.updates);
     },
   },
 
@@ -104,15 +106,9 @@ export default {
     });
 
     // Реагировать на подтверждение старого игрока
-    this.emitter.on(EmitterEvents.onUpdatePlayer, () => {
-      // console.log('Connect created onUpdatePlayer');
-      this.onUpdatePlayer();
-    });
-
-    // Реагировать на отклик о входе в игру
-    this.emitter.on(EmitterEvents.onEnter, (id) => {
-      // console.log('Connect created onEnter', id);
-      this.onEnter();
+    this.emitter.on(EmitterEvents.onUpdatePlayer, (player) => {
+      // console.log('Connect created onUpdatePlayer', player);
+      this.onUpdatePlayer(player);
     });
 
     // Реагировать на вход нового игрока
@@ -121,6 +117,20 @@ export default {
       this.$socket.emit(EmitterEvents.enter, {
         id: this.id,
         name,
+      });
+    });
+
+    // Реагировать на отклик о входе в игру
+    this.emitter.on(EmitterEvents.onEnter, () => {
+      // console.log('Connect created onEnter');
+      this.onEnter();
+    });
+
+    // Реагировать на переиграть
+    this.emitter.on(EmitterEvents.reenter, () => {
+      // console.log('Connect created reenter');
+      this.$socket.emit(EmitterEvents.reenter, {
+        id: this.id,
       });
     });
 
@@ -139,7 +149,7 @@ export default {
     // Запускаем регулярную отправку обновлений на сервер
     this.timeout = setInterval(() => {
       this.sendUpdates(this.getUpdates());
-    }, process.env.VUE_APP_TIMEOUT || 75);
+    }, process.env.VUE_APP_TIMEOUT || 25);
 
     // Реагировать на выстрел
     this.emitter.on(EmitterEvents.shot, (shot) => {
@@ -157,6 +167,12 @@ export default {
     this.emitter.on(EmitterEvents.explosion, (message) => {
       // console.log('Connect created explosion', message);
       this.explosion(message);
+    });
+
+    // Реагировать обновления об уроне при взрывах
+    this.emitter.on(EmitterEvents.hits, (updates) => {
+      // console.log('Connect created hits', updates);
+      this.onExplosion(updates);
     });
   },
 
@@ -190,6 +206,7 @@ export default {
         // Проверяем есть ли имя у юзера (не пускаем в игру без имени)
         if (this.game.users && this.game.users.length) {
           const item = this.game.users.find((player) => player.id === this.id);
+
           if (item && item.name) {
             this.setLayoutState({
               field: 'isPause',
@@ -206,12 +223,17 @@ export default {
     },
 
     // Подтверждение старого игрока
-    onUpdatePlayer() {
+    onUpdatePlayer(user) {
       const item = this.game.users.find((player) => player.id === this.id);
       if (this.name && item && item.name && this.name === item.name) {
         this.setApiState({
-          field: 'isEnter',
-          value: true,
+          field: 'health',
+          value: user.health,
+        }).then(() => {
+          this.setApiState({
+            field: 'isEnter',
+            value: true,
+          });
         });
       }
     },
@@ -261,6 +283,52 @@ export default {
     explosion(message) {
       // console.log('Connect explosion()', message);
       this.$socket.emit(EmitterEvents.explosion, message);
+    },
+
+    // На ответ на взрыв - прилетел урон?
+    onExplosion(updates) {
+      // console.log('Connect onExplosion()', updates);
+      const user = updates.find((player) => player.id === this.id);
+      if (user) {
+        if (user.health <= 0) {
+          // Проиграл
+          this.setLayoutState({
+            field: 'isGameOver',
+            value: true,
+          });
+        }
+        // Урон
+        else {
+          this.setApiState({
+            field: 'isOnHit',
+            value: true,
+          }).then(() => {
+            if (user.is)
+              this.setApiState({
+                field: 'isOnBodyHit',
+                value: true,
+              });
+
+            setTimeout(() => {
+              this.setApiState({
+                field: 'isOnHit',
+                value: false,
+              }).then(() => {
+                if (user.is)
+                  this.setApiState({
+                    field: 'isOnBodyHit',
+                    value: false,
+                  });
+              });
+            }, DESIGN.HIT_TIMEOUT);
+          });
+        }
+
+        this.setApiState({
+          field: 'health',
+          value: user.health,
+        });
+      }
     },
   },
 };

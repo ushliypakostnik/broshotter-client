@@ -73,10 +73,15 @@ export enum Textures {
 export enum Audios {
   wind = 'wind',
   steps = 'steps',
+  steps2 = 'steps2',
   jumpstart = 'jumpstart',
   jumpend = 'jumpend',
+  jumpstart2 = 'jumpstart2',
+  jumpend2 = 'jumpend2',
   shot = 'shot',
+  shot2 = 'shot2',
   hit = 'hit',
+  hit2 = 'hit2',
   explosion = 'explosion',
 }
 
@@ -127,6 +132,7 @@ export const DESIGN: TConfig = {
     fov: 80,
     fog: Colors.fog,
   },
+  HIT_TIMEOUT: 500, // ms
   MESSAGES_TIMEOUT: 3000, // ms
   DEFAULT_VOLUME: 0.3,
   GAMEPLAY: {
@@ -173,36 +179,62 @@ export const ScreenHelper = (() => {
 export const MESSAGES: TMessages = {
   [Languages.en]: {
     enter: 'Enter',
-    nick: 'Your nickname:',
     name: 'BroShotter',
+    nick: 'Your nickname:',
+    nick2: '(Only latin)',
     gadgetsgate: 'The game is for desktop browsers only!',
     chromegate:
       'In order to play, open in the Google Chrome (or Yandex) browser (Firefox not recommended)',
     startbutton: 'Play',
     restartbutton: 'Restart',
-    key1: 'Ecs - pause',
+
+    control1: 'Shot: Left mouse button',
+    control2: 'Move: WASD',
+    control3: 'Jump: Space + WASD',
+    control4: 'Run: Shift + W',
+    control5: 'Hidden movement: C or Alt',
+    control6: 'Look: Mouse',
+    // control7: 'Take a thing / Open door : E',
+    control8: 'Optical sight: Right mouse button',
+    control9: 'Menu: P',
+
     copyright: '© Levon Gambaryan Bro Games',
 
     hiddenMoveEnabled: 'You move in stealth mode',
     hiddenMoveDisabled: 'Stealth mode disabled',
     tired: 'Your is tired of running',
     recovered: 'Your can run again',
+
+    gameover: 'Game Over',
   },
   [Languages.ru]: {
     enter: 'Играть',
     nick: 'Тебя зовут:',
+    nick2: '(Только латиницей, к сожалению)',
     name: 'BroShotter',
     gadgetsgate: 'Игра только для десктопных браузеров!',
     chromegate:
       'Для того чтобы играть откройте в браузере Google Chrome (или Яндекс), Firefox не рекомендуется',
     startbutton: 'Играть',
     restartbutton: 'Cначала',
-    key1: 'Ecs - пауза',
+
+    control1: 'Выстрел: Левая кнопка мыши',
+    control2: 'Движение: WASD',
+    control3: 'Прыжок: Space + WASD',
+    control4: 'Бежать: Shift + W',
+    control5: 'Cкрытное передвижение (меньше урон): C или Alt',
+    control6: 'Осмотреться: Мышь',
+    // control7: 'Взять предмет / Открыть дверь: Е',
+    control8: 'Оптический прицел: Правая кнопка мыши',
+    control9: 'Меню: P',
+
     copyright: '© Levon Gambaryan Bro Games',
 
     hiddenMoveEnabled: 'Вы двигаетесь в скрытном режиме',
     hiddenMoveDisabled: 'Скрытный режим отключен',
     tired: 'Вы устали от бега',
     recovered: 'Вы снова можете бегать',
+
+    gameover: 'Проиграл',
   },
 };

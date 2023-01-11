@@ -10,7 +10,7 @@ import { key } from '@/store';
 import * as THREE from 'three';
 
 // Constants
-import { Colors, DESIGN } from '@/utils/constants';
+import {Audios, Colors, DESIGN} from '@/utils/constants';
 
 // Emmiter
 import emitter from '@/utils/emitter';
@@ -141,7 +141,7 @@ export default defineComponent({
           value: true,
         });
       });
-      if (isPause.value) controls.unlock();
+      if (isPause.value || isGameOver.value) controls.unlock();
       else controls.lock();
 
       // Listeners
@@ -187,7 +187,7 @@ export default defineComponent({
       keys[event.code] = false;
       switch (event.keyCode) {
         case 16: // Shift
-          if (!isPause.value && isRun.value)
+          if (!isGameOver.value && !isPause.value && isRun.value)
             store.dispatch('layout/setLayoutState', {
               field: 'isRun',
               value: false,
@@ -204,10 +204,12 @@ export default defineComponent({
 
         case 67: // C
         case 18: // Alt
-          store.dispatch('layout/setLayoutState', {
-            field: 'isHide',
-            value: !isHide.value,
-          });
+          if (!isGameOver.value && !isPause.value)
+            self.audio.replayHeroSound(Audios.jumpstart);
+            store.dispatch('layout/setLayoutState', {
+              field: 'isHide',
+              value: !isHide.value,
+            });
           break;
         default:
           break;
@@ -340,6 +342,24 @@ export default defineComponent({
         audio.toggle(value);
 
         // Если c паузы - выключаем оптику
+        if (!value && isOptical.value) {
+          store.dispatch('layout/setLayoutState', {
+            field: 'isOptical',
+            value: false,
+          });
+        }
+      },
+    );
+
+    // Следим за концом игры
+    watch(
+      () => store.getters['layout/isGameOver'],
+      (value) => {
+        setTimeout(() => {
+          controls.unlock();
+        }, process.env.VUE_APP_TIMEOUT || 75);
+
+        // Если c оптики - выключаем оптику
         if (!value && isOptical.value) {
           store.dispatch('layout/setLayoutState', {
             field: 'isOptical',

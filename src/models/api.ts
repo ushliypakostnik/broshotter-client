@@ -17,6 +17,7 @@ export enum EmitterEvents {
   onUpdatePlayer = 'onUpdatePlayer', // Подтвердить нового игрока
   enter = 'enter', // Назваться и зайти в игру
   onEnter = 'onEnter', // Отклик сервера о заходе
+  reenter = 'reenter', // Начать сначала
 
   updateToClients = 'updateToClients', // Постоянные обновления клиентам
   updateToServer = 'updateToServer', // Пришло обновление от клиента
@@ -27,6 +28,7 @@ export enum EmitterEvents {
   onUnshot = 'onUnshot', // На удаление выстрела
   explosion = 'explosion', // На взрыв
   onExplosion = 'onExplosion', // На ответ взрыв
+  hits = 'hits', // Урон
 }
 
 // Движущийся объект принадлежащий игроку (выстрел) или сам игрок
@@ -62,13 +64,20 @@ export interface IExplosionThree extends IShot {
   isOff: boolean;
 }
 
+export interface IOnExplosion {
+  message: IExplosion;
+  updates: IUpdateMessage[],
+}
+
 // Игрок
 
 export interface IUser extends IMoveObject {
   id: string;
   name: string;
+  health: number;
   animation: string;
   isFire: boolean;
+  isOnHit: boolean;
 }
 
 export interface IUserThree extends IUser {
@@ -80,6 +89,8 @@ export interface IUserThree extends IUser {
   text: typeof Text;
   isHide: boolean;
   isRun: boolean;
+  isMove: boolean;
+  isNotJump: boolean;
   mixer: AnimationMixer;
   prevAction: AnimationAction;
   nextAction: AnimationAction;

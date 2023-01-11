@@ -27,6 +27,16 @@
 .effect
   animation effect ($effects.duration * 10) infinite
 
+@keyframes hit
+  from
+    opacity 0
+
+  50%
+    opacity 1
+
+  to
+    opacity 0
+
 
 // Vue classes for animation
 //////////////////////////////////////////////////////
@@ -45,3 +55,5 @@
   &-leave-active
     animation fade ($effects.duration * 2) reverse
 
+.hit
+  animation hit 0.25s infinite

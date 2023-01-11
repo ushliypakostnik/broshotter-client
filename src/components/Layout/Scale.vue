@@ -1,6 +1,7 @@
 <template>
   <div class="scale" :class="[lock && 'scale--lock', not && 'effect']">
     <div
+      v-if="progress > 0"
       class="scale__progress"
       :class="`scale__progress--${face}`"
       :style="{ width: progress + '%' }"

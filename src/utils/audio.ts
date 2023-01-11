@@ -4,7 +4,11 @@
 import * as THREE from 'three';
 
 // Constants
-import {Colors, Audios, Names /* NOT_START_AUDIOS */} from '@/utils/constants';
+import {
+  Colors,
+  Audios,
+  Names /* NOT_START_AUDIOS */,
+} from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
@@ -130,15 +134,11 @@ export default class AudioBus {
     switch (name) {
       case Audios.wind:
         return true;
+      case Audios.steps2:
+        return true;
       default:
         return false;
     }
-  }
-
-  // Добавить трек на группу объектоа
-  public addAudioToObject(id: string, name: Audios): void {
-    this._is = this._getIsLoopByName(name);
-    this.addPositionalAudioToBus(id, name, this._is);
   }
 
   // Помощник добавления позиционированого аудио
@@ -186,6 +186,7 @@ export default class AudioBus {
   // Активировать трек по имени на объекте после добавления
   public initAudioByIdAndName(self: ISelf, id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);
+
     if (this._record) {
       this._positionalAudio = new THREE.PositionalAudio(self.listener);
       this._is = this._getIsLoopByName(name);
@@ -207,13 +208,11 @@ export default class AudioBus {
     }
   }
 
-  // Добавить и отыграть трек на одном объекте
-  public addAndPlayAudioOnObject(
+  private _addAudioOnObjectHelper(
     self: ISelf,
     id: string,
-    buffer: AudioBuffer,
     name: Audios,
-  ): void {
+  ) {
     this._is = this._getIsLoopByName(name);
     this.addPositionalAudioToBus(id, name, this._is);
 
@@ -228,8 +227,25 @@ export default class AudioBus {
     if (this._record) this._record.audio = this._positionalAudio;
 
     this._item = self.scene.getObjectByProperty('uuid', id) as Mesh;
-
     this._item.add(this._positionalAudio);
+  }
+
+  // Добавить и отыграть трек на одном объекте
+  public addAudioOnObject(
+    self: ISelf,
+    id: string,
+    name: Audios,
+  ): void {
+    this._addAudioOnObjectHelper(self, id, name);
+  }
+
+  // Добавить и отыграть трек на одном объекте
+  public addAndPlayAudioOnObject(
+    self: ISelf,
+    id: string,
+    name: Audios,
+  ): void {
+    this._addAudioOnObjectHelper(self, id, name);
 
     this._positionalAudio.play();
     this._positionalAudio.onEnded = () => {
@@ -306,7 +322,7 @@ export default class AudioBus {
     }
   }
 
-  // Переиграть звук на герое
+  // Изменить скорость звука на герое
   public setPlaybackRateOnHeroSound(name: Audios, rate: number): void {
     this._record = this._getRecordByName(name);
     if (this._record && this._record.audio)
@@ -316,9 +332,17 @@ export default class AudioBus {
   // Запустить звук на объекте
   public startObjectSound(id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);
+
     if (this._record && this._record.audio && !this._record.audio.isPlaying) {
       this._record.audio.play();
     }
+  }
+
+  // Изменить скорость звука на объекте
+  public setPlaybackRateOnObjectSound(id: string, name: Audios, rate: number): void {
+    this._record = this._getRecordByIdAndName(id, name);
+    if (this._record && this._record.audio)
+      this._record.audio.setPlaybackRate(rate);
   }
 
   // Остановить звук на объекте
@@ -338,6 +362,7 @@ export default class AudioBus {
   // Переиграть звук на объекте
   public replayObjectSound(id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);
+
     if (this._record && this._record.audio) {
       if (!this._record.audio.isPlaying) {
         this._record.audio.play();

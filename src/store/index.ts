@@ -5,6 +5,7 @@ import createPersistedState from 'vuex-persistedstate';
 import preloader from '@/store/modules/preloader';
 import api from '@/store/modules/api';
 import layout from '@/store/modules/layout';
+import messages from '@/store/modules/messages';
 
 declare module '@vue/runtime-core' {
   // declare your own store states
@@ -37,6 +38,7 @@ export const store = createStore<State>({
     preloader,
     api,
     layout,
+    messages,
   },
   plugins: [
     createPersistedState({

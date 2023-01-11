@@ -1,23 +1,13 @@
 import * as THREE from 'three';
-import { Text } from 'troika-three-text';
 
 // Types
-import type {
-  AnimationAction,
-  AnimationMixer,
-  Clock,
-  Group,
-  Mesh,
-  Object3D,
-  PointLight,
-  Vector3,
-} from 'three';
+import type { Clock, Group, Object3D, PointLight, Vector3 } from 'three';
 import type { ISelf } from '@/models/modules';
 import type { IUser, IShot } from '@/models/api';
 import type { TResult } from '@/models/utils';
 
 // Constants
-import { Names, Textures, Audios, Colors, DESIGN } from '@/utils/constants';
+import { Names, Audios, Colors, Animations, DESIGN } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Modules
@@ -26,8 +16,6 @@ import Capsule from '@/components/Scene/World/Math/Capsule';
 export default class Hero {
   public name = Names.hero;
 
-  private _model!: Group;
-  private _mixer!: AnimationMixer;
   private _collider!: Capsule;
   private _position: Vector3;
   private _number!: number;
@@ -44,14 +32,12 @@ export default class Hero {
   private _toruch!: PointLight;
   private _weapon!: Group;
   private _optical!: Group;
-  private _modelWeapon!: Group;
   private _weaponDirection!: Vector3;
   private _weaponPosition!: Vector3;
   private _weaponVelocity!: Vector3;
   private _weaponUpVelocity!: Vector3;
   private _weaponFire!: Object3D;
   private _opticalFire!: Object3D;
-  private _modelWeaponFire!: Object3D;
   private _is = false;
   private _isPause = false;
   private _isTired = false;
@@ -73,35 +59,32 @@ export default class Hero {
   private _isBackward = false;
   private _isLeft = false;
   private _isRight = false;
-  private _name!: Text;
-  private _scale!: Mesh;
+  private _isOnHit = false;
+  private _isOnHitStore = false;
+  private _isOnBodyHit = false;
+  private _isGameOver = false;
+  private _isEnter = false;
 
   // Animations
   private _animation!: string;
-  private _dead!: AnimationAction;
-  private _hide!: AnimationAction;
-  private _hideback!: AnimationAction;
-  private _hideleft!: AnimationAction;
-  private _hideright!: AnimationAction;
-  private _hideforward!: AnimationAction;
-  private _hit!: AnimationAction;
-  private _stand!: AnimationAction;
-  private _standforward!: AnimationAction;
-  private _standback!: AnimationAction;
-  private _standleft!: AnimationAction;
-  private _standright!: AnimationAction;
-  private _jump!: AnimationAction;
-  private _run!: AnimationAction;
-  private _firestand!: AnimationAction;
-  private _firestandforward!: AnimationAction;
-  private _firehide!: AnimationAction;
-  private _firehideforward!: AnimationAction;
-
-  private _prevAction!: AnimationAction;
-  private _nextAction!: AnimationAction;
-
-  private _isTest = false;
-  private _test!: IUser;
+  private _dead!: Animations;
+  private _hide!: Animations;
+  private _hideback!: Animations;
+  private _hideleft!: Animations;
+  private _hideright!: Animations;
+  private _hideforward!: Animations;
+  private _hit!: Animations;
+  private _stand!: Animations;
+  private _standforward!: Animations;
+  private _standback!: Animations;
+  private _standleft!: Animations;
+  private _standright!: Animations;
+  private _jump!: Animations;
+  private _run!: Animations;
+  private _firestand!: Animations;
+  private _firestandforward!: Animations;
+  private _firehide!: Animations;
+  private _firehideforward!: Animations;
 
   constructor() {
     this._position = new THREE.Vector3();
@@ -218,97 +201,33 @@ export default class Hero {
       },
     );
 
-    // Test model
-    self.assets.GLTFLoader.load(
-      `./images/models/${this.name}.glb`,
-      (model: GLTF) => {
-        self.helper.loaderDispatchHelper(self.store, this.name);
+    // Animations
+    this._dead = Animations.dead;
+    this._hide = Animations.hide;
+    this._hideback = Animations.hideback;
+    this._hideleft = Animations.hideleft;
+    this._hideright = Animations.hideright;
+    this._hideforward = Animations.hideforward;
+    this._hit = Animations.hit;
+    this._stand = Animations.stand;
+    this._standforward = Animations.standforward;
+    this._standback = Animations.standback;
+    this._standleft = Animations.standleft;
+    this._standright = Animations.standright;
+    this._jump = Animations.jump;
+    this._run = Animations.run;
+    this._firestand = Animations.firestand;
+    this._firestandforward = Animations.firestandforward;
+    this._firehide = Animations.firehide;
+    this._firehideforward = Animations.firehideforward;
 
-        this._model = model.scene;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this._model.traverse((child: any) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          if (child.isMesh) {
-            child.castShadow = true;
-          }
-        });
-
-        console.log('Model animations: ', model.animations);
-
-        this._mixer = new THREE.AnimationMixer(this._model);
-        this._dead = this._mixer.clipAction(model.animations[0]);
-        this._dead.setLoop(THREE.LoopOnce, 1);
-        this._dead.clampWhenFinished = true;
-        this._hide = this._mixer.clipAction(model.animations[5]);
-        this._hideback = this._mixer.clipAction(model.animations[6]);
-        this._hideleft = this._mixer.clipAction(model.animations[8]);
-        this._hideright = this._mixer.clipAction(model.animations[9]);
-        this._hideforward = this._mixer.clipAction(model.animations[7]);
-        this._hit = this._mixer.clipAction(model.animations[10]);
-        this._hit.setLoop(THREE.LoopOnce, 1);
-        this._stand = this._mixer.clipAction(model.animations[13]);
-        this._standforward = this._mixer.clipAction(model.animations[15]);
-        this._standback = this._mixer.clipAction(model.animations[14]);
-        this._standleft = this._mixer.clipAction(model.animations[16]);
-        this._standright = this._mixer.clipAction(model.animations[17]);
-        this._jump = this._mixer.clipAction(model.animations[11]);
-        this._run = this._mixer.clipAction(model.animations[12]);
-        this._firestand = this._mixer.clipAction(model.animations[3]);
-        this._firestandforward = this._mixer.clipAction(model.animations[4]);
-        this._firehide = this._mixer.clipAction(model.animations[1]);
-        this._firehideforward = this._mixer.clipAction(model.animations[2]);
-
-        this._stand.isScheduled();
-        this._stand.play();
-        this._prevAction = this._stand;
-        this._nextAction = this._stand;
-
-        if (this._isTest) self.scene.add(this._model);
-
-        this._modelWeapon = weapon.clone();
-        this._modelWeapon.traverse((child: Object3D) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          if (child.isMesh && child.name.includes('fire')) {
-            this._modelWeaponFire = child;
-            this._modelWeaponFire.visible = false;
-          }
-        });
-        this._modelWeapon.scale.set(0.03, 0.03, 0.03);
-        if (this._isTest) self.scene.add(this._modelWeapon);
-
-        const scaleGeometry = new THREE.PlaneBufferGeometry(1, 0.05);
-        this._scale = new THREE.Mesh(
-          scaleGeometry,
-          self.assets.getMaterial(Textures.scale),
-        );
-        if (this._isTest) self.scene.add(this._scale);
-
-        this._name = new Text();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.text = '';
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.fontSize = 0.25;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.color = 0xffffff;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.sync();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (this._isTest) self.scene.add(this._name);
-
-        self.helper.loaderDispatchHelper(self.store, this.name, true);
-      },
-    );
+    this._animation = this._stand;
 
     // Toruch
     this._toruch = new THREE.PointLight(Colors.toruch, 1.25, 50);
     self.scene.add(this._toruch);
+
+    self.helper.loaderDispatchHelper(self.store, this.name, true);
   }
 
   private _animateWeapon(self: ISelf): void {
@@ -369,11 +288,6 @@ export default class Hero {
     }
   }
 
-  // Когда получен толчек извне
-  /* this.onShot = (scope, direction) => {
-    playerVelocity.add(direction.multiplyScalar(-1 * DESIGN.HERO.recoil.shot * scope.delta));
-  }; */
-
   // Выстрел
   public shot(self: ISelf): IShot {
     self.audio.replayHeroSound(Audios.shot);
@@ -384,7 +298,6 @@ export default class Hero {
     this._isFireOff = false;
     this._fireScale = 0;
     this._toggleFire(this._isOptical);
-    if (this._isTest) this._modelWeaponFire.visible = true;
 
     // recoil
     if (this._isOptical)
@@ -466,23 +379,6 @@ export default class Hero {
     return this._direction;
   }
 
-  private _getForwardVectorFromObject(obj: Object3D): Vector3 {
-    obj.getWorldDirection(this._direction2);
-    this._direction2.y = 0;
-    this._direction2.normalize();
-
-    return this._direction2;
-  }
-
-  private _getSideVectorFromObject = (obj: Object3D) => {
-    obj.getWorldDirection(this._direction2);
-    this._direction2.y = 0;
-    this._direction2.normalize();
-    this._direction2.cross(obj.up);
-
-    return this._direction;
-  };
-
   private _playerCollitions = (self: ISelf) => {
     if (self.octree) {
       this._result = self.octree.capsuleIntersect(this._collider);
@@ -508,6 +404,7 @@ export default class Hero {
         else if (this._jumpStart) {
           this._jumpFinish = this._jumpStart - this._collider.end.y;
 
+          // TODO: Урон от слишком высокого прыжка - допилить!!!
           // if (jumpFinish > 15 && !scope.isNotDamaged) scope.events.heroOnHitDispatchHelper(scope, -2 * (jumpFinish - 15));
 
           // Sound
@@ -535,27 +432,6 @@ export default class Hero {
     else this._fireScale -= self.events.delta * 50;
 
     if (this._fireScale > 5) this._isFireOff = true;
-
-    if (this._fireScale >= 0)
-      this._weaponFire.scale.set(
-        this._fireScale * 1.5,
-        this._fireScale * 1.5,
-        this._fireScale * 1.5,
-      );
-    if (this._fireScale >= 5) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._modelWeaponFire.material.opacity = 1;
-    } else if (this._fireScale < 0) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._modelWeaponFire.material.opacity = 0;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    } else this._modelWeaponFire.material.opacity = this._fireScale / 5;
-    this._modelWeaponFire.rotateX(self.events.delta * -3);
-    this._modelWeaponFire.rotateZ(self.events.delta * -3);
-    this._modelWeaponFire.rotateY(self.events.delta * -3);
 
     if (!this._isOptical) {
       if (this._fireScale >= 0)
@@ -607,400 +483,255 @@ export default class Hero {
       this._fireScale = 0;
       this._weaponFire.visible = false;
       this._opticalFire.visible = false;
-      this._modelWeaponFire.visible = false;
     }
   }
 
   public animate(self: ISelf): void {
-    this._endurance = self.store.getters['layout/endurance'];
-    this._isHide = self.store.getters['layout/isHide'];
-    this._isPause = self.store.getters['layout/isPause'];
-    this._isRun = self.store.getters['layout/isRun'];
-    this._isTired = self.store.getters['layout/isTired'];
+    if (!this._isEnter) this._isEnter = self.store.getters['api/isEnter'];
+    else {
+      this._endurance = self.store.getters['layout/endurance'];
+      this._isHide = self.store.getters['layout/isHide'];
+      this._isPause = self.store.getters['layout/isPause'];
+      this._isRun = self.store.getters['layout/isRun'];
+      this._isTired = self.store.getters['layout/isTired'];
+      this._isOnHit = self.store.getters['api/isOnHit'];
+      this._isOnBodyHit = self.store.getters['api/isOnBodyHit'];
+      this._isGameOver = self.store.getters['layout/isGameOver'];
 
-    if (this._isFire) this._redrawFire(self);
+      if (this._isOnHit !== this._isOnHitStore) {
+        if (this._isOnHit && this._isOnBodyHit) self.audio.replayHeroSound(Audios.hit);
+        this._isOnHitStore = this._isOnHit;
+      }
 
-    if (this._isHide !== this._isHideStore) {
-      this._setCapsule(self);
-      this._isHideStore = this._isHide;
-    }
+      if (this._isFire) this._redrawFire(self);
 
-    // Усталость и ее восстановление
-    if (
-      this._isRun ||
-      this._isTired ||
-      (!this._isRun && !this._isTired && this._endurance < 100)
-    ) {
-      if (this._isRun && !this._enduranceClock.running)
-        this._enduranceClock.start();
+      if (this._isHide !== this._isHideStore) {
+        this._setCapsule(self);
+        this._isHideStore = this._isHide;
+      }
 
+      // Усталость и ее восстановление
       if (
-        !this._isEnduranceRecoveryStart &&
-        this._endurance < 100 &&
-        !this._isRun
+        this._isRun ||
+        this._isTired ||
+        (!this._isRun && !this._isTired && this._endurance < 100)
       ) {
-        this._isEnduranceRecoveryStart = true;
-        this._enduranceClock.start();
-      } else if (this._isEnduranceRecoveryStart && this._isRun)
-        this._isEnduranceRecoveryStart = false;
+        if (this._isRun && !this._enduranceClock.running)
+          this._enduranceClock.start();
 
-      if (this._isNotJump)
-        this._enduranceTime += this._enduranceClock.getDelta();
+        if (
+          !this._isEnduranceRecoveryStart &&
+          this._endurance < 100 &&
+          !this._isRun
+        ) {
+          this._isEnduranceRecoveryStart = true;
+          this._enduranceClock.start();
+        } else if (this._isEnduranceRecoveryStart && this._isRun)
+          this._isEnduranceRecoveryStart = false;
 
-      if (this._enduranceTime > 0.035) {
-        self.store.dispatch('layout/setLayoutState', {
-          field: 'endurance',
-          value: !this._isEnduranceRecoveryStart ? -1 : 1,
-        });
+        if (this._isNotJump)
+          this._enduranceTime += this._enduranceClock.getDelta();
+
+        if (this._enduranceTime > 0.035) {
+          self.store.dispatch('layout/setLayoutState', {
+            field: 'endurance',
+            value: !this._isEnduranceRecoveryStart ? -1 : 1,
+          });
+          this._enduranceTime = 0;
+        }
+      } else {
+        if (this._enduranceClock.running) this._enduranceClock.stop();
+        if (this._isEnduranceRecoveryStart)
+          this._isEnduranceRecoveryStart = false;
         this._enduranceTime = 0;
       }
-    } else {
-      if (this._enduranceClock.running) this._enduranceClock.stop();
-      if (this._isEnduranceRecoveryStart)
-        this._isEnduranceRecoveryStart = false;
-      this._enduranceTime = 0;
-    }
 
-    if (this._isNotJump) {
-      if (!this._isPause) {
-        if (self.keys['KeyW']) {
-          this._speed = this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
-            : this._isRun
-            ? DESIGN.GAMEPLAY.PLAYER_SPEED * 2
-            : DESIGN.GAMEPLAY.PLAYER_SPEED;
-          this._velocity.add(
-            this._getForwardVector(self).multiplyScalar(
-              this._speed * self.events.delta,
-            ),
+      if (this._isNotJump) {
+        if (!this._isPause) {
+          if (self.keys['KeyW']) {
+            this._speed = this._isHide
+              ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
+              : this._isRun
+                ? DESIGN.GAMEPLAY.PLAYER_SPEED * 2
+                : DESIGN.GAMEPLAY.PLAYER_SPEED;
+            this._velocity.add(
+              this._getForwardVector(self).multiplyScalar(
+                this._speed * self.events.delta,
+              ),
+            );
+
+            if (
+              (self.keys['ShiftLeft'] || self.keys['ShiftRight']) &&
+              !this._isHide &&
+              !this._isTired &&
+              !this._isRun
+            ) {
+              self.store.dispatch('layout/setLayoutState', {
+                field: 'isRun',
+                value: true,
+              });
+            }
+          }
+
+          if (self.keys['KeyS']) {
+            this._speed = this._isHide
+              ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
+              : DESIGN.GAMEPLAY.PLAYER_SPEED;
+            this._velocity.add(
+              this._getForwardVector(self).multiplyScalar(
+                -this._speed * self.events.delta,
+              ),
+            );
+          }
+
+          if (self.keys['KeyA']) {
+            this._speed = this._isHide
+              ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
+              : DESIGN.GAMEPLAY.PLAYER_SPEED;
+            this._velocity.add(
+              this._getSideVector(self).multiplyScalar(
+                -this._speed * self.events.delta,
+              ),
+            );
+          }
+
+          if (self.keys['KeyD']) {
+            this._speed = this._isHide
+              ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
+              : DESIGN.GAMEPLAY.PLAYER_SPEED;
+            this._velocity.add(
+              this._getSideVector(self).multiplyScalar(
+                this._speed * self.events.delta,
+              ),
+            );
+          }
+
+          if (self.keys['Space']) {
+            if (!this._isHide && !this._isTired) {
+              this._velocity.y = DESIGN.GAMEPLAY.JUMP;
+              self.audio.replayHeroSound(Audios.jumpstart);
+            }
+          }
+
+          this._velocity.addScaledVector(
+            this._velocity,
+            self.helper.damping(self.events.delta),
           );
 
+          // Steps sound
           if (
-            (self.keys['ShiftLeft'] || self.keys['ShiftRight']) &&
-            !this._isHide &&
-            !this._isTired &&
-            !this._isRun
+            self.keys['KeyW'] ||
+            self.keys['KeyS'] ||
+            self.keys['KeyA'] ||
+            self.keys['KeyD']
           ) {
-            self.store.dispatch('layout/setLayoutState', {
-              field: 'isRun',
-              value: true,
-            });
+            this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
+            self.audio.setPlaybackRateOnHeroSound(Audios.steps, this._speed);
+            self.audio.startHeroSound(Audios.steps);
           }
-        }
 
-        if (self.keys['KeyS']) {
-          this._speed = this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
-            : DESIGN.GAMEPLAY.PLAYER_SPEED;
-          this._velocity.add(
-            this._getForwardVector(self).multiplyScalar(
-              -this._speed * self.events.delta,
-            ),
-          );
-        }
-
-        if (self.keys['KeyA']) {
-          this._speed = this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
-            : DESIGN.GAMEPLAY.PLAYER_SPEED;
-          this._velocity.add(
-            this._getSideVector(self).multiplyScalar(
-              -this._speed * self.events.delta,
-            ),
-          );
-        }
-
-        if (self.keys['KeyD']) {
-          this._speed = this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
-            : DESIGN.GAMEPLAY.PLAYER_SPEED;
-          this._velocity.add(
-            this._getSideVector(self).multiplyScalar(
-              this._speed * self.events.delta,
-            ),
-          );
-        }
-
-        if (self.keys['Space']) {
-          if (!this._isHide && !this._isTired) {
-            this._velocity.y = DESIGN.GAMEPLAY.JUMP;
-            self.audio.replayHeroSound(Audios.jumpstart);
+          if (self.keys['KeyW'] && !self.keys['KeyS']) {
+            this._isForward = true;
+            this._isBackward = false;
+            this._isLeft = false;
+            this._isRight = false;
+          } else if (!self.keys['KeyW'] && self.keys['KeyS']) {
+            this._isForward = false;
+            this._isBackward = true;
+            this._isLeft = false;
+            this._isRight = false;
+          } else if (self.keys['KeyA'] && !self.keys['KeyD']) {
+            this._isForward = false;
+            this._isBackward = false;
+            this._isLeft = true;
+            this._isRight = false;
+          } else if (self.keys['KeyD'] && !self.keys['KeyA']) {
+            this._isForward = false;
+            this._isBackward = false;
+            this._isLeft = false;
+            this._isRight = true;
+          } else {
+            this._isForward = false;
+            this._isBackward = false;
+            this._isLeft = false;
+            this._isRight = false;
           }
-        }
-
-        this._velocity.addScaledVector(
-          this._velocity,
-          self.helper.damping(self.events.delta),
-        );
-
-        // Steps sound
-        if (
-          self.keys['KeyW'] ||
-          self.keys['KeyS'] ||
-          self.keys['KeyA'] ||
-          self.keys['KeyD']
-        ) {
-          this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
-          self.audio.setPlaybackRateOnHeroSound(Audios.steps, this._speed);
-          self.audio.startHeroSound(Audios.steps);
-        }
-
-        if (self.keys['KeyW'] && !self.keys['KeyS']) {
-          this._isForward = true;
-          this._isBackward = false;
-          this._isLeft = false;
-          this._isRight = false;
-        } else if (!self.keys['KeyW'] && self.keys['KeyS']) {
-          this._isForward = false;
-          this._isBackward = true;
-          this._isLeft = false;
-          this._isRight = false;
-        } else if (self.keys['KeyA'] && !self.keys['KeyD']) {
-          this._isForward = false;
-          this._isBackward = false;
-          this._isLeft = true;
-          this._isRight = false;
-        } else if (self.keys['KeyD'] && !self.keys['KeyA']) {
-          this._isForward = false;
-          this._isBackward = false;
-          this._isLeft = false;
-          this._isRight = true;
         } else {
-          this._isForward = false;
-          this._isBackward = false;
-          this._isLeft = false;
-          this._isRight = false;
+          this._velocity.addScaledVector(
+            this._velocity,
+            self.helper.damping(self.events.delta),
+          );
         }
+      } else {
+        self.audio.pauseHeroSound(Audios.steps);
+        this._velocity.y -= DESIGN.GAMEPLAY.GRAVITY * self.events.delta;
       }
-    } else {
-      self.audio.pauseHeroSound(Audios.steps);
-      this._velocity.y -= DESIGN.GAMEPLAY.GRAVITY * self.events.delta;
-    }
 
-    if (this._mixer) {
-      if (!this._isHide && this._isRun !== this._isRunStore) {
-        if (this._isRun) this._nextAction = this._run;
-        else this._nextAction = this._getMove();
+      if (this._isGameOver) this._animation = this._dead;
+      else if (!this._isHide && this._isOnHit) this._animation = this._hit;
+      else if (!this._isHide && this._isRun !== this._isRunStore) {
+        if (this._isRun) this._animation = this._run;
+        else this._animation = this._getMove();
         this._isRunStore = this._isRun;
       } else {
-        if (!this._isNotJump && !this._isPause) this._nextAction = this._jump;
+        if (!this._isNotJump && !this._isHide && !this._isPause)
+          this._animation = this._jump;
         else {
-          if (this._isRun && !this._isPause) this._nextAction = this._run;
-          else this._nextAction = this._getMove();
+          if (this._isRun && !this._isPause) this._animation = this._run;
+          else this._animation = this._getMove();
         }
       }
 
-      if (this._nextAction && this._prevAction !== this._nextAction) {
-        this._prevAction.fadeOut(0.25);
-        this._nextAction.reset().fadeIn(0.25).play();
-        this._prevAction = this._nextAction;
-      }
+      if (this._collider) {
+        if (this._isGameOver) {
+          this._velocity.x = 0;
+          this._velocity.z = 0;
+        }
+        this._collider.translate(
+          this._velocity.clone().multiplyScalar(self.events.delta),
+        );
 
-      this._mixer.update(self.events.delta);
-    }
+        this._playerCollitions(self);
 
-    if (this._collider && !this._isPause) {
-      this._collider.translate(
-        this._velocity.clone().multiplyScalar(self.events.delta),
-      );
+        if (this._collider.end.y < 0) {
+          this._collider.end.y = 0;
+          this._collider.start.y = DESIGN.GAMEPLAY.PLAYER_HEIGHT;
+        }
 
-      this._playerCollitions(self);
-
-      if (this._collider.end.y < 0) {
-        this._collider.end.y = 0;
-        this._collider.start.y = DESIGN.GAMEPLAY.PLAYER_HEIGHT;
-      }
-
-      self.camera.position.set(
-        this._collider.end.x,
-        this._collider.end.y -
+        self.camera.position.set(
+          this._collider.end.x,
+          this._collider.end.y -
           (!this._isHide ? 0 : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 1.1),
-        this._collider.end.z,
-      );
-
-      // if (scope.world.enemies) scope.world.enemies.setScales(scope);
-
-      this._toruch.position.copy(self.camera.position);
-
-      self.camera.getWorldDirection(this._direction);
-      this._direction.normalize();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this._animation = this._nextAction['_clip'].name;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      self.store.dispatch('api/setApiState', {
-        field: 'updates',
-        value: {
-          positionX: self.camera.position.x,
-          positionY: self.camera.position.y,
-          positionZ: self.camera.position.z,
-          directionX: this._direction.x,
-          directionY: this._direction.y,
-          directionZ: this._direction.z,
-
-          animation: this._animation,
-          isFire: this._isFire,
-        },
-      });
-
-      this._animateWeapon(self);
-
-      // Test model
-      if (this._isTest) {
-        this._test = self.store.getters['api/game'].users.find(
-          (player: IUser) => player.id == self.store.getters['layout/id'],
+          this._collider.end.z,
         );
 
-        this._target.set(
-          this._test.positionX + 2,
-          this._test.positionY -
-          (!this._isHide
-            ? DESIGN.GAMEPLAY.PLAYER_HEIGHT - 0.5
-            : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.3),
-          this._test.positionZ + 2,
-        );
+        this._toruch.position.copy(self.camera.position);
 
-        this._speed = this._isHide ? 0.5 : this._isRun ? 2.5 : 1;
-        this._speed *= self.events.delta * 8;
+        self.camera.getWorldDirection(this._direction);
+        this._direction.normalize();
 
-        if (this._model.position.x < this._target.x - this._speed * 1.1)
-          this._model.position.x += this._speed;
-        else if (this._model.position.x > this._target.x + this._speed * 1.1)
-          this._model.position.x -= this._speed;
-        else this._model.position.x = this._target.x;
+        self.store.dispatch('api/setApiState', {
+          field: 'updates',
+          value: {
+            positionX: self.camera.position.x,
+            positionY: self.camera.position.y,
+            positionZ: self.camera.position.z,
+            directionX: this._direction.x,
+            directionY: this._direction.y,
+            directionZ: this._direction.z,
 
-        if (this._model.position.z < this._target.z - this._speed * 1.1)
-          this._model.position.z += this._speed;
-        else if (this._model.position.z > this._target.z + this._speed * 1.1)
-          this._model.position.z -= this._speed;
-        else this._model.position.z = this._target.z;
+            animation: this._animation,
+            isFire: this._isFire,
+            isOnHit: this._isOnHit && this._isOnBodyHit,
+          },
+        });
 
-        this._model.position.y = this._target.y;
-
-        if (this._direction.y > 0)
-          this._model.rotation.y =
-            2 * Math.atan2(this._test.directionX, this._test.directionY);
-        else if (this._direction.y <= 0)
-          this._model.rotation.y =
-            -2 * Math.atan2(this._test.directionX, this._test.directionY);
-
-        this._scale.setRotationFromMatrix(self.camera.matrix);
-        this._scale.position.set(
-          this._model.position.x + 2,
-          this._model.position.y -
-          DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 +
-          (!this._isHide ? 3.75 : 3),
-          this._model.position.z + 2,
-        );
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (!this._name.length)
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          this._name.text = self.store.getters['layout/name'];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.setRotationFromMatrix(self.camera.matrix);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.position.x = this._model.position.x + 2;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.position.y =
-          this._model.position.y +
-          DESIGN.GAMEPLAY.PLAYER_HEIGHT +
-          (!this._isHide ? 1.5 : 0.5);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this._name.position.z = this._model.position.z + 2;
-
-        this._modelWeapon.position.copy(this._model.position);
-        this._modelWeapon.rotation.y = -1 * this._model.rotation.y;
-
-        if (this._nextAction === this._jump) {
-          this._modelWeapon.position.add(
-            this._getForwardVectorFromObject(this._modelWeapon).multiplyScalar(
-              -0.3,
-            ),
-          );
-          this._modelWeapon.position.y += 1.8;
-        } else if (this._nextAction === this._stand) {
-          this._modelWeapon.position
-            .add(
-              this._getForwardVectorFromObject(this._modelWeapon).multiplyScalar(
-                -0.2,
-              ),
-            )
-            .add(
-              this._getSideVectorFromObject(this._modelWeapon).multiplyScalar(
-                -0.1,
-              ),
-            );
-          if (this._animation.includes('fire'))
-            this._modelWeapon.position.y += 1.5;
-          else this._modelWeapon.position.y += 1.28;
-          this._modelWeapon.rotation.y -= 1.2;
-        } else if (this._animation.includes('hide')) {
-          if (
-            this._nextAction === this._hide ||
-            this._nextAction === this._firehide
-          ) {
-            this._modelWeapon.position
-              .add(
-                this._getForwardVectorFromObject(
-                  this._modelWeapon,
-                ).multiplyScalar(
-                  this._nextAction === this._firehide ? -0.3 : -0.2,
-                ),
-              )
-              .add(
-                this._getSideVectorFromObject(this._modelWeapon)
-                  .negate()
-                  .multiplyScalar(0.25),
-              );
-            this._modelWeapon.position.y +=
-              this._nextAction === this._firehide ? 0.95 : 0.9;
-          } else {
-            this._modelWeapon.position
-              .add(
-                this._getForwardVectorFromObject(
-                  this._modelWeapon,
-                ).multiplyScalar(-0.4),
-              )
-              .add(
-                this._getSideVectorFromObject(this._modelWeapon).multiplyScalar(
-                  this._isBackward ? 0 : 0.1,
-                ),
-              );
-            this._modelWeapon.position.y += 1.2;
-          }
-        } else {
-          this._modelWeapon.position
-            .add(
-              this._getForwardVectorFromObject(this._modelWeapon).multiplyScalar(
-                -0.2,
-              ),
-            )
-            .add(
-              this._getSideVectorFromObject(this._modelWeapon).multiplyScalar(
-                -0.15,
-              ),
-            );
-          this._modelWeapon.position.y +=
-            this._isForward || this._isBackward
-              ? 1.45
-              : this._animation.includes('fire')
-              ? 1.5
-              : 1.3;
-        }
+        this._animateWeapon(self);
       }
     }
   }
 
-  private _getMove(): AnimationAction {
+  private _getMove(): Animations {
     if (this._isHide) {
       if (this._isForward) {
         if (this._isFire) return this._firehideforward;
@@ -1008,7 +739,7 @@ export default class Hero {
       } else if (this._isBackward) return this._hideback;
       else if (this._isLeft) return this._hideleft;
       else if (this._isRight) return this._hideright;
-      if (this._isFire) return this._firehide;
+      else if (this._isFire) return this._firehide;
       else return this._hide;
     } else {
       if (this._isForward) {

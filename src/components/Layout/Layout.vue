@@ -7,16 +7,17 @@
 
       <template v-if="!isEnter">
         <div class="layout__enter">
-          <div class="layout__overlay" />
+          <div class="layout__overlay layout__overlay--enter" />
           <div class="layout__effect" />
 
           <div class="layout__dialog">
-            <div class="layout__name">{{ $t('name') }}</div>
+            <div class="layout__header">{{ $t('name') }}</div>
 
             <LangSwitch />
 
             <div class="layout__nick">{{ $t('nick') }}</div>
-            <input class="layout__input" v-model="nickname" />
+            <div class="layout__nick2">{{ $t('nick2') }}</div>
+            <input class="layout__input" v-model="nickname" maxlength="25" />
 
             <div class="layout__buttons">
               <button
@@ -54,6 +55,14 @@
           <div class="layout__optical--side" />
         </div>
 
+        <div
+          class="layout__overlay"
+          :class="[
+            isOnHit && !isGameOver && `layout__overlay--hit hit`,
+            isGameOver && 'layout__overlay--hit',
+          ]"
+        />
+
         <transition-group name="fade2" tag="ul" class="layout__messages">
           <li
             class="layout__message"
@@ -64,16 +73,25 @@
           </li>
         </transition-group>
 
+        <div class="layout__name">{{ name }}</div>
+
         <div class="layout__effect" />
 
         <transition name="fade">
-          <div v-if="isPause && isGameLoaded" class="layout__blocker">
-            <div class="layout__name">{{ $t('name') }}</div>
+          <div
+            v-if="(isPause && isGameLoaded) || isGameOver"
+            class="layout__blocker"
+            :class="{ 'layout__blocker--pause': !isGameOver }"
+          >
+            <div class="layout__header">
+              {{ !isGameOver ? $t('name') : $t('gameover') }}
+            </div>
 
-            <LangSwitch />
+            <LangSwitch v-if="!isGameOver" />
 
-            <div class="layout__buttons layout__buttons--game">
+            <div class="layout__buttons">
               <button
+                v-if="!isGameOver"
                 class="layout__button"
                 type="button"
                 @click.prevent.stop="play"
@@ -90,15 +108,17 @@
               </button>
             </div>
 
-            <div class="layout__help">
-              <div class="layout__keys">
-                <p>{{ $t('key1') }}</p>
-              </div>
-
-              <div class="layout__copy">
-                <p>{{ $t('copyright') }}</p>
-              </div>
+            <div v-if="!isGameOver" class="layout__help">
+              <div class="layout__keys">{{ $t('control1') }}</div>
+              <div class="layout__keys">{{ $t('control2') }}</div>
+              <div class="layout__keys">{{ $t('control3') }}</div>
+              <div class="layout__keys">{{ $t('control4') }}</div>
+              <div class="layout__keys">{{ $t('control5') }}</div>
+              <div class="layout__keys">{{ $t('control6') }}</div>
+              <div class="layout__keys">{{ $t('control8') }}</div>
+              <div class="layout__keys">{{ $t('control9') }}</div>
             </div>
+            <div class="layout__copy">{{ $t('copyright') }}</div>
           </div>
         </transition>
       </template>
@@ -110,7 +130,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
+import { defineComponent, computed, onMounted, ref, Ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
@@ -119,10 +139,10 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/utils/emitter';
 
 // Constants
-import { ScreenHelper } from '@/utils/constants';
+import { DESIGN, ScreenHelper } from '@/utils/constants';
 
 // Types
-import { EmitterEvents } from '@/models/api';
+import { EmitterEvents, IUser } from '@/models/api';
 
 // Components
 import Connect from '@/components/Connect.vue';
@@ -162,13 +182,15 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
     );
     const isEnter = computed(() => store.getters['api/isEnter']);
+    const isOnHit = computed(() => store.getters['api/isOnHit']);
+    const health = computed(() => store.getters['api/health']);
+    const name = computed(() => store.getters['layout/name']);
     const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
-    const health = computed(() => store.getters['layout/health']);
     const endurance = computed(() => store.getters['layout/endurance']);
     const isOptical = computed(() => store.getters['layout/isOptical']);
     const isTired = computed(() => store.getters['layout/isTired']);
-    const messages = computed(() => store.getters['layout/messages']);
+    const messages = computed(() => store.getters['messages/messages']);
 
     onMounted(() => {
       onWindowResize();
@@ -180,7 +202,7 @@ export default defineComponent({
     };
 
     reenter = () => {
-      console.log('reenter');
+      emitter.emit(EmitterEvents.reenter);
       restartDispatchHelper(store);
     };
 
@@ -210,12 +232,14 @@ export default defineComponent({
       isOptical,
       isTired,
       health,
+      name,
       endurance,
       messages,
       play,
       enter,
       reenter,
       nickname,
+      isOnHit,
     };
   },
 });
@@ -228,10 +252,10 @@ $name = '.layout'
   @extend $viewport
   text-align center
 
-  &__name
+  &__header
     color $colors.sea
-    margin-top 15vh
-    margin-bottom 7vh
+    margin-top 13vh
+    margin-bottom 6vh
     $text("olga")
 
   &__enter
@@ -250,14 +274,19 @@ $name = '.layout'
   &__nick
     color $colors.sea
     margin-top 7vh
-    margin-bottom 2vh
+    margin-bottom 20px
     $text("elena")
+
+  &__nick2
+    color $colors.sea
+    margin-bottom 2vh
+    $text("nina")
 
   &__input
     width 25vw
     padding-left 10px
     padding-right 10px
-    margin-bottom 5vh
+    margin-bottom 3vh
     color $colors.sea
     border 4px solid $colors.sea
     background transparent
@@ -266,7 +295,12 @@ $name = '.layout'
   &__overlay
     @extend $viewport
     z-index 10
-    background linear-gradient(0deg, rgba($colors.primary, $opacites.rock) 0%, rgba($colors.ghost, $opacites.rock) 100%)
+
+    &--enter
+      background linear-gradient(0deg, rgba($colors.primary, $opacites.rock) 0%, rgba($colors.ghost, $opacites.rock) 100%)
+
+    &--hit
+      background $colors.hit
 
   &__effect
     @extend $viewport
@@ -303,27 +337,33 @@ $name = '.layout'
     list-style none
     padding 0.5vw 1vw
     pointer-events none
-    color $colors.sea
+    // color $colors.sea
+    color $colors.stone
 
   &__message
     margin-bottom 0.5vw
     $text("maria")
 
+  &__name
+    position absolute
+    top 0
+    right 0
+    color $colors.stone
+    $text("maria")
+
   &__blocker
     @extend $viewport
     text-align center
-    background linear-gradient(0deg, rgba($colors.primary, $opacites.funky) 0%, rgba($colors.ghost, $opacites.psy) 100%)
     z-index 2000
+
+    &--pause
+      background linear-gradient(0deg, rgba($colors.primary, $opacites.funky) 0%, rgba($colors.ghost, $opacites.psy) 100%)
 
   &__buttons
     display flex
     align-items center
     flex-direction column
     justify-content center
-
-    &--game
-      margin-top 4vh
-      margin-bottom 9vh
 
   &__button
     margin-top $gutter * 2
@@ -334,18 +374,13 @@ $name = '.layout'
       opacity 0.5
 
     &--enter
-      margin-bottom 9vh
+      margin-bottom 5vh
 
-  p
-    margin-bottom $gutter
+  &__keys,
+  &__copy
+    margin-bottom 10px
     color $colors.sea
     $text("nina")
-
-  &__help
-    margin-top $gutter * 2
-
-  &__keys
-    margin-bottom $gutter / 2
 
   &__copy
     margin-top $gutter * 2

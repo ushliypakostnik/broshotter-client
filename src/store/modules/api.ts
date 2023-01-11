@@ -5,22 +5,30 @@ import { APIService } from '@/utils/api';
 
 // Types
 import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
-import type { IGameUpdates, IIndex } from '@/models/api';
+import type { IGameUpdates, IIndex, IUser } from '@/models/api';
 
 const initialState: IStoreModule = {
   isEnter: false, // Cервер знает имя пользователя?
   game: null,
   updates: {},
+  health: 100,
+  isOnHit: false,
+  isOnBodyHit: false,
 };
+
+let player;
 
 const api: Module<IStoreModule, IStore> = {
   namespaced: true,
   state: initialState,
 
   getters: {
+    isEnter: (state: IStoreModule) => state.isEnter,
     game: (state: IStoreModule) => state.game,
     updates: (state: IStoreModule) => state.updates,
-    isEnter: (state: IStoreModule) => state.isEnter,
+    health: (state: IStoreModule) => state.health,
+    isOnHit: (state: IStoreModule) => state.isOnHit,
+    isOnBodyHit: (state: IStoreModule) => state.isOnBodyHit,
   },
 
   actions: {
@@ -64,6 +72,7 @@ const api: Module<IStoreModule, IStore> = {
     },
 
     reload: (state: IStoreModule): void => {
+      state.isEnter = initialState.isEnter;
       state.game = initialState.game;
       state.updates = initialState.updates;
     },

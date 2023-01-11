@@ -21,7 +21,6 @@ const initialState: IPreloader = {
 
   // Models
   enemiesIsLoaded: false,
-  heroIsLoaded: false,
   worldIsLoaded: false,
   playersIsLoaded: false,
   treeIsLoaded: false,
@@ -30,10 +29,15 @@ const initialState: IPreloader = {
   // Audio
   windIsLoaded: false,
   stepsIsLoaded: false,
+  steps2IsLoaded: false,
   jumpstartIsLoaded: false,
   jumpendIsLoaded: false,
+  jumpstart2IsLoaded: false,
+  jumpend2IsLoaded: false,
   shotIsLoaded: false,
+  shot2IsLoaded: false,
   hitIsLoaded: false,
+  hit2IsLoaded: false,
   explosionIsLoaded: false,
 
   // World build

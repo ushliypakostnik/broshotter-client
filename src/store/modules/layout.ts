@@ -19,7 +19,6 @@ const initialState: IStoreModule = {
   messages: [], // Сообщения сейчас
 
   // Gameplay
-  health: 100,
   endurance: 100,
   isHide: false,
   isRun: false,
@@ -47,6 +46,7 @@ const layout: Module<IStoreModule, IStore> = {
     isOptical: (state: IStoreModule) => state.isOptical,
     isTired: (state: IStoreModule) => state.isTired,
     messages: (state: IStoreModule) => state.messages,
+    isGameOver: (state: IStoreModule) => state.isGameOver,
   },
 
   actions: {
@@ -114,6 +114,7 @@ const layout: Module<IStoreModule, IStore> = {
       state.isOptical = initialState.isOptical;
       state.isTired = initialState.isTired;
       state.messages = initialState.messages;
+      state.isGameOver = initialState.isGameOver;
     },
   },
 };
