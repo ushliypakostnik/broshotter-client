@@ -329,7 +329,9 @@ export default class Hero {
     this._position = this._isOptical
       ? this._optical.position
       : this._weapon.position;
-    this._position.add(this._velocity.normalize().multiplyScalar(0.5));
+    if (this._isOptical) this._position.y = -0.2;
+    if (this._isLeft) this._position.add(this._velocity.normalize().negate().multiplyScalar(0.25));
+    else this._position.add(this._velocity.normalize().multiplyScalar(0.25));
     this._number =
       this._isNotJump || this._jumpStart - this._collider.end.y < 1.5
         ? this._position.y
