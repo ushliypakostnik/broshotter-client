@@ -3,14 +3,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, computed, watch, reactive, ref } from 'vue';
+import {
+  defineComponent,
+  onMounted,
+  computed,
+  watch,
+  reactive,
+  ref,
+} from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 
 import * as THREE from 'three';
 
 // Constants
-import {Audios, Colors, DESIGN} from '@/utils/constants';
+import { Audios, Colors, DESIGN } from '@/utils/constants';
 
 // Emmiter
 import emitter from '@/utils/emitter';
@@ -87,6 +94,9 @@ export default defineComponent({
     const id = computed(() => store.getters['layout/id']);
     const game = computed(() => store.getters['api/game']);
     const isGameOver = computed(() => store.getters['layout/isGameOver']);
+    const isGameLoaded = computed(
+      () => store.getters['preloader/isGameLoaded'],
+    );
     const isPause = computed(() => store.getters['layout/isPause']);
     const isOptical = computed(() => store.getters['layout/isOptical']);
     const isHide = computed(() => store.getters['layout/isHide']);
@@ -187,7 +197,12 @@ export default defineComponent({
       keys[event.code] = false;
       switch (event.keyCode) {
         case 16: // Shift
-          if (!isGameOver.value && !isPause.value && isRun.value)
+          if (
+            isEnter.value &&
+            !isGameOver.value &&
+            !isPause.value &&
+            isRun.value
+          )
             store.dispatch('layout/setLayoutState', {
               field: 'isRun',
               value: false,
@@ -204,12 +219,12 @@ export default defineComponent({
 
         case 67: // C
         case 18: // Alt
-          if (!isGameOver.value && !isPause.value)
+          if (isEnter.value && !isGameOver.value && !isPause.value)
             self.audio.replayHeroSound(Audios.jumpstart);
-            store.dispatch('layout/setLayoutState', {
-              field: 'isHide',
-              value: !isHide.value,
-            });
+          store.dispatch('layout/setLayoutState', {
+            field: 'isHide',
+            value: !isHide.value,
+          });
           break;
         default:
           break;
@@ -218,10 +233,16 @@ export default defineComponent({
 
     // Нажата клавиша мыши
     onMouseDown = (event) => {
-      if (!isPause.value && !isGameOver.value && event.button === 0)
+      if (
+        isEnter.value &&
+        !isPause.value &&
+        !isGameOver.value &&
+        event.button === 0
+      )
         emitter.emit(EmitterEvents.shot, world.shot(self));
 
       if (
+        isEnter.value &&
         !isPause.value &&
         !isGameOver.value &&
         event.button === 2 &&
@@ -236,6 +257,7 @@ export default defineComponent({
     // Отпущена клавиша мыши
     onMouseUp = (event) => {
       if (
+        isEnter.value &&
         !isPause.value &&
         !isGameOver.value &&
         event.button === 2 &&
@@ -248,8 +270,10 @@ export default defineComponent({
     };
 
     animate = () => {
-      events.animate();
-      world.animate(self);
+      if (isGameLoaded.value && isEnter.value) {
+        events.animate();
+        world.animate(self);
+      }
 
       render();
 
@@ -332,14 +356,8 @@ export default defineComponent({
     watch(
       () => store.getters['layout/isPause'],
       (value) => {
-        if (value) {
-          // events.pause();
-          controls.unlock();
-        } else {
-          // events.start();
-          controls.lock();
-        }
-        audio.toggle(value);
+        if (value) controls.unlock();
+        else controls.lock();
 
         // Если c паузы - выключаем оптику
         if (!value && isOptical.value) {

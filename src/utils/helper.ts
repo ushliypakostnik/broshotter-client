@@ -120,8 +120,35 @@ export default class Helper {
 
   // Помощник загрузки текстур
   public textureLoaderHelper(self: ISelf, name: Textures): Texture {
+    let path: string;
+    let folder: string;
+    let number = 0;
+    // Папка
+    switch (name) {
+      case Textures.sky:
+        folder = 'sky';
+        number = self.helper.randomInteger(1, 9);
+        break;
+      case Textures.ground:
+        folder = 'ground';
+        number = self.helper.randomInteger(1, 12);
+        break;
+      case Textures.concrette:
+      case Textures.concrette2:
+      case Textures.metall:
+      case Textures.metall2:
+      case Textures.fire:
+      case Textures.asphalt:
+      default:
+        folder = 'material';
+        break;
+    }
+
+    if (number) path = `./images/textures/${folder}/${name}${number}.jpg`;
+    else path = `./images/textures/${folder}/${name}.jpg`;
+
     return this.textureLoader.load(
-      `./images/textures/${name}.jpg`,
+      path,
       (map: Texture) => {
         this._number = self.assets.getRepeatByName(name);
         map.repeat.set(this._number, this._number);
@@ -160,8 +187,7 @@ export default class Helper {
       this.loaderDispatchHelper(self.store, name);
 
       // Ветер
-      if (name === Audios.wind && !self.store.getters['layout/isPause'])
-        self.audio.startHeroSound(Audios.wind);
+      if (name === Audios.wind) self.audio.startHeroSound(Audios.wind);
     });
   }
 }

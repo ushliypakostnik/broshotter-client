@@ -13,7 +13,7 @@ import { ISelf } from '@/models/modules';
 import { TPosition, TPositions } from '@/models/utils';
 
 // Constants
-import { Colors, DESIGN, Names, Textures } from '@/utils/constants';
+import { Colors, Names, Textures, DESIGN } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Atmosphere {
@@ -24,8 +24,8 @@ export default class Atmosphere {
   private _sky!: Mesh;
   private _light!: HemisphereLight;
   private _sun!: DirectionalLight;
-  private _sand!: Mesh;
-  private _sand2!: Mesh;
+  private _ground!: Mesh;
+  private _ground2!: Mesh;
   private _model!: Group;
   private _modelClone!: Group;
   private _position!: TPosition;
@@ -105,14 +105,14 @@ export default class Atmosphere {
 
     // Sand 1
 
-    this._sand = new THREE.Mesh(
+    this._ground = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(DESIGN.SIZE * 2, DESIGN.SIZE * 2, 32, 32),
-      self.assets.getMaterial(Textures.sand),
+      self.assets.getMaterial(Textures.ground),
     );
-    this._sand.rotation.x = -Math.PI / 2;
-    this._sand.position.set(0, -1.5, 0);
-    this._sand.receiveShadow = true;
-    self.scene.add(this._sand);
+    this._ground.rotation.x = -Math.PI / 2;
+    this._ground.position.set(0, -1.5, 0);
+    this._ground.receiveShadow = true;
+    self.scene.add(this._ground);
 
     // Sand 2
 
@@ -142,14 +142,14 @@ export default class Atmosphere {
       position.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
 
-    this._sand2 = new THREE.Mesh(
+    this._ground2 = new THREE.Mesh(
       self.helper.geometry,
-      self.assets.getMaterialWithColor(Textures.sand, Colors.sky),
+      self.assets.getMaterialWithColor(Textures.ground, Colors.sky),
     );
-    this._sand2.rotation.x = -Math.PI / 2;
-    this._sand2.position.set(0, -1.6, 0);
-    this._sand2.updateMatrix();
-    self.scene.add(this._sand2);
+    this._ground2.rotation.x = -Math.PI / 2;
+    this._ground2.position.set(0, -1.6, 0);
+    this._ground2.updateMatrix();
+    self.scene.add(this._ground2);
 
     // Trees
     self.assets.GLTFLoader.load('./images/models/tree.glb', (model: GLTF) => {

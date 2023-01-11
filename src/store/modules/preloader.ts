@@ -13,10 +13,12 @@ const initialState: IPreloader = {
 
   // Textures
   skyIsLoaded: false,
-  sandIsLoaded: false,
   groundIsLoaded: false,
   concretteIsLoaded: false,
+  concrette2IsLoaded: false,
   metallIsLoaded: false,
+  metall2IsLoaded: false,
+  asphaltIsLoaded: false,
   fireIsLoaded: false,
 
   // Models

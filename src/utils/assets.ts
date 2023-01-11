@@ -21,12 +21,14 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Assets {
   // Textures
-  private _sand!: Texture;
   private _ground!: Texture;
   private _concrette!: Texture;
+  private _concrette2!: Texture;
   private _metall!: Texture;
+  private _metall2!: Texture;
   private _sky!: Texture;
   private _fire!: Texture;
+  private _asphalt!: Texture;
 
   // Loaders
   public GLTFLoader: GLTFLoader;
@@ -50,13 +52,17 @@ export default class Assets {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public init(self: ISelf) {
     // Textures
-    this._sand = self.helper.textureLoaderHelper(self, Textures.sand);
     this._ground = self.helper.textureLoaderHelper(self, Textures.ground);
     this._concrette = self.helper.textureLoaderHelper(self, Textures.concrette);
-    this._concrette = self.helper.textureLoaderHelper(self, Textures.concrette);
+    this._concrette2 = self.helper.textureLoaderHelper(
+      self,
+      Textures.concrette2,
+    );
     this._sky = self.helper.textureLoaderHelper(self, Textures.sky);
     this._metall = self.helper.textureLoaderHelper(self, Textures.metall);
+    this._metall2 = self.helper.textureLoaderHelper(self, Textures.metall2);
     this._fire = self.helper.textureLoaderHelper(self, Textures.fire);
+    this._asphalt = self.helper.textureLoaderHelper(self, Textures.asphalt);
 
     // Audio
     self.helper.setAudioToHeroHelper(self, Audios.wind);
@@ -66,66 +72,41 @@ export default class Assets {
     self.helper.setAudioToHeroHelper(self, Audios.shot);
     self.helper.setAudioToHeroHelper(self, Audios.hit);
 
-
     this.audioLoader.load(`./audio/${Audios.explosion}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.explosion,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.explosion, false);
       this.explosion = buffer;
       self.audio.initAudioByName(self, Audios.explosion);
     });
 
     this.audioLoader.load(`./audio/${Audios.shot2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.shot2,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.shot2, false);
       this.shot2 = buffer;
       self.audio.initAudioByName(self, Audios.shot2);
     });
 
     this.audioLoader.load(`./audio/${Audios.steps2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.steps2,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.steps2, false);
       this.steps2 = buffer;
 
       self.audio.initAudioByName(self, Audios.steps2);
     });
 
     this.audioLoader.load(`./audio/${Audios.jumpstart2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.jumpstart2,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.jumpstart2, false);
       this.jumpstart2 = buffer;
 
       self.audio.initAudioByName(self, Audios.jumpstart2);
     });
 
     this.audioLoader.load(`./audio/${Audios.jumpend2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.jumpend2,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.jumpend2, false);
       this.jumpend2 = buffer;
 
       self.audio.initAudioByName(self, Audios.jumpend2);
     });
 
     this.audioLoader.load(`./audio/${Audios.hit2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(
-        self.store,
-        Audios.hit2,
-        false,
-      );
+      self.helper.loaderDispatchHelper(self.store, Audios.hit2, false);
       this.hit2 = buffer;
 
       self.audio.initAudioByName(self, Audios.hit2);
@@ -138,16 +119,20 @@ export default class Assets {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     model.scene.traverse((child: any) => {
       if (child.isMesh) {
-        if (child.name.includes(Textures.ground)) {
-          child.material = self.assets.getMaterial(Textures.ground);
+        if (child.name.includes(Textures.concrette2)) {
+          child.material = self.assets.getMaterial(Textures.concrette2);
         } else if (child.name.includes(Textures.concrette)) {
           child.material = self.assets.getMaterial(Textures.concrette);
         } else if (child.name.includes(Textures.glassspecial)) {
           child.material = self.assets.getMaterial(Textures.glassspecial);
+        } else if (child.name.includes(Textures.metall2)) {
+          child.material = self.assets.getMaterial(Textures.metall2);
         } else if (child.name.includes(Textures.metall)) {
           child.material = self.assets.getMaterial(Textures.metall);
         } else if (child.name.includes(Textures.fire)) {
           child.material = self.assets.getMaterial(Textures.fire);
+        } else if (child.name.includes(Textures.asphalt)) {
+          child.material = self.assets.getMaterial(Textures.asphalt);
         }
       }
     });
@@ -159,29 +144,36 @@ export default class Assets {
     switch (name) {
       case Textures.sky:
         return this._sky;
-      case Textures.ground:
-        return this._ground;
       case Textures.concrette:
         return this._concrette;
+      case Textures.concrette2:
+        return this._concrette2;
       case Textures.metall:
         return this._metall;
+      case Textures.metall2:
+        return this._metall2;
       case Textures.fire:
         return this._fire;
-      case Textures.sand:
+      case Textures.asphalt:
+        return this._asphalt;
+      case Textures.ground:
       default:
-        return this._sand;
+        return this._ground;
     }
   }
 
   // Повторения текстуры по имени
   public getRepeatByName(name: Textures): number {
     switch (name) {
-      case Textures.sand:
-        return 256;
+      case Textures.asphalt:
+        return 32;
       case Textures.ground:
+        return 256;
       case Textures.concrette:
+      case Textures.concrette2:
         return 8;
       case Textures.metall:
+      case Textures.metall2:
         return 2;
       case Textures.fire:
         return 4;
@@ -222,7 +214,7 @@ export default class Assets {
         return new THREE.MeshStandardMaterial({
           color: Colors.black,
         });
-      case Textures.sand:
+      case Textures.ground:
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
           color: Colors.yellowDark,
@@ -232,11 +224,6 @@ export default class Assets {
           map: this.getTexture(name),
           color: Colors.sky,
         });
-      case Textures.ground:
-        return new THREE.MeshStandardMaterial({
-          map: this.getTexture(name),
-          color: Colors.ground,
-        });
       case Textures.fire:
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
@@ -245,11 +232,21 @@ export default class Assets {
       case Textures.concrette:
         return new THREE.MeshPhongMaterial({
           map: this.getTexture(name),
-          color: Colors.concrette,
+          color: Colors.white,
+        });
+      case Textures.concrette2:
+        return new THREE.MeshStandardMaterial({
+          map: this.getTexture(name),
+          color: Colors.white,
+        });
+      case Textures.asphalt:
+        return new THREE.MeshStandardMaterial({
+          map: this.getTexture(name),
+          color: Colors.white,
         });
       case Textures.glassspecial:
         return new THREE.MeshStandardMaterial({
-          color: Colors.glassspecial,
+          color: Colors.white,
           transparent: true,
           opacity: 0.25,
         });
@@ -257,6 +254,11 @@ export default class Assets {
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
           color: Colors.metall,
+        });
+      case Textures.metall2:
+        return new THREE.MeshStandardMaterial({
+          map: this.getTexture(name),
+          color: Colors.metall2,
         });
     }
     return new THREE.MeshPhongMaterial({

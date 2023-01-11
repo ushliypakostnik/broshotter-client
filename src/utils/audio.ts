@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import {
   Colors,
   Audios,
-  Names /* NOT_START_AUDIOS */,
+  Names,
 } from '@/utils/constants';
 
 // Types
@@ -156,7 +156,7 @@ export default class AudioBus {
     audio.setRolloffFactor(1);
   }
 
-  // Активировать трек по имени на объектах после загрузки
+  // Активировать трек по имени на объектах после загрузки (для стратегии, например)
   public initAudioByName(self: ISelf, name: Audios): void {
     this._bus2
       .filter((record) => record.name === name)
@@ -183,7 +183,7 @@ export default class AudioBus {
       });
   }
 
-  // Активировать трек по имени на объекте после добавления
+  // Активировать трек по имени на объекте после добавления (для стратегии, например)
   public initAudioByIdAndName(self: ISelf, id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);
 
@@ -255,7 +255,7 @@ export default class AudioBus {
     };
   }
 
-  // Пауза
+  // Пауза (для синглплеера)
   public toggle(isPause: boolean): void {
     if (isPause) {
       this._bus

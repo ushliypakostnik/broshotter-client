@@ -59,15 +59,17 @@ export enum Animations {
 
 export enum Textures {
   sky = 'sky',
-  sand = 'sand',
   ground = 'ground',
   concrette = 'concrette',
+  concrette2 = 'concrette2',
   glassspecial = 'glassspecial',
   metall = 'metall',
+  metall2 = 'metall2',
   fire = 'fire',
   pseudo = 'pseudo',
   scale = 'scale',
   hole = 'hole',
+  asphalt = 'asphalt',
 }
 
 export enum Audios {
@@ -96,10 +98,8 @@ export enum Colors {
   sun = 0xfdb813,
   toruch = 0xffff99,
   sky = 0x77deac,
-  ground = 0xffffff,
-  concrette = 0xffffff,
-  glassspecial = 0xffffff,
   metall = 0x222222,
+  metall2 = 0xee99aa,
   fire = 0xff6666,
   scale = 0x681a13,
 }

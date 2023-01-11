@@ -499,7 +499,8 @@ export default class Hero {
       this._isGameOver = self.store.getters['layout/isGameOver'];
 
       if (this._isOnHit !== this._isOnHitStore) {
-        if (this._isOnHit && this._isOnBodyHit) self.audio.replayHeroSound(Audios.hit);
+        if (this._isOnHit && this._isOnBodyHit)
+          self.audio.replayHeroSound(Audios.hit);
         this._isOnHitStore = this._isOnHit;
       }
 
@@ -552,8 +553,8 @@ export default class Hero {
             this._speed = this._isHide
               ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
               : this._isRun
-                ? DESIGN.GAMEPLAY.PLAYER_SPEED * 2
-                : DESIGN.GAMEPLAY.PLAYER_SPEED;
+              ? DESIGN.GAMEPLAY.PLAYER_SPEED * 2
+              : DESIGN.GAMEPLAY.PLAYER_SPEED;
             this._velocity.add(
               this._getForwardVector(self).multiplyScalar(
                 this._speed * self.events.delta,
@@ -701,7 +702,7 @@ export default class Hero {
         self.camera.position.set(
           this._collider.end.x,
           this._collider.end.y -
-          (!this._isHide ? 0 : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 1.1),
+            (!this._isHide ? 0 : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 1.1),
           this._collider.end.z,
         );
 
