@@ -1,5 +1,6 @@
-// Types
 import * as THREE from 'three';
+
+// Types
 import {
   AmbientLight,
   Color,
@@ -10,8 +11,9 @@ import {
   MeshBasicMaterial,
   SphereBufferGeometry,
 } from 'three';
-import { ISelf } from '@/models/modules';
+import { ISelf, ITree } from '@/models/modules';
 import { TPosition, TPositions } from '@/models/utils';
+
 // Constants
 import { Colors, DESIGN, Names, Textures } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -28,13 +30,23 @@ export default class Atmosphere {
   private _ground2!: Mesh;
   private _model!: Group;
   private _modelClone!: Group;
+  private _trees: ITree[] = [];
   private _position!: TPosition;
   private _positions!: TPositions;
   private _scale!: number;
   private _rotate!: number;
   private _ambient!: AmbientLight;
-  private _time = 0;
   private _index!: number;
+  private _time = 0;
+  private _randomX!: number;
+  private _randomY!: number;
+  private _randomZ!: number;
+  private _rotateX = 0;
+  private _rotateY = 0;
+  private _rotateZ = 0;
+  private _direction = 1;
+  private _direction2!: boolean;
+  private _isFirst = false;
 
   private _DAY = [
     {
@@ -151,7 +163,7 @@ export default class Atmosphere {
     },
   ];
 
-  init(self: ISelf): void {
+  public init(self: ISelf): void {
     this._index = self.store.getters['layout/day'];
     self.store.dispatch('layout/setLayoutState', {
       field: 'day',
@@ -311,14 +323,59 @@ export default class Atmosphere {
         );
         this._modelClone.rotateZ(this._rotate);
 
+        this._trees.push({
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          mesh: this._modelClone,
+          rotate: 1,
+        });
         self.scene.add(this._modelClone);
       }
     });
 
+    this._setRandom(self);
+    this._direction2 = self.helper.yesOrNo();
+
     self.helper.loaderDispatchHelper(self.store, this.name, true);
   }
 
-  animate(self: ISelf): void {
+  private _setRandom(self: ISelf) {
+    this._randomX = self.helper.randomInteger(1, 5);
+    this._randomY = self.helper.randomInteger(1, 5);
+    this._randomZ = self.helper.randomInteger(1, 5);
+
+    this._trees.forEach((tree) => {
+      tree.rotate = self.helper.randomInteger(1, 5);
+    });
+  }
+
+  public animate(self: ISelf): void {
+    this._time += self.events.delta;
+
     if (this._sky) this._sky.rotateY(self.events.delta / 25);
+
+    if (this._trees.length) {
+        if (this._time > 1) {
+        this._direction = this._direction * -1;
+        if (!this._isFirst) this._isFirst = true;
+        if (this._direction === 1) this._setRandom(self);
+        this._time = 0;
+      }
+
+      this._trees.forEach((tree) => {
+        this._rotateX =
+          ((this._randomX * this._direction * (this._isFirst ? 2 : 1)) / 20) *
+          self.helper.damping(self.events.delta) * tree.rotate;
+        this._rotateY =
+          ((this._randomY * this._direction * (this._isFirst ? 2 : 1)) / 20) *
+          self.helper.damping(self.events.delta) * tree.rotate;
+        this._rotateZ =
+          ((this._randomZ * this._direction * (this._isFirst ? 2 : 1)) / 20) *
+          self.helper.damping(self.events.delta) * tree.rotate;
+        tree.mesh.rotateX(self.helper.degreesToRadians(this._rotateX));
+        tree.mesh.rotateY(self.helper.degreesToRadians(this._rotateY));
+        tree.mesh.rotateZ(self.helper.degreesToRadians(this._rotateZ));
+      });
+    }
   }
 }

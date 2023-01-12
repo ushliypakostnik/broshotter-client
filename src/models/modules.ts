@@ -1,7 +1,7 @@
 // Types
 import type { Store } from 'vuex';
 import type { State } from '@/store';
-import type { Scene, AudioListener, PerspectiveCamera } from 'three';
+import type {Scene, AudioListener, PerspectiveCamera, Group} from 'three';
 import type Helper from '@/utils/helper';
 import type Assets from '@/utils/assets';
 import type Events from '@/utils/events';
@@ -42,4 +42,9 @@ export interface ISelf {
   camera: PerspectiveCamera;
   listener: AudioListener;
   render: () => void;
+}
+
+export interface ITree {
+  mesh: Group;
+  rotate: number;
 }
