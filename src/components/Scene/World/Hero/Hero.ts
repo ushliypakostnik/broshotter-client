@@ -330,7 +330,10 @@ export default class Hero {
       ? this._optical.position
       : this._weapon.position;
     if (this._isOptical) this._position.y = -0.2;
-    if (this._isLeft) this._position.add(this._velocity.normalize().negate().multiplyScalar(0.25));
+    if (this._isLeft)
+      this._position.add(
+        this._velocity.normalize().negate().multiplyScalar(0.25),
+      );
     else this._position.add(this._velocity.normalize().multiplyScalar(0.25));
     this._number =
       this._isNotJump || this._jumpStart - this._collider.end.y < 1.5
@@ -670,6 +673,7 @@ export default class Hero {
         this._velocity.y -= DESIGN.GAMEPLAY.GRAVITY * self.events.delta;
       }
 
+      // TODO: сделать звук умирания на герое
       if (this._isGameOver) this._animation = this._dead;
       else if (!this._isHide && this._isOnHit) this._animation = this._hit;
       else if (!this._isHide && this._isRun !== this._isRunStore) {

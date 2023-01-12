@@ -27,6 +27,7 @@ export default class Assets {
   private _metall!: Texture;
   private _metall2!: Texture;
   private _sky!: Texture;
+  private _night!: Texture;
   private _fire!: Texture;
   private _asphalt!: Texture;
 
@@ -42,6 +43,7 @@ export default class Assets {
   public hit2!: AudioBuffer;
   public jumpstart2!: AudioBuffer;
   public jumpend2!: AudioBuffer;
+  public dead!: AudioBuffer;
 
   constructor() {
     this.GLTFLoader = new GLTFLoader();
@@ -59,6 +61,7 @@ export default class Assets {
       Textures.concrette2,
     );
     this._sky = self.helper.textureLoaderHelper(self, Textures.sky);
+    this._night = self.helper.textureLoaderHelper(self, Textures.night);
     this._metall = self.helper.textureLoaderHelper(self, Textures.metall);
     this._metall2 = self.helper.textureLoaderHelper(self, Textures.metall2);
     this._fire = self.helper.textureLoaderHelper(self, Textures.fire);
@@ -111,6 +114,13 @@ export default class Assets {
 
       self.audio.initAudioByName(self, Audios.hit2);
     });
+
+    this.audioLoader.load(`./audio/${Audios.dead}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.dead, false);
+      this.dead = buffer;
+
+      self.audio.initAudioByName(self, Audios.dead);
+    });
   }
 
   // Texture utils
@@ -144,6 +154,8 @@ export default class Assets {
     switch (name) {
       case Textures.sky:
         return this._sky;
+      case Textures.night:
+        return this._night;
       case Textures.concrette:
         return this._concrette;
       case Textures.concrette2:
@@ -220,6 +232,7 @@ export default class Assets {
           color: Colors.yellowDark,
         });
       case Textures.sky:
+      case Textures.night:
         return new THREE.MeshBasicMaterial({
           map: this.getTexture(name),
           color: Colors.sky,
@@ -294,6 +307,8 @@ export default class Assets {
         return 0.15;
       case Audios.hit2:
         return 0.25;
+      case Audios.dead:
+        return 0.7;
     }
     return DESIGN.DEFAULT_VOLUME;
   }
@@ -314,6 +329,8 @@ export default class Assets {
         return this.steps2;
       case Audios.hit2:
         return this.hit2;
+      case Audios.dead:
+        return this.dead;
     }
     return this.explosion;
   }

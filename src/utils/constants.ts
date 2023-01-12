@@ -59,6 +59,7 @@ export enum Animations {
 
 export enum Textures {
   sky = 'sky',
+  night = 'night',
   ground = 'ground',
   concrette = 'concrette',
   concrette2 = 'concrette2',
@@ -85,6 +86,7 @@ export enum Audios {
   hit = 'hit',
   hit2 = 'hit2',
   explosion = 'explosion',
+  dead = 'dead',
 }
 
 export enum Colors {

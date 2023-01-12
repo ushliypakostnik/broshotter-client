@@ -1,6 +1,7 @@
 // Types
 import * as THREE from 'three';
 import {
+  AmbientLight,
   Color,
   DirectionalLight,
   Group,
@@ -11,9 +12,8 @@ import {
 } from 'three';
 import { ISelf } from '@/models/modules';
 import { TPosition, TPositions } from '@/models/utils';
-
 // Constants
-import { Colors, Names, Textures, DESIGN } from '@/utils/constants';
+import { Colors, DESIGN, Names, Textures } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Atmosphere {
@@ -32,47 +32,163 @@ export default class Atmosphere {
   private _positions!: TPositions;
   private _scale!: number;
   private _rotate!: number;
+  private _ambient!: AmbientLight;
+  private _time = 0;
+  private _index!: number;
+
+  private _DAY = [
+    {
+      ambient: 0xf885a6,
+      fog: 0xc43b9f,
+      intensity: 0.5,
+      sun: 0.6,
+      mode: 'day',
+    },
+    {
+      ambient: 0xf554e9,
+      fog: 0xd35cbc,
+      intensity: 0.6,
+      sun: 0.725,
+      mode: 'day',
+    },
+    {
+      ambient: 0xf99c7b,
+      fog: 0xea8395,
+      intensity: 0.7,
+      sun: 0.85,
+      mode: 'day',
+    },
+    {
+      ambient: 0xffffff,
+      fog: 0xffffff,
+      intensity: 0.8,
+      sun: 1,
+      mode: 'day',
+    },
+    {
+      ambient: 0xb2c5cc,
+      fog: 0x92cbd2,
+      intensity: 0.7,
+      sun: 0.9,
+      mode: 'day',
+    },
+    {
+      ambient: 0x8492a7,
+      fog: 0x688ec5,
+      intensity: 0.6,
+      sun: 0.6,
+      mode: 'day',
+    },
+    {
+      ambient: 0x57618f,
+      fog: 0x414cb1,
+      intensity: 0.5,
+      sun: 0.5,
+      mode: 'day',
+    },
+    {
+      ambient: 0x2902ad,
+      fog: 0x4338c7,
+      intensity: 0.4,
+      sun: 0.4,
+      mode: 'night',
+    },
+    {
+      ambient: 0x3b5696,
+      fog: 0x428797,
+      intensity: 0.3,
+      sun: 0.3,
+      mode: 'night',
+    },
+    {
+      ambient: 0x356c7a,
+      fog: 0x2ca085,
+      intensity: 0.15,
+      sun: 0.15,
+      mode: 'night',
+    },
+    {
+      ambient: 0x42606d,
+      fog: 0x25572d,
+      intensity: 0.05,
+      sun: 0.05,
+      mode: 'night',
+    },
+    {
+      ambient: 0x000000,
+      fog: 0x000000,
+      intensity: 0,
+      sun: 0,
+      mode: 'night',
+    },
+    {
+      ambient: 0x6b6211,
+      fog: 0x62391c,
+      intensity: 0.5,
+      sun: 0.1,
+      mode: 'night',
+    },
+    {
+      ambient: 0xac560c,
+      fog: 0xfa6e05,
+      intensity: 0.2,
+      sun: 0.25,
+      mode: 'night',
+    },
+    {
+      ambient: 0xf65552,
+      fog: 0xe04b44,
+      intensity: 0.3,
+      sun: 0.4,
+      mode: 'night',
+    },
+    {
+      ambient: 0xf00f42,
+      fog: 0xdc234d,
+      intensity: 0.4,
+      sun: 0.5,
+      mode: 'day',
+    },
+  ];
 
   init(self: ISelf): void {
-    // Lights
-    // Ambient
-    // self.scene.add(new THREE.AmbientLight(0x111111));
+    this._index = self.store.getters['layout/day'];
+    self.store.dispatch('layout/setLayoutState', {
+      field: 'day',
+      value: this._index === this._DAY.length - 1 ? 0 : this._index + 1,
+    });
 
+    // Lights
+
+    // Ambient
+    this._ambient = new THREE.AmbientLight(this._DAY[this._index].ambient);
+    self.scene.add(this._ambient);
+
+    // Hemisphere
     this._light = new THREE.HemisphereLight(
       self.scene.background as Color,
-      0x295826,
-      0.8,
+      0xd52a9e,
+      this._DAY[this._index].intensity,
     );
+    this._light.position.set(0, DESIGN.SIZE * 2, 0).normalize();
+    self.scene.add(this._light);
 
-    // Night
-    // @ts-ignore
-    self.scene.background = 0x000000;
+    // Fog
     self.scene.fog = new THREE.Fog(
-      Colors.metall,
+      this._DAY[this._index].fog,
       DESIGN.SIZE / 10,
       DESIGN.SIZE * 3,
     );
-    this._light = new THREE.HemisphereLight(
-      self.scene.background as Color,
-      0x000000,
-      0.8,
-    );
-
-    // Hemisphere
-    this._light.position.set(0, DESIGN.SIZE, 0).normalize();
-    self.scene.add(this._light);
 
     // Sun
-    this._sun = new THREE.DirectionalLight(Colors.sun, 1.2);
+    this._sun = new THREE.DirectionalLight(
+      Colors.sun,
+      this._DAY[this._index].sun,
+    );
     this._sun.position.x = 0;
     this._sun.position.z = 0;
-    this._sun.position.y = DESIGN.SIZE;
+    this._sun.position.y = DESIGN.SIZE * 2;
     this._sun.castShadow = true;
-
-    // Night
-    // @ts-ignore
-    this._sun.color = new THREE.Color(0xffffff);
-    this._sun.intensity = 0.1;
 
     this._sun.shadow.mapSize.width = 2048;
     this._sun.shadow.mapSize.height = 2048;
@@ -93,7 +209,7 @@ export default class Atmosphere {
     // invert the geometry on the x-axis so that all of the faces point inward
     this._skyGeometry.scale(-1, 1, 1);
     this._skyMaterial = self.assets.getMaterial(
-      Textures.sky,
+      this._DAY[this._index].mode === 'day' ? Textures.sky : Textures.night,
     ) as MeshBasicMaterial;
     this._sky = new THREE.Mesh(this._skyGeometry, this._skyMaterial);
 
@@ -156,6 +272,7 @@ export default class Atmosphere {
       self.helper.loaderDispatchHelper(self.store, Names.tree);
 
       this._model = model.scene;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this._model.traverse((child: any) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

@@ -127,7 +127,11 @@ export default class Helper {
     switch (name) {
       case Textures.sky:
         folder = 'sky';
-        number = self.helper.randomInteger(1, 9);
+        number = self.helper.randomInteger(1, 5);
+        break;
+      case Textures.night:
+        folder = 'night';
+        number = self.helper.randomInteger(1, 5);
         break;
       case Textures.ground:
         folder = 'ground';
@@ -147,20 +151,17 @@ export default class Helper {
     if (number) path = `./images/textures/${folder}/${name}${number}.jpg`;
     else path = `./images/textures/${folder}/${name}.jpg`;
 
-    return this.textureLoader.load(
-      path,
-      (map: Texture) => {
-        this._number = self.assets.getRepeatByName(name);
-        map.repeat.set(this._number, this._number);
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.encoding = THREE.sRGBEncoding;
+    return this.textureLoader.load(path, (map: Texture) => {
+      this._number = self.assets.getRepeatByName(name);
+      map.repeat.set(this._number, this._number);
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.encoding = THREE.sRGBEncoding;
 
-        self.render();
-        this.loaderDispatchHelper(self.store, name);
+      self.render();
+      this.loaderDispatchHelper(self.store, name);
 
-        return map;
-      },
-    );
+      return map;
+    });
   }
 
   // Помощник прелодера

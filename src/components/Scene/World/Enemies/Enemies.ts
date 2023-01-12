@@ -61,6 +61,7 @@ export default class Enemies {
   private _weaponFire!: Object3D;
   private _animation!: string;
   private _dead!: AnimationAction;
+  private _isDead = false;
 
   private _list: IUserThree[];
   private _listNew: IUserThree[];
@@ -237,6 +238,10 @@ export default class Enemies {
         this._pseudoClone.uuid,
         Audios.jumpend2,
       );
+    }
+
+    if (this._pseudoClone) {
+      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.dead);
     }
 
     if (this._pseudoClone) {
@@ -495,6 +500,11 @@ export default class Enemies {
           user.prevAction.fadeOut(0.25);
           user.nextAction.reset().fadeIn(0.25).play();
           user.prevAction = user.nextAction;
+
+          if (user.animation === 'dead' && !this._isDead) {
+            self.audio.replayObjectSound(user.pseudo, Audios.dead);
+            this._isDead = true;
+          }
         }
 
         user.mixer.update(self.events.delta);

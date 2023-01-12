@@ -13,6 +13,7 @@ const initialState: IPreloader = {
 
   // Textures
   skyIsLoaded: false,
+  nightIsLoaded: false,
   groundIsLoaded: false,
   concretteIsLoaded: false,
   concrette2IsLoaded: false,
@@ -41,6 +42,7 @@ const initialState: IPreloader = {
   hitIsLoaded: false,
   hit2IsLoaded: false,
   explosionIsLoaded: false,
+  deadIsLoaded: false,
 
   // World build
   atmosphereIsBuild: false,

@@ -25,6 +25,7 @@ const initialState: IStoreModule = {
   isJump: false,
   isOptical: false,
   isTired: false,
+  day: 0,
 };
 
 let array: Array<TEventMessagePayload> = [];
@@ -47,6 +48,7 @@ const layout: Module<IStoreModule, IStore> = {
     isTired: (state: IStoreModule) => state.isTired,
     messages: (state: IStoreModule) => state.messages,
     isGameOver: (state: IStoreModule) => state.isGameOver,
+    day: (state: IStoreModule) => state.day,
   },
 
   actions: {
