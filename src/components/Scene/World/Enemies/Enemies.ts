@@ -26,7 +26,7 @@ import { IUser, IUserThree } from '@/models/api';
 export default class Enemies {
   public name = Names.enemies;
 
-  private _isTest = true;
+  private _isTest = false;
 
   private _gltf!: GLTF;
   private _model!: Group;
