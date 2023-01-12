@@ -70,7 +70,6 @@ export enum Textures {
   pseudo = 'pseudo',
   scale = 'scale',
   hole = 'hole',
-  asphalt = 'asphalt',
 }
 
 export enum Audios {
@@ -140,7 +139,7 @@ export const DESIGN: TConfig = {
   GAMEPLAY: {
     PLAYER_SPEED: 30,
     PLAYER_HEIGHT: 2,
-    JUMP: 15,
+    JUMP: 20,
     GRAVITY: 40,
     SHOTS: 50,
     START: {

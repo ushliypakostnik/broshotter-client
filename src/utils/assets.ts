@@ -29,7 +29,6 @@ export default class Assets {
   private _sky!: Texture;
   private _night!: Texture;
   private _fire!: Texture;
-  private _asphalt!: Texture;
 
   // Loaders
   public GLTFLoader: GLTFLoader;
@@ -65,9 +64,9 @@ export default class Assets {
     this._metall = self.helper.textureLoaderHelper(self, Textures.metall);
     this._metall2 = self.helper.textureLoaderHelper(self, Textures.metall2);
     this._fire = self.helper.textureLoaderHelper(self, Textures.fire);
-    this._asphalt = self.helper.textureLoaderHelper(self, Textures.asphalt);
 
     // Audio
+    // На герое
     self.helper.setAudioToHeroHelper(self, Audios.wind);
     self.helper.setAudioToHeroHelper(self, Audios.steps);
     self.helper.setAudioToHeroHelper(self, Audios.jumpstart);
@@ -75,6 +74,7 @@ export default class Assets {
     self.helper.setAudioToHeroHelper(self, Audios.shot);
     self.helper.setAudioToHeroHelper(self, Audios.hit);
 
+    // Позиционированные на объектах
     this.audioLoader.load(`./audio/${Audios.explosion}.mp3`, (buffer) => {
       self.helper.loaderDispatchHelper(self.store, Audios.explosion, false);
       this.explosion = buffer;
@@ -141,8 +141,6 @@ export default class Assets {
           child.material = self.assets.getMaterial(Textures.metall);
         } else if (child.name.includes(Textures.fire)) {
           child.material = self.assets.getMaterial(Textures.fire);
-        } else if (child.name.includes(Textures.asphalt)) {
-          child.material = self.assets.getMaterial(Textures.asphalt);
         }
       }
     });
@@ -166,8 +164,6 @@ export default class Assets {
         return this._metall2;
       case Textures.fire:
         return this._fire;
-      case Textures.asphalt:
-        return this._asphalt;
       case Textures.ground:
       default:
         return this._ground;
@@ -177,8 +173,6 @@ export default class Assets {
   // Повторения текстуры по имени
   public getRepeatByName(name: Textures): number {
     switch (name) {
-      case Textures.asphalt:
-        return 32;
       case Textures.ground:
         return 256;
       case Textures.concrette:
@@ -206,7 +200,7 @@ export default class Assets {
 
   // Получить материал
   public getMaterial(
-    name: Textures,
+    name: Textures
   ): MeshPhongMaterial | MeshBasicMaterial | MeshStandardMaterial {
     switch (name) {
       case Textures.pseudo:
@@ -248,11 +242,6 @@ export default class Assets {
           color: Colors.white,
         });
       case Textures.concrette2:
-        return new THREE.MeshStandardMaterial({
-          map: this.getTexture(name),
-          color: Colors.white,
-        });
-      case Textures.asphalt:
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
           color: Colors.white,
@@ -334,11 +323,4 @@ export default class Assets {
     }
     return this.explosion;
   }
-
-  // Аудио по имени
-  /*
-  public getAudioByName(name: Names): Audios {
-    return Audios[name as keyof typeof Audios];
-  }
-  */
 }

@@ -258,7 +258,7 @@ export default class Atmosphere {
       vertex.fromBufferAttribute(position, i);
 
       if (
-        self.helper.distance2D(0, 0, vertex.x, vertex.y) > DESIGN.SIZE * 1.5 &&
+        self.helper.distance2D(0, 0, vertex.x, vertex.y) > DESIGN.SIZE * 1 &&
         self.helper.distance2D(0, 0, vertex.x, vertex.y) < DESIGN.SIZE * 2
       ) {
         vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
@@ -272,7 +272,7 @@ export default class Atmosphere {
 
     this._ground2 = new THREE.Mesh(
       self.helper.geometry,
-      self.assets.getMaterialWithColor(Textures.ground, Colors.sky),
+      self.assets.getMaterialWithColor(Textures.ground, this._DAY[this._index].ambient),
     );
     this._ground2.rotation.x = -Math.PI / 2;
     this._ground2.position.set(0, -1.6, 0);
@@ -326,7 +326,7 @@ export default class Atmosphere {
         this._trees.push({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          mesh: this._modelClone,
+          model: this._modelClone,
           rotate: 1,
         });
         self.scene.add(this._modelClone);
@@ -372,9 +372,9 @@ export default class Atmosphere {
         this._rotateZ =
           ((this._randomZ * this._direction * (this._isFirst ? 2 : 1)) / 20) *
           self.helper.damping(self.events.delta) * tree.rotate;
-        tree.mesh.rotateX(self.helper.degreesToRadians(this._rotateX));
-        tree.mesh.rotateY(self.helper.degreesToRadians(this._rotateY));
-        tree.mesh.rotateZ(self.helper.degreesToRadians(this._rotateZ));
+        tree.model.rotateX(self.helper.degreesToRadians(this._rotateX));
+        tree.model.rotateY(self.helper.degreesToRadians(this._rotateY));
+        tree.model.rotateZ(self.helper.degreesToRadians(this._rotateZ));
       });
     }
   }

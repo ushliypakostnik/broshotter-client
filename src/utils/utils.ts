@@ -9,10 +9,8 @@ export const restartDispatchHelper = (store: Store<State>): void => {
       value: true,
     })
     .then(() => {
-      store
-        .dispatch('layout/reload').then(() => {
-        store
-          .dispatch('api/reload').then(() => {
+      store.dispatch('layout/reload').then(() => {
+        store.dispatch('api/reload').then(() => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           window.location.reload(true);

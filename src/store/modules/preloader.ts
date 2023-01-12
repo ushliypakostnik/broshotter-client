@@ -19,7 +19,6 @@ const initialState: IPreloader = {
   concrette2IsLoaded: false,
   metallIsLoaded: false,
   metall2IsLoaded: false,
-  asphaltIsLoaded: false,
   fireIsLoaded: false,
 
   // Models

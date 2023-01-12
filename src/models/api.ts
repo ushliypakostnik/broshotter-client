@@ -51,7 +51,7 @@ export interface IShot extends IMoveObject {
 }
 
 export interface IShotThree extends IShot {
-  mesh: string;
+  model: string;
 }
 
 export interface IExplosion extends IShot {
@@ -59,7 +59,7 @@ export interface IExplosion extends IShot {
 }
 
 export interface IExplosionThree extends IShot {
-  mesh: string;
+  model: string;
   scale: number;
   isOff: boolean;
 }
@@ -81,7 +81,7 @@ export interface IUser extends IMoveObject {
 }
 
 export interface IUserThree extends IUser {
-  mesh: string;
+  model: string;
   pseudo: string;
   scale: string;
   weapon: string;

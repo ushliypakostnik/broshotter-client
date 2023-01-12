@@ -1,5 +1,12 @@
 import * as THREE from 'three';
-import {
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { clone } from '@/components/Scene/World/Utils/SkeletonUtils.js';
+import { Text } from 'troika-three-text';
+
+// Types
+import type {
   AnimationAction,
   AnimationMixer,
   Group,
@@ -7,26 +14,21 @@ import {
   Object3D,
   Vector3,
 } from 'three';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { clone } from '@/components/Scene/World/Math/SkeletonUtils.js';
-import { Text } from 'troika-three-text';
-
-// Types
-import { ISelf } from '@/models/modules';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import type { ISelf } from '@/models/modules';
+import type { IUser, IUserThree } from '@/models/api';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Constants
 import { Animations, Audios, Names, Textures, DESIGN } from '@/utils/constants';
 
 // Modules
 import Octree from '@/components/Scene/World/Math/Octree';
-import { IUser, IUserThree } from '@/models/api';
 
 export default class Enemies {
   public name = Names.enemies;
 
-  private _isTest = false;
+  private _isTest!: boolean;
+  private _isTestLocal = false;
 
   private _gltf!: GLTF;
   private _model!: Group;
@@ -75,6 +77,9 @@ export default class Enemies {
     this._list = [];
     this._listNew = [];
     this._ids = [];
+
+    this._isTest =
+      process.env.NODE_ENV === 'development' ? this._isTestLocal : false;
   }
 
   public init(self: ISelf, weapon: Group): void {
@@ -191,7 +196,7 @@ export default class Enemies {
     this._mixer = new THREE.AnimationMixer(this._modelClone);
     this._userThree = {
       ...player,
-      mesh: this._modelClone.uuid,
+      model: this._modelClone.uuid,
       pseudo: this._pseudoClone.uuid,
       scale: this._scaleClone.uuid,
       weapon: this._weaponClone.uuid,
@@ -253,8 +258,29 @@ export default class Enemies {
     }
   }
 
-  private _removePlayer(): void {
+  private _removePlayer(self: ISelf, player: IUserThree): void {
     // console.log('Enemies _removePlayer!!!', player);
+    this._modelClone = self.scene.getObjectByProperty(
+      'uuid',
+      player.model,
+    ) as Group;
+    if (this._modelClone) self.scene.remove(this._modelClone);
+    this._pseudoClone = self.scene.getObjectByProperty(
+      'uuid',
+      player.pseudo,
+    ) as Mesh;
+    if (this._pseudoClone) self.scene.remove(this._pseudoClone);
+    this._scaleClone = self.scene.getObjectByProperty(
+      'uuid',
+      player.scale,
+    ) as Mesh;
+    if (this._scaleClone) self.scene.remove(this._scaleClone);
+    this._weaponClone = self.scene.getObjectByProperty(
+      'uuid',
+      player.weapon,
+    ) as Group;
+    if (this._weaponClone) self.scene.remove(this._weaponClone);
+    this._list = this._list.filter((user) => user.id !== player.id);
   }
 
   public animate(self: ISelf): void {
@@ -297,7 +323,7 @@ export default class Enemies {
 
       if (this._is) {
         this._list.forEach((player) => {
-          if (!this._ids.includes(player.id)) this._removePlayer();
+          if (!this._ids.includes(player.id)) this._removePlayer(self, player);
         });
         this._list = this._list.filter((player) =>
           this._ids.includes(player.id as string),
@@ -346,23 +372,6 @@ export default class Enemies {
       }
     }
   }
-
-  private _getForwardVectorFromObject(obj: Object3D): Vector3 {
-    obj.getWorldDirection(this._direction);
-    this._direction.y = 0;
-    this._direction.normalize();
-
-    return this._direction;
-  }
-
-  private _getSideVectorFromObject = (obj: Object3D) => {
-    obj.getWorldDirection(this._direction);
-    this._direction.y = 0;
-    this._direction.normalize();
-    this._direction.cross(obj.up);
-
-    return this._direction;
-  };
 
   private _animatePlayer(self: ISelf, user: IUserThree) {
     this._user = self.store.getters['api/game'].users.find(
@@ -428,7 +437,7 @@ export default class Enemies {
       // @ts-ignore
       this._modelClone = self.scene.getObjectByProperty(
         'uuid',
-        user.mesh,
+        user.model,
       ) as Mesh;
 
       if (this._modelClone) {
@@ -607,22 +616,22 @@ export default class Enemies {
         this._animation = user.nextAction['_clip'].name;
         if (this._animation === 'jump') {
           this._weaponClone.position.add(
-            this._getForwardVectorFromObject(this._weaponClone).multiplyScalar(
-              -0.3,
-            ),
+            self.helper
+              .getForwardVectorFromObject(this._weaponClone)
+              .multiplyScalar(-0.3),
           );
           this._weaponClone.position.y += 1.8;
         } else if (this._animation === 'stand') {
           this._weaponClone.position
             .add(
-              this._getForwardVectorFromObject(
-                this._weaponClone,
-              ).multiplyScalar(-0.2),
+              self.helper
+                .getForwardVectorFromObject(this._weaponClone)
+                .multiplyScalar(-0.2),
             )
             .add(
-              this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
-                -0.1,
-              ),
+              self.helper
+                .getSideVectorFromObject(this._weaponClone)
+                .multiplyScalar(-0.1),
             );
           if (this._animation.includes('fire'))
             this._weaponClone.position.y += 1.5;
@@ -632,12 +641,13 @@ export default class Enemies {
           if (this._animation === 'hide' || this._animation === 'firehide') {
             this._weaponClone.position
               .add(
-                this._getForwardVectorFromObject(
-                  this._weaponClone,
-                ).multiplyScalar(this._animation === 'firehide' ? -0.3 : -0.2),
+                self.helper
+                  .getForwardVectorFromObject(this._weaponClone)
+                  .multiplyScalar(this._animation === 'firehide' ? -0.3 : -0.2),
               )
               .add(
-                this._getSideVectorFromObject(this._weaponClone)
+                self.helper
+                  .getSideVectorFromObject(this._weaponClone)
                   .negate()
                   .multiplyScalar(0.25),
               );
@@ -646,28 +656,28 @@ export default class Enemies {
           } else {
             this._weaponClone.position
               .add(
-                this._getForwardVectorFromObject(
-                  this._weaponClone,
-                ).multiplyScalar(-0.4),
+                self.helper
+                  .getForwardVectorFromObject(this._weaponClone)
+                  .multiplyScalar(-0.4),
               )
               .add(
-                this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
-                  this._isBackward ? 0 : 0.1,
-                ),
+                self.helper
+                  .getSideVectorFromObject(this._weaponClone)
+                  .multiplyScalar(this._isBackward ? 0 : 0.1),
               );
             this._weaponClone.position.y += 1.2;
           }
         } else {
           this._weaponClone.position
             .add(
-              this._getForwardVectorFromObject(
-                this._weaponClone,
-              ).multiplyScalar(-0.2),
+              self.helper
+                .getForwardVectorFromObject(this._weaponClone)
+                .multiplyScalar(-0.2),
             )
             .add(
-              this._getSideVectorFromObject(this._weaponClone).multiplyScalar(
-                -0.15,
-              ),
+              self.helper
+                .getSideVectorFromObject(this._weaponClone)
+                .multiplyScalar(-0.15),
             );
           this._weaponClone.position.y +=
             this._isForward || this._isBackward

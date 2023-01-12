@@ -13,17 +13,20 @@ import type {
   PlaneBufferGeometry,
   BoxGeometry,
   ConeGeometry,
+  Vector3,
 } from 'three';
 import type { Store } from 'vuex';
 import type { State } from '@/store';
 import type { ISelf } from '@/models/modules';
 import type { TPosition, TPositions } from '@/models/utils';
+import { Object3D } from 'three';
 
 export default class Helper {
   // Private working variables
   private _number = 0;
   private _is = false;
   private _string = '';
+  private _direction: Vector3;
 
   // Loaders
   public textureLoader: THREE.TextureLoader;
@@ -35,6 +38,7 @@ export default class Helper {
 
   constructor() {
     this.textureLoader = new THREE.TextureLoader();
+    this._direction = new THREE.Vector3();
   }
 
   // Math
@@ -142,7 +146,6 @@ export default class Helper {
       case Textures.metall:
       case Textures.metall2:
       case Textures.fire:
-      case Textures.asphalt:
       default:
         folder = 'material';
         break;
@@ -190,5 +193,41 @@ export default class Helper {
       // Ветер
       if (name === Audios.wind) self.audio.startHeroSound(Audios.wind);
     });
+  }
+
+  // Utils
+
+  public getForwardVector(self: ISelf): Vector3 {
+    self.camera.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+
+    return this._direction;
+  }
+
+  public getSideVector(self: ISelf): Vector3 {
+    self.camera.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+    this._direction.cross(self.camera.up);
+
+    return this._direction;
+  }
+
+  public getForwardVectorFromObject(obj: Object3D): Vector3 {
+    obj.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+
+    return this._direction;
+  }
+
+  public getSideVectorFromObject(obj: Object3D): Vector3 {
+    obj.getWorldDirection(this._direction);
+    this._direction.y = 0;
+    this._direction.normalize();
+    this._direction.cross(obj.up);
+
+    return this._direction;
   }
 }

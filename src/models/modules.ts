@@ -45,6 +45,6 @@ export interface ISelf {
 }
 
 export interface ITree {
-  mesh: Group;
+  model: Group;
   rotate: number;
 }

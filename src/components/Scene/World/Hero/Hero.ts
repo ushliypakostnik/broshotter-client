@@ -21,8 +21,7 @@ export default class Hero {
   private _number!: number;
   private _velocity: Vector3;
   private _direction: Vector3;
-  private _direction2: Vector3;
-  private _direction3: Vector3;
+  private _directionShot: Vector3;
   private _isOnFloor: boolean;
   private _speed!: number;
   private _result!: TResult;
@@ -38,7 +37,6 @@ export default class Hero {
   private _weaponUpVelocity!: Vector3;
   private _weaponFire!: Object3D;
   private _opticalFire!: Object3D;
-  private _is = false;
   private _isPause = false;
   private _isTired = false;
   private _isOptical = false;
@@ -90,9 +88,7 @@ export default class Hero {
     this._position = new THREE.Vector3();
     this._velocity = new THREE.Vector3();
     this._direction = new THREE.Vector3();
-    this._direction2 = new THREE.Vector3();
-    this._direction3 = new THREE.Vector3();
-    this._direction3 = new THREE.Vector3();
+    this._directionShot = new THREE.Vector3();
     this._isNotJump = true;
     this._isOnFloor = true;
     this._weaponDirection = new THREE.Vector3();
@@ -247,7 +243,7 @@ export default class Hero {
           this._optical.setRotationFromMatrix(self.camera.matrix);
           this._optical.position.copy(this._weaponPosition);
           this._weapon.position.add(
-            this._getForwardVector(self).multiplyScalar(0.5),
+            self.helper.getForwardVector(self).multiplyScalar(0.5),
           );
           this._optical.visible = true;
           this._weapon.visible = false;
@@ -268,14 +264,14 @@ export default class Hero {
               .add(this._weaponVelocity);
             this._weapon.position.y -= 0.1;
             this._weapon.position
-              .add(this._getSideVector(self).multiplyScalar(0.26))
-              .add(this._getForwardVector(self).multiplyScalar(0.16));
+              .add(self.helper.getSideVector(self).multiplyScalar(0.26))
+              .add(self.helper.getForwardVector(self).multiplyScalar(0.16));
           } else {
             this._weapon.position
               .copy(this._weaponPosition)
               .add(this._weaponUpVelocity);
             this._weapon.position.add(
-              this._getForwardVector(self).multiplyScalar(0.2),
+              self.helper.getForwardVector(self).multiplyScalar(0.2),
             );
           }
           this._weapon.visible = true;
@@ -302,18 +298,18 @@ export default class Hero {
     // recoil
     if (this._isOptical)
       this._velocity.add(
-        this._getForwardVector(self).multiplyScalar(
-          -1 * 60 * self.events.delta,
-        ),
+        self.helper
+          .getForwardVector(self)
+          .multiplyScalar(-1 * 60 * self.events.delta),
       );
     else
       this._velocity.add(
-        this._getForwardVector(self).multiplyScalar(
-          -1 * 30 * self.events.delta,
-        ),
+        self.helper
+          .getForwardVector(self)
+          .multiplyScalar(-1 * 30 * self.events.delta),
       );
     this._weaponVelocity.add(
-      this._getForwardVector(self).multiplyScalar(-1 * self.events.delta),
+      self.helper.getForwardVector(self).multiplyScalar(-1 * self.events.delta),
     );
     this._weaponUpVelocity.add(
       self.camera
@@ -322,7 +318,7 @@ export default class Hero {
         .multiplyScalar(-1 * self.events.delta),
     );
 
-    this._direction3 = this._direction
+    this._directionShot = this._direction
       .negate()
       .multiplyScalar(DESIGN.GAMEPLAY.SHOTS);
 
@@ -349,9 +345,9 @@ export default class Hero {
       startX: this._position.x,
       startY: this._number,
       startZ: this._position.z,
-      directionX: this._direction3.x,
-      directionY: this._direction3.y,
-      directionZ: this._direction3.z,
+      directionX: this._directionShot.x,
+      directionY: this._directionShot.y,
+      directionZ: this._directionShot.z,
     };
   }
 
@@ -365,23 +361,6 @@ export default class Hero {
         this._opticalFire.visible = true;
       }
     }
-  }
-
-  private _getForwardVector(self: ISelf): Vector3 {
-    self.camera.getWorldDirection(this._direction);
-    this._direction.y = 0;
-    this._direction.normalize();
-
-    return this._direction;
-  }
-
-  private _getSideVector(self: ISelf): Vector3 {
-    self.camera.getWorldDirection(this._direction);
-    this._direction.y = 0;
-    this._direction.normalize();
-    this._direction.cross(self.camera.up);
-
-    return this._direction;
   }
 
   private _playerCollitions = (self: ISelf) => {
@@ -413,8 +392,10 @@ export default class Hero {
           // if (jumpFinish > 15 && !scope.isNotDamaged) scope.events.heroOnHitDispatchHelper(scope, -2 * (jumpFinish - 15));
 
           // Sound
-          this._is = self.store.getters['layout/isPause'];
-          if (Math.abs(this._jumpFinish) > 0.1 && !this._is)
+          if (
+            Math.abs(this._jumpFinish) > 0.1 &&
+            !self.store.getters['layout/isPause']
+          )
             self.audio.replayHeroSound(Audios.jumpend);
         }
       }
@@ -561,9 +542,9 @@ export default class Hero {
               ? DESIGN.GAMEPLAY.PLAYER_SPEED * 2
               : DESIGN.GAMEPLAY.PLAYER_SPEED;
             this._velocity.add(
-              this._getForwardVector(self).multiplyScalar(
-                this._speed * self.events.delta,
-              ),
+              self.helper
+                .getForwardVector(self)
+                .multiplyScalar(this._speed * self.events.delta),
             );
 
             if (
@@ -584,9 +565,9 @@ export default class Hero {
               ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
               : DESIGN.GAMEPLAY.PLAYER_SPEED;
             this._velocity.add(
-              this._getForwardVector(self).multiplyScalar(
-                -this._speed * self.events.delta,
-              ),
+              self.helper
+                .getForwardVector(self)
+                .multiplyScalar(-this._speed * self.events.delta),
             );
           }
 
@@ -595,9 +576,9 @@ export default class Hero {
               ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
               : DESIGN.GAMEPLAY.PLAYER_SPEED;
             this._velocity.add(
-              this._getSideVector(self).multiplyScalar(
-                -this._speed * self.events.delta,
-              ),
+              self.helper
+                .getSideVector(self)
+                .multiplyScalar(-this._speed * self.events.delta),
             );
           }
 
@@ -606,9 +587,9 @@ export default class Hero {
               ? DESIGN.GAMEPLAY.PLAYER_SPEED / 2
               : DESIGN.GAMEPLAY.PLAYER_SPEED;
             this._velocity.add(
-              this._getSideVector(self).multiplyScalar(
-                this._speed * self.events.delta,
-              ),
+              self.helper
+                .getSideVector(self)
+                .multiplyScalar(this._speed * self.events.delta),
             );
           }
 

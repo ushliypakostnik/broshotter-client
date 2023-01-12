@@ -47,7 +47,7 @@ export default class Explosions {
       this._list.push({
         ...message,
         id: this._counter,
-        mesh: this._explosionClone.uuid,
+        model: this._explosionClone.uuid,
         scale: 1,
         isOff: false,
       });
@@ -67,7 +67,7 @@ export default class Explosions {
     if (this._explosionItem) {
       this._explosionClone = self.scene.getObjectByProperty(
         'uuid',
-        this._explosionItem.mesh,
+        this._explosionItem.model,
       ) as Mesh;
       if (this._explosionClone) self.scene.remove(this._explosionClone);
       this._list = this._list.filter((item) => item.id !== id);
@@ -83,7 +83,7 @@ export default class Explosions {
 
       this._explosionClone = self.scene.getObjectByProperty(
         'uuid',
-        record.mesh,
+        record.model,
       ) as Mesh;
       if (this._explosionClone) {
         if (record.scale >= 0)

@@ -45,7 +45,7 @@ export default class Shots {
       if (this._shotItem) {
         this._shotClone = self.scene.getObjectByProperty(
           'uuid',
-          this._shotItem.mesh,
+          this._shotItem.model,
         ) as Mesh;
         if (this._shotClone) self.scene.remove(this._shotClone);
         this._list = this._list.filter((item) => item.id !== id);
@@ -65,7 +65,7 @@ export default class Shots {
     this._shotClone.visible = false;
     this._list.push({
       ...shot,
-      mesh: this._shotClone.uuid,
+      model: this._shotClone.uuid,
     });
     self.scene.add(this._shotClone);
   }
@@ -100,10 +100,10 @@ export default class Shots {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this._shotItem = this._list.find((item) => item.id === shot.id);
-        if (this._shotItem && this._shotItem.mesh) {
+        if (this._shotItem && this._shotItem.model) {
           this._shotClone = self.scene.getObjectByProperty(
             'uuid',
-            this._shotItem.mesh,
+            this._shotItem.model,
           ) as Mesh;
           this._shotClone.position.set(
             shot.positionX,
