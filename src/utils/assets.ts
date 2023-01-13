@@ -29,6 +29,7 @@ export default class Assets {
   private _sky!: Texture;
   private _night!: Texture;
   private _fire!: Texture;
+  private _glass!: Texture;
 
   // Loaders
   public GLTFLoader: GLTFLoader;
@@ -64,6 +65,7 @@ export default class Assets {
     this._metall = self.helper.textureLoaderHelper(self, Textures.metall);
     this._metall2 = self.helper.textureLoaderHelper(self, Textures.metall2);
     this._fire = self.helper.textureLoaderHelper(self, Textures.fire);
+    this._glass = self.helper.textureLoaderHelper(self, Textures.glass);
 
     // Audio
     // На герое
@@ -135,6 +137,13 @@ export default class Assets {
           child.material = self.assets.getMaterial(Textures.concrette);
         } else if (child.name.includes(Textures.glassspecial)) {
           child.material = self.assets.getMaterial(Textures.glassspecial);
+        } else if (child.name.includes(Textures.glass)) {
+          child.material = self.assets.getMaterial(Textures.glass);
+        } else if (child.name.includes(Textures.metallDark)) {
+          child.material = self.assets.getMaterialWithColor(
+            Textures.metall,
+            0x222222,
+          );
         } else if (child.name.includes(Textures.metall2)) {
           child.material = self.assets.getMaterial(Textures.metall2);
         } else if (child.name.includes(Textures.metall)) {
@@ -164,6 +173,8 @@ export default class Assets {
         return this._metall2;
       case Textures.fire:
         return this._fire;
+      case Textures.glass:
+        return this._glass;
       case Textures.ground:
       default:
         return this._ground;
@@ -178,6 +189,8 @@ export default class Assets {
       case Textures.concrette:
       case Textures.concrette2:
         return 8;
+      case Textures.glass:
+        return 16;
       case Textures.metall:
       case Textures.metall2:
         return 2;
@@ -200,7 +213,7 @@ export default class Assets {
 
   // Получить материал
   public getMaterial(
-    name: Textures
+    name: Textures,
   ): MeshPhongMaterial | MeshBasicMaterial | MeshStandardMaterial {
     switch (name) {
       case Textures.pseudo:
@@ -251,6 +264,13 @@ export default class Assets {
           color: Colors.white,
           transparent: true,
           opacity: 0.25,
+        });
+      case Textures.glass:
+        return new THREE.MeshPhongMaterial({
+          map: this.getTexture(name),
+          color: Colors.glass,
+          transparent: true,
+          opacity: 0.33,
         });
       case Textures.metall:
         return new THREE.MeshStandardMaterial({

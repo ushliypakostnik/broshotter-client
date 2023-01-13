@@ -63,7 +63,9 @@ export enum Textures {
   ground = 'ground',
   concrette = 'concrette',
   concrette2 = 'concrette2',
+  glass = 'glass',
   glassspecial = 'glassspecial',
+  metallDark = 'metallDark',
   metall = 'metall',
   metall2 = 'metall2',
   fire = 'fire',
@@ -99,10 +101,11 @@ export enum Colors {
   sun = 0xfdb813,
   toruch = 0xffff99,
   sky = 0x77deac,
-  metall = 0x222222,
+  metall = 0x999999,
   metall2 = 0xee99aa,
   fire = 0xff6666,
   scale = 0x681a13,
+  glass = 0xaaaaaa,
 }
 
 enum Breakpoints {

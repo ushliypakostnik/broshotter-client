@@ -219,12 +219,13 @@ export default defineComponent({
 
         case 67: // C
         case 18: // Alt
-          if (isEnter.value && !isGameOver.value && !isPause.value)
+          if (isEnter.value && !isGameOver.value && !isPause.value) {
             self.audio.replayHeroSound(Audios.jumpstart);
-          store.dispatch('layout/setLayoutState', {
-            field: 'isHide',
-            value: !isHide.value,
-          });
+            store.dispatch('layout/setLayoutState', {
+              field: 'isHide',
+              value: !isHide.value,
+            });
+          }
           break;
         default:
           break;

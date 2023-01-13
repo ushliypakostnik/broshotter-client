@@ -40,14 +40,14 @@ export default class World {
   }
 
   public init(self: ISelf): void {
-    self.assets.GLTFLoader.load('./images/models/lenin.glb', (model: GLTF) => {
+    /* self.assets.GLTFLoader.load('./images/models/lenin.glb', (model: GLTF) => {
       self.helper.loaderDispatchHelper(self.store, Names.lenin);
 
       this._lenin.add(self.assets.traverseHelper(self, model).scene);
-      // self.scene.add(this._lenin);
+      self.scene.add(this._lenin);
 
       self.render();
-    });
+    }); */
 
     self.assets.GLTFLoader.load(
       `./images/models/${this.name}.glb`,
@@ -55,6 +55,7 @@ export default class World {
         self.helper.loaderDispatchHelper(self.store, this.name);
 
         this._model = self.assets.traverseHelper(self, model).scene;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._model.traverse((child: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -63,6 +64,7 @@ export default class World {
             child.receiveShadow = true;
           }
 
+          /*
           if (child.name === 'lenin') {
             this._lenin.position.set(
               child.position.x,
@@ -70,7 +72,7 @@ export default class World {
               child.position.z,
             );
             this._places.push(child);
-          }
+          } */
         });
 
         this._places.forEach((place) => {

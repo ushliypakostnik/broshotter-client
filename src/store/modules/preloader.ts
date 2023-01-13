@@ -20,13 +20,13 @@ const initialState: IPreloader = {
   metallIsLoaded: false,
   metall2IsLoaded: false,
   fireIsLoaded: false,
+  glassIsLoaded: false,
 
   // Models
   enemiesIsLoaded: false,
   worldIsLoaded: false,
   playersIsLoaded: false,
   treeIsLoaded: false,
-  leninIsLoaded: false,
 
   // Audio
   windIsLoaded: false,

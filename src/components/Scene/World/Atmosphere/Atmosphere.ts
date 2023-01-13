@@ -272,7 +272,10 @@ export default class Atmosphere {
 
     this._ground2 = new THREE.Mesh(
       self.helper.geometry,
-      self.assets.getMaterialWithColor(Textures.ground, this._DAY[this._index].ambient),
+      self.assets.getMaterialWithColor(
+        Textures.ground,
+        this._DAY[this._index].ambient,
+      ),
     );
     this._ground2.rotation.x = -Math.PI / 2;
     this._ground2.position.set(0, -1.6, 0);
@@ -355,7 +358,7 @@ export default class Atmosphere {
     if (this._sky) this._sky.rotateY(self.events.delta / 25);
 
     if (this._trees.length) {
-        if (this._time > 1) {
+      if (this._time > 1) {
         this._direction = this._direction * -1;
         if (!this._isFirst) this._isFirst = true;
         if (this._direction === 1) this._setRandom(self);
@@ -365,13 +368,16 @@ export default class Atmosphere {
       this._trees.forEach((tree) => {
         this._rotateX =
           ((this._randomX * this._direction * (this._isFirst ? 2 : 1)) / 20) *
-          self.helper.damping(self.events.delta) * tree.rotate;
+          self.helper.damping(self.events.delta) *
+          tree.rotate;
         this._rotateY =
           ((this._randomY * this._direction * (this._isFirst ? 2 : 1)) / 20) *
-          self.helper.damping(self.events.delta) * tree.rotate;
+          self.helper.damping(self.events.delta) *
+          tree.rotate;
         this._rotateZ =
           ((this._randomZ * this._direction * (this._isFirst ? 2 : 1)) / 20) *
-          self.helper.damping(self.events.delta) * tree.rotate;
+          self.helper.damping(self.events.delta) *
+          tree.rotate;
         tree.model.rotateX(self.helper.degreesToRadians(this._rotateX));
         tree.model.rotateY(self.helper.degreesToRadians(this._rotateY));
         tree.model.rotateZ(self.helper.degreesToRadians(this._rotateZ));
