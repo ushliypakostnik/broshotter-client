@@ -29,6 +29,7 @@ export interface ISelf {
   // Math
   octree: Octree, // основное "октодерево"-мир
   octree2: Octree, // дополнительное октодерево - для движущихся объектов
+  octree3: Octree, // дополнительное октодерево - для обсчета выстрелов
 
   // State
   keys: KeysState; // состояние клавиш клавиатуры

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 
 // Types
 import type { ISelf } from '@/models/modules';
-import type { IShot, IShotThree } from '@/models/api';
-import type { Mesh } from 'three';
+import type { IShot, IShotThree, IUserOnShot } from '@/models/api';
+import type { Group, Mesh, Vector3 } from 'three';
 
 // Constants
 import { DESIGN, Textures } from '@/utils/constants';
@@ -12,23 +12,34 @@ import { EmitterEvents } from '@/models/api';
 // Module
 import emitter from '@/utils/emitter';
 import { TResult } from '@/models/utils';
+import Octree from '@/components/Scene/World/Math/Octree';
 
 export default class Shots {
   private _list: IShotThree[];
   private _listNew: IShotThree[];
+  private _enemies: IUserOnShot[];
   private _ids: number[];
   private _shot!: Mesh;
   private _shotClone: Mesh;
   private _shotItem!: IShotThree;
   private _result!: TResult;
   private _result2!: TResult;
+  private _result3!: TResult;
   private _SIZE = 0.1;
   private _is = false;
   private _time = 0;
+  private _p1!: Vector3;
+  private _p2!: Vector3;
+  private _index!: number;
+  private _group!: Group;
+  private _pseudo!: Mesh;
+  private _pseudoClone!: Mesh;
+  private _id!: string;
 
   constructor() {
     this._list = [];
     this._listNew = [];
+    this._enemies = [];
     this._ids = [];
     this._shotClone = new THREE.Mesh();
   }
@@ -76,15 +87,53 @@ export default class Shots {
   }
 
   // Взрыв
-  private _explosion(shot: IShot, isOnEnemy: boolean): void {
-    emitter.emit(EmitterEvents.explosion, { ...shot, isOnEnemy });
+  private _explosion(shot: IShot, enemy: string): void {
+    emitter.emit(EmitterEvents.explosion, { ...shot, enemy });
   }
 
-  public animate(self: ISelf): void {
+  // Поиск противника по месту удара
+  private _findEnemyOnShot(
+    self: ISelf,
+    position: Vector3,
+    enemies: IUserOnShot[],
+  ): string {
+    this._enemies = enemies;
+    this._enemies.sort((a: IUserOnShot, b: IUserOnShot) => {
+      this._p1 = new THREE.Vector3(a.positionX, a.positionY, a.positionZ);
+      this._p2 = new THREE.Vector3(b.positionX, b.positionY, b.positionZ);
+      return position.distanceTo(this._p1) - position.distanceTo(this._p2);
+    });
+    this._index = 0;
+    while (this._index < this._enemies.length) {
+      this._group = new THREE.Group();
+      this._pseudo = self.scene.getObjectByProperty(
+        'uuid',
+        this._enemies[this._index].pseudo,
+      ) as Mesh;
+      if (this._pseudo) {
+        this._pseudoClone = this._pseudo.clone();
+        this._group.add(this._pseudo.clone());
+      }
+      self.scene.add(this._group);
+      self.octree3 = new Octree();
+      self.octree3.fromGraphNode(this._group);
+      this._result3 = self.octree3.sphereIntersect(
+        new THREE.Sphere(position, this._SIZE),
+      );
+      if (this._result3) {
+        this._id = this._enemies[this._index].id;
+        break;
+      }
+      ++this._index;
+    }
+    return this._result3 ? this._id : '';
+  }
+
+  public animate(self: ISelf, enemies: IUserOnShot[]): void {
     if (
       self.store.getters['api/game'] &&
-      self.store.getters['api/game'].shots
-      && (self.store.getters['api/game'].shots.length || this._list.length)
+      self.store.getters['api/game'].shots &&
+      (self.store.getters['api/game'].shots.length || this._list.length)
     ) {
       this._is = false;
       this._time += self.events.delta;
@@ -129,8 +178,10 @@ export default class Shots {
             this._result2 = self.octree2.sphereIntersect(
               new THREE.Sphere(this._shotClone.position, this._SIZE),
             );
+            this._id = '';
+            if (this._result2) this._id = this._findEnemyOnShot(self, this._shotClone.position, enemies);
             if (this._result || this._result2)
-              this._explosion(shot, !!this._result2);
+              this._explosion(shot, this._id);
           }
           // Сносим выстрел если он улетел за пределы локации
           else if (

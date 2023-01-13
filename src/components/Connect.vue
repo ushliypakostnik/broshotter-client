@@ -76,6 +76,12 @@ export default {
       emitter.emit(EmitterEvents.onExplosion, updates.message);
       emitter.emit(EmitterEvents.hits, updates.updates);
     },
+
+    // Реакция на ответ на самоповреждение
+    onSelfharm: (message) => {
+      // console.log('Connect sockets onSelfharm', message);
+      emitter.emit(EmitterEvents.onSelfharm, message);
+    },
   },
 
   computed: {
@@ -169,10 +175,22 @@ export default {
       this.explosion(message);
     });
 
-    // Реагировать обновления об уроне при взрывах
+    // Реагировать на обновления об уроне при взрывах
     this.emitter.on(EmitterEvents.hits, (updates) => {
       // console.log('Connect created hits', updates);
       this.onExplosion(updates);
+    });
+
+    // Реагировать на самоповреждения
+    this.emitter.on(EmitterEvents.selfharm, (value) => {
+      // console.log('Connect created selfharm', value);
+      this.onSelfharm(value);
+    });
+
+    // Реагировать на ответ на самоповреждения
+    this.emitter.on(EmitterEvents.onSelfharm, (message) => {
+      console.log('Connect created onSelfharm', message);
+      this.onOnSelfharm(message);
     });
   },
 
@@ -327,6 +345,32 @@ export default {
         this.setApiState({
           field: 'health',
           value: user.health,
+        });
+      }
+    },
+
+    onSelfharm(value) {
+      console.log('Connect onSelfharm()', value);
+      this.$socket.emit(EmitterEvents.selfharm, { id: this.id, value });
+      this.setApiState({
+        field: 'isOnHit',
+        value: true,
+      }).then(() => {
+        setTimeout(() => {
+          this.setApiState({
+            field: 'isOnHit',
+            value: false,
+          });
+        }, DESIGN.HIT_TIMEOUT);
+      });
+    },
+
+    onOnSelfharm(message) {
+      console.log('Connect onOnSelfharm()', message, this.id);
+      if (message.id === this.id) {
+        this.setApiState({
+          field: 'health',
+          value: message.health,
         });
       }
     },

@@ -110,7 +110,7 @@ export default class World {
     // Animated modules
     this._athmosphere.animate(self);
     this._players.animate(self);
-    this._shots.animate(self);
+    this._shots.animate(self, this._players.getList());
     this._explosions.animate(self);
   }
 }

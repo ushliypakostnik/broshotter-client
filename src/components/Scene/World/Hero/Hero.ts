@@ -9,9 +9,11 @@ import type { TResult } from '@/models/utils';
 // Constants
 import { Names, Audios, Colors, Animations, DESIGN } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { EmitterEvents } from '@/models/api';
 
 // Modules
 import Capsule from '@/components/Scene/World/Math/Capsule';
+import emitter from '@/utils/emitter';
 
 export default class Hero {
   public name = Names.hero;
@@ -226,20 +228,23 @@ export default class Hero {
     self.helper.loaderDispatchHelper(self.store, this.name, true);
   }
 
+  // Анимации оружия
   private _animateWeapon(self: ISelf): void {
     this._setWeaponData(self);
     this._checkWeapon(self);
   }
 
+  // Направление оружия
   private _setWeaponData(self: ISelf): void {
     self.camera.getWorldDirection(this._weaponDirection);
     this._weaponPosition.copy(self.camera.position);
   }
 
+  // Переключение оружия на оптику
   private _checkWeapon(self: ISelf): void {
     if (this._weapon && this._optical) {
       if (self.camera.getWorldDirection(this._direction).y > -1) {
-        if (self.store.getters['layout/isOptical']) {
+        if (self.store.getters['not/isOptical']) {
           this._optical.setRotationFromMatrix(self.camera.matrix);
           this._optical.position.copy(this._weaponPosition);
           this._weapon.position.add(
@@ -287,7 +292,7 @@ export default class Hero {
   // Выстрел
   public shot(self: ISelf): IShot {
     self.audio.replayHeroSound(Audios.shot);
-    this._isOptical = self.store.getters['layout/isOptical'];
+    this._isOptical = self.store.getters['not/isOptical'];
 
     // Update fire
     this._isFire = true;
@@ -388,8 +393,9 @@ export default class Hero {
         else if (this._jumpStart) {
           this._jumpFinish = this._jumpStart - this._collider.end.y;
 
-          // TODO: Урон от слишком высокого прыжка - допилить!!!
-          // if (jumpFinish > 15 && !scope.isNotDamaged) scope.events.heroOnHitDispatchHelper(scope, -2 * (jumpFinish - 15));
+          // Самоповреждение
+          if (this._jumpFinish > 15)
+            emitter.emit(EmitterEvents.selfharm, 1.5 * (this._jumpFinish - 15));
 
           // Sound
           if (

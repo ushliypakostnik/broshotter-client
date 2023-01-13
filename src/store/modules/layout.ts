@@ -1,12 +1,7 @@
 import { Module } from 'vuex';
 
 // Types
-import type {
-  IStore,
-  IStoreModule,
-  TFieldPayload,
-  TEventMessagePayload,
-} from '@/models/store';
+import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
 
 const initialState: IStoreModule = {
   id: null,
@@ -23,12 +18,9 @@ const initialState: IStoreModule = {
   isHide: false,
   isRun: false,
   isJump: false,
-  isOptical: false,
   isTired: false,
   day: 0,
 };
-
-let array: Array<TEventMessagePayload> = [];
 
 const layout: Module<IStoreModule, IStore> = {
   namespaced: true,
@@ -44,9 +36,7 @@ const layout: Module<IStoreModule, IStore> = {
     isHide: (state: IStoreModule) => state.isHide,
     isRun: (state: IStoreModule) => state.isRun,
     isJump: (state: IStoreModule) => state.isJump,
-    isOptical: (state: IStoreModule) => state.isOptical,
     isTired: (state: IStoreModule) => state.isTired,
-    messages: (state: IStoreModule) => state.messages,
     isGameOver: (state: IStoreModule) => state.isGameOver,
     day: (state: IStoreModule) => state.day,
   },
@@ -68,14 +58,6 @@ const layout: Module<IStoreModule, IStore> = {
       else context.commit('setLayoutState', payload);
     },
 
-    showMessage: ({ commit }, payload: TEventMessagePayload): void => {
-      commit('showMessage', payload);
-    },
-
-    hideMessage: ({ commit }, payload: number): void => {
-      commit('hideMessage', payload);
-    },
-
     reload: ({ commit }): void => {
       commit('reload');
     },
@@ -92,19 +74,6 @@ const layout: Module<IStoreModule, IStore> = {
       } else state[payload.field] = payload.value;
     },
 
-    showMessage: (state: IStoreModule, payload: TEventMessagePayload): void => {
-      array = state.messages;
-      array.push(payload);
-      state.messages = array;
-    },
-
-    hideMessage: (state: IStoreModule, payload: number): void => {
-      array = state.messages.filter(
-        (message: TEventMessagePayload) => message.id !== payload,
-      );
-      state.messages = array;
-    },
-
     reload: (state: IStoreModule): void => {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -113,9 +82,7 @@ const layout: Module<IStoreModule, IStore> = {
       state.isHide = initialState.isHide;
       state.isRun = initialState.isRun;
       state.isJump = initialState.isJump;
-      state.isOptical = initialState.isOptical;
       state.isTired = initialState.isTired;
-      state.messages = initialState.messages;
       state.isGameOver = initialState.isGameOver;
     },
   },

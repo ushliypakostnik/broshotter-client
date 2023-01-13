@@ -188,9 +188,9 @@ export default defineComponent({
     const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
     const endurance = computed(() => store.getters['layout/endurance']);
-    const isOptical = computed(() => store.getters['layout/isOptical']);
     const isTired = computed(() => store.getters['layout/isTired']);
-    const messages = computed(() => store.getters['messages/messages']);
+    const isOptical = computed(() => store.getters['not/isOptical']);
+    const messages = computed(() => store.getters['not/messages']);
 
     onMounted(() => {
       onWindowResize();

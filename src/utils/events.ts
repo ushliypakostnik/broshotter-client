@@ -65,13 +65,13 @@ export default class Events {
     this._pause = delay || DESIGN.MESSAGES_TIMEOUT / 1000;
 
     self.store
-      .dispatch('messages/showMessage', { id: this._id, text })
+      .dispatch('not/showMessage', { id: this._id, text })
       .catch((error) => {
         console.log(error);
       });
 
     this.addEventsToBus(this._pause, this._id, (data) => {
-      self.store.dispatch('messages/hideMessage', data);
+      self.store.dispatch('not/hideMessage', data);
     });
   }
 

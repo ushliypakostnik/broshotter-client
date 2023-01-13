@@ -90,17 +90,17 @@ export default defineComponent({
     let onMouseUp: (event: MouseEvent) => void;
 
     // Store getters
-    const isEnter = computed(() => store.getters['api/isEnter']);
-    const id = computed(() => store.getters['layout/id']);
-    const game = computed(() => store.getters['api/game']);
-    const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isGameLoaded = computed(
       () => store.getters['preloader/isGameLoaded'],
     );
+    const isEnter = computed(() => store.getters['api/isEnter']);
+    const game = computed(() => store.getters['api/game']);
+    const id = computed(() => store.getters['layout/id']);
+    const isGameOver = computed(() => store.getters['layout/isGameOver']);
     const isPause = computed(() => store.getters['layout/isPause']);
-    const isOptical = computed(() => store.getters['layout/isOptical']);
     const isHide = computed(() => store.getters['layout/isHide']);
     const isRun = computed(() => store.getters['layout/isRun']);
+    const isOptical = computed(() => store.getters['not/isOptical']);
 
     const isSet = ref(false);
 
@@ -249,7 +249,7 @@ export default defineComponent({
         event.button === 2 &&
         !isOptical.value
       )
-        store.dispatch('layout/setLayoutState', {
+        store.dispatch('not/setNotState', {
           field: 'isOptical',
           value: true,
         });
@@ -264,7 +264,7 @@ export default defineComponent({
         event.button === 2 &&
         isOptical.value
       )
-        store.dispatch('layout/setLayoutState', {
+        store.dispatch('not/setNotState', {
           field: 'isOptical',
           value: false,
         });
@@ -306,6 +306,7 @@ export default defineComponent({
       // math
       octree: new Octree(),
       octree2: new Octree(),
+      octree3: new Octree(),
 
       // state
       keys,
@@ -362,7 +363,7 @@ export default defineComponent({
 
         // Если c паузы - выключаем оптику
         if (!value && isOptical.value) {
-          store.dispatch('layout/setLayoutState', {
+          store.dispatch('not/setNotState', {
             field: 'isOptical',
             value: false,
           });
@@ -380,7 +381,7 @@ export default defineComponent({
 
         // Если c оптики - выключаем оптику
         if (!value && isOptical.value) {
-          store.dispatch('layout/setLayoutState', {
+          store.dispatch('not/setNotState', {
             field: 'isOptical',
             value: false,
           });
@@ -390,7 +391,7 @@ export default defineComponent({
 
     // Следим за оптикой
     watch(
-      () => store.getters['layout/isOptical'],
+      () => store.getters['not/isOptical'],
       (value) => {
         if (value) self.camera.fov = DESIGN.CAMERA.fov / 4;
         else self.camera.fov = DESIGN.CAMERA.fov;

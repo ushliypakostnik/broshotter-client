@@ -5,23 +5,30 @@ import type {
   IStore,
   IStoreModule,
   TEventMessagePayload,
+  TFieldPayload,
 } from '@/models/store';
 
 const initialState: IStoreModule = {
+  isOptical: false,
   messages: [], // Сообщения сейчас
 };
 
 let array: Array<TEventMessagePayload> = [];
 
-const messages: Module<IStoreModule, IStore> = {
+const not: Module<IStoreModule, IStore> = {
   namespaced: true,
   state: initialState,
 
   getters: {
+    isOptical: (state: IStoreModule) => state.isOptical,
     messages: (state: IStoreModule) => state.messages,
   },
 
   actions: {
+    setNotState: ({ commit }, payload: TFieldPayload): void => {
+      commit('setNotState', payload);
+    },
+
     showMessage: ({ commit }, payload: TEventMessagePayload): void => {
       commit('showMessage', payload);
     },
@@ -32,6 +39,10 @@ const messages: Module<IStoreModule, IStore> = {
   },
 
   mutations: {
+    setNotState: (state: IStoreModule, payload: TFieldPayload): void => {
+      state[payload.field] = payload.value;
+    },
+
     showMessage: (state: IStoreModule, payload: TEventMessagePayload): void => {
       array = state.messages;
       array.push(payload);
@@ -47,4 +58,4 @@ const messages: Module<IStoreModule, IStore> = {
   },
 };
 
-export default messages;
+export default not;

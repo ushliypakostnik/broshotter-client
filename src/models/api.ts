@@ -29,6 +29,8 @@ export enum EmitterEvents {
   explosion = 'explosion', // На взрыв
   onExplosion = 'onExplosion', // На ответ взрыв
   hits = 'hits', // Урон
+  selfharm = 'selfharm', // Самоповреждение
+  onSelfharm = 'onSelfharm', // На самоповреждение
 }
 
 // Движущийся объект принадлежащий игроку (выстрел) или сам игрок
@@ -55,7 +57,7 @@ export interface IShotThree extends IShot {
 }
 
 export interface IExplosion extends IShot {
-  isOnEnemy: boolean;
+  enemy: string;
 }
 
 export interface IExplosionThree extends IShot {
@@ -83,6 +85,7 @@ export interface IUser extends IMoveObject {
 export interface IUserThree extends IUser {
   model: string;
   pseudo: string;
+  sound: string;
   scale: string;
   weapon: string;
   fire: string;
@@ -97,6 +100,14 @@ export interface IUserThree extends IUser {
   isFire: boolean;
   isFireOff: boolean;
   fireScale: number;
+}
+
+export interface IUserOnShot {
+  id: string;
+  pseudo: string;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
 }
 
 // Обновления игрока

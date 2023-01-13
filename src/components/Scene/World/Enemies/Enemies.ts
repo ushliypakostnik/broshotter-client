@@ -15,7 +15,7 @@ import type {
   Vector3,
 } from 'three';
 import type { ISelf } from '@/models/modules';
-import type { IUser, IUserThree } from '@/models/api';
+import type { IUser, IUserThree, IUserOnShot } from '@/models/api';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Constants
@@ -35,6 +35,8 @@ export default class Enemies {
   private _modelClone!: Group;
   private _pseudo!: Mesh;
   private _pseudoClone!: Mesh;
+  private _sound!: Mesh;
+  private _soundClone!: Mesh;
   private _group!: Group;
   private _scale!: Mesh;
   private _scaleClone!: Mesh;
@@ -113,6 +115,12 @@ export default class Enemies {
         );
         this._pseudo.visible = false;
 
+        this._sound = new THREE.Mesh(
+          new THREE.SphereGeometry(0.5, 1, 1),
+          self.assets.getMaterial(Textures.hole),
+        );
+        this._sound.visible = false;
+
         const scaleGeometry = new THREE.PlaneBufferGeometry(1, 0.05);
         this._scale = new THREE.Mesh(
           scaleGeometry,
@@ -125,6 +133,19 @@ export default class Enemies {
         self.helper.loaderDispatchHelper(self.store, this.name, true);
       },
     );
+  }
+
+  // Взять врагов
+  public getList(): IUserOnShot[] {
+    return this._list.map((player) => {
+      return {
+        id: player.id,
+        pseudo: player.pseudo,
+        positionX: player.positionX,
+        positionY: player.positionY,
+        positionZ: player.positionZ,
+      };
+    });
   }
 
   // Пересоздание октодерева
@@ -154,6 +175,8 @@ export default class Enemies {
     this._pseudoClone = this._pseudo.clone();
     if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
     else this._pseudoClone.scale.set(1, 1, 1);
+
+    this._soundClone = this._sound.clone();
 
     this._scaleClone = this._scale.clone();
 
@@ -198,6 +221,7 @@ export default class Enemies {
       ...player,
       model: this._modelClone.uuid,
       pseudo: this._pseudoClone.uuid,
+      sound: this._soundClone.uuid,
       scale: this._scaleClone.uuid,
       weapon: this._weaponClone.uuid,
       fire: this._weaponFire.uuid,
@@ -221,40 +245,23 @@ export default class Enemies {
     this._userThree.prevAction.play();
     self.scene.add(this._modelClone);
     self.scene.add(this._pseudoClone);
+    self.scene.add(this._soundClone);
     self.scene.add(this._scaleClone);
     self.scene.add(this._weaponClone);
     this._list.push(this._userThree);
 
-    if (this._pseudoClone) {
-      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.steps2);
-    }
-
-    if (this._pseudoClone) {
+    // Добавляем звуки
+    if (this._soundClone) {
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.steps2);
       self.audio.addAudioOnObject(
         self,
-        this._pseudoClone.uuid,
+        this._soundClone.uuid,
         Audios.jumpstart2,
       );
-    }
-
-    if (this._pseudoClone) {
-      self.audio.addAudioOnObject(
-        self,
-        this._pseudoClone.uuid,
-        Audios.jumpend2,
-      );
-    }
-
-    if (this._pseudoClone) {
-      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.dead);
-    }
-
-    if (this._pseudoClone) {
-      self.audio.addAudioOnObject(self, this._pseudoClone.uuid, Audios.hit2);
-    }
-
-    if (this._weaponFire) {
-      self.audio.addAudioOnObject(self, this._weaponFire.uuid, Audios.shot2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.jumpend2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.dead);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.hit2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.shot2);
     }
   }
 
@@ -270,6 +277,11 @@ export default class Enemies {
       player.pseudo,
     ) as Mesh;
     if (this._pseudoClone) self.scene.remove(this._pseudoClone);
+    this._soundClone = self.scene.getObjectByProperty(
+      'uuid',
+      player.sound,
+    ) as Mesh;
+    if (this._soundClone) self.scene.remove(this._soundClone);
     this._scaleClone = self.scene.getObjectByProperty(
       'uuid',
       player.scale,
@@ -549,6 +561,11 @@ export default class Enemies {
             ? DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.1
             : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.4),
         this._modelClone.position.z,
+      );
+      this._soundClone.position.set(
+        this._pseudoClone.position.x,
+        this._pseudoClone.position.y,
+        this._pseudoClone.position.z,
       );
 
       this._direction = new THREE.Vector3(

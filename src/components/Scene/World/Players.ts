@@ -2,7 +2,7 @@
 import type { ISelf } from '@/models/modules';
 import type { Group } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { IShot } from '@/models/api';
+import { IShot, IUserOnShot } from '@/models/api';
 
 // Constants
 import { Names } from '@/utils/constants';
@@ -47,6 +47,10 @@ export default class Players {
 
   public shot(self: ISelf): IShot {
     return this._hero.shot(self);
+  }
+
+  public getList(): IUserOnShot[] {
+    return this._enemies.getList();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
