@@ -44,6 +44,7 @@ export default class Assets {
   public jumpstart2!: AudioBuffer;
   public jumpend2!: AudioBuffer;
   public dead!: AudioBuffer;
+  public dead2!: AudioBuffer;
 
   constructor() {
     this.GLTFLoader = new GLTFLoader();
@@ -75,6 +76,7 @@ export default class Assets {
     self.helper.setAudioToHeroHelper(self, Audios.jumpend);
     self.helper.setAudioToHeroHelper(self, Audios.shot);
     self.helper.setAudioToHeroHelper(self, Audios.hit);
+    self.helper.setAudioToHeroHelper(self, Audios.dead);
 
     // Позиционированные на объектах
     this.audioLoader.load(`./audio/${Audios.explosion}.mp3`, (buffer) => {
@@ -117,11 +119,11 @@ export default class Assets {
       self.audio.initAudioByName(self, Audios.hit2);
     });
 
-    this.audioLoader.load(`./audio/${Audios.dead}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.dead, false);
-      this.dead = buffer;
+    this.audioLoader.load(`./audio/${Audios.dead2}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.dead2, false);
+      this.dead2 = buffer;
 
-      self.audio.initAudioByName(self, Audios.dead);
+      self.audio.initAudioByName(self, Audios.dead2);
     });
   }
 
@@ -317,6 +319,7 @@ export default class Assets {
       case Audios.hit2:
         return 0.25;
       case Audios.dead:
+      case Audios.dead2:
         return 0.7;
     }
     return DESIGN.DEFAULT_VOLUME;
@@ -338,8 +341,8 @@ export default class Assets {
         return this.steps2;
       case Audios.hit2:
         return this.hit2;
-      case Audios.dead:
-        return this.dead;
+      case Audios.dead2:
+        return this.dead2;
     }
     return this.explosion;
   }

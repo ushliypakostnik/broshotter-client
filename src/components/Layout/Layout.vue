@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isDesktop && isBro" class="layout">
+  <div v-if="isDesktop && isBro" class="layout" :class="{ 'layout--dead' : isGameOver }">
     <Preloader>
       <Connect />
 
@@ -100,7 +100,7 @@
               </button>
 
               <button
-                class="layout__button layout__button--enter"
+                class="layout__button layout__button--enter layout__button--dead"
                 type="button"
                 @click.prevent.stop="reenter"
               >
@@ -252,6 +252,11 @@ $name = '.layout'
   @extend $viewport
   text-align center
 
+  &--dead
+    {$name}__header,
+    {$name}__copy
+      color $colors.stone
+
   &__header
     color $colors.sea
     margin-top 13vh
@@ -366,8 +371,8 @@ $name = '.layout'
     justify-content center
 
   &__button
-    margin-top $gutter * 2
     @extend $button
+    margin-top $gutter * 2
 
     &--disabled
       pointer-events none
@@ -375,6 +380,9 @@ $name = '.layout'
 
     &--enter
       margin-bottom 5vh
+
+    &--dead
+      @extend $button--variant
 
   &__keys,
   &__copy

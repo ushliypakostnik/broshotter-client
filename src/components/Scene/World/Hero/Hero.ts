@@ -64,6 +64,7 @@ export default class Hero {
   private _isOnBodyHit = false;
   private _isGameOver = false;
   private _isEnter = false;
+  private _isDead = false;
 
   // Animations
   private _animation!: string;
@@ -99,38 +100,6 @@ export default class Hero {
     this._weaponUpVelocity = new THREE.Vector3();
     this._target = new THREE.Vector3();
     this._enduranceClock = new THREE.Clock();
-  }
-
-  private _setCapsule(self: ISelf): void {
-    if (!this._isHide) {
-      this._collider = new Capsule(
-        new THREE.Vector3(
-          self.camera.position.x,
-          self.camera.position.y,
-          self.camera.position.z,
-        ),
-        new THREE.Vector3(
-          self.camera.position.x,
-          self.camera.position.y - DESIGN.GAMEPLAY.PLAYER_HEIGHT,
-          self.camera.position.z,
-        ),
-        1,
-      );
-    } else {
-      this._collider = new Capsule(
-        new THREE.Vector3(
-          self.camera.position.x,
-          self.camera.position.y,
-          self.camera.position.z,
-        ),
-        new THREE.Vector3(
-          self.camera.position.x,
-          self.camera.position.y + DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2,
-          self.camera.position.z,
-        ),
-        1,
-      );
-    }
   }
 
   public init(self: ISelf, weapon: Group): void {
@@ -226,6 +195,39 @@ export default class Hero {
     self.scene.add(this._toruch);
 
     self.helper.loaderDispatchHelper(self.store, this.name, true);
+  }
+
+  // Установить капсулу героя
+  private _setCapsule(self: ISelf): void {
+    if (!this._isHide) {
+      this._collider = new Capsule(
+        new THREE.Vector3(
+          self.camera.position.x,
+          self.camera.position.y,
+          self.camera.position.z,
+        ),
+        new THREE.Vector3(
+          self.camera.position.x,
+          self.camera.position.y - DESIGN.GAMEPLAY.PLAYER_HEIGHT,
+          self.camera.position.z,
+        ),
+        1,
+      );
+    } else {
+      this._collider = new Capsule(
+        new THREE.Vector3(
+          self.camera.position.x,
+          self.camera.position.y,
+          self.camera.position.z,
+        ),
+        new THREE.Vector3(
+          self.camera.position.x,
+          self.camera.position.y + DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2,
+          self.camera.position.z,
+        ),
+        1,
+      );
+    }
   }
 
   // Анимации оружия
@@ -660,9 +662,13 @@ export default class Hero {
         this._velocity.y -= DESIGN.GAMEPLAY.GRAVITY * self.events.delta;
       }
 
-      // TODO: сделать звук умирания на герое
-      if (this._isGameOver) this._animation = this._dead;
-      else if (!this._isHide && this._isOnHit) this._animation = this._hit;
+      if (this._isGameOver) {
+        this._animation = this._dead;
+        if (!this._isDead) {
+          self.audio.startHeroSound(Audios.dead);
+          this._isDead = true;
+        }
+      } else if (!this._isHide && this._isOnHit) this._animation = this._hit;
       else if (!this._isHide && this._isRun !== this._isRunStore) {
         if (this._isRun) this._animation = this._run;
         else this._animation = this._getMove();

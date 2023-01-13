@@ -42,6 +42,7 @@ const initialState: IPreloader = {
   hit2IsLoaded: false,
   explosionIsLoaded: false,
   deadIsLoaded: false,
+  dead2IsLoaded: false,
 
   // World build
   atmosphereIsBuild: false,

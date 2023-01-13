@@ -88,6 +88,7 @@ export enum Audios {
   hit2 = 'hit2',
   explosion = 'explosion',
   dead = 'dead',
+  dead2 = 'dead2',
 }
 
 export enum Colors {

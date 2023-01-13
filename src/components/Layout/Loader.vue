@@ -37,8 +37,8 @@ export default defineComponent({
   animation spin linear $effects.duration * 10 infinite
 
 .loader
-  width $gutter * 15
-  height $gutter * 15
+  width $gutter * 12
+  height $gutter * 12
 
   svg path
     fill $colors.ghost

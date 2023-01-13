@@ -189,7 +189,7 @@ export default {
 
     // Реагировать на ответ на самоповреждения
     this.emitter.on(EmitterEvents.onSelfharm, (message) => {
-      console.log('Connect created onSelfharm', message);
+      // console.log('Connect created onSelfharm', message);
       this.onOnSelfharm(message);
     });
   },
@@ -350,7 +350,7 @@ export default {
     },
 
     onSelfharm(value) {
-      console.log('Connect onSelfharm()', value);
+      // console.log('Connect onSelfharm()', value);
       this.$socket.emit(EmitterEvents.selfharm, { id: this.id, value });
       this.setApiState({
         field: 'isOnHit',

@@ -259,9 +259,9 @@ export default class Enemies {
         Audios.jumpstart2,
       );
       self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.jumpend2);
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.dead);
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.hit2);
       self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.shot2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.hit2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.dead2);
     }
   }
 
@@ -523,7 +523,7 @@ export default class Enemies {
           user.prevAction = user.nextAction;
 
           if (user.animation === 'dead' && !this._isDead) {
-            self.audio.replayObjectSound(user.pseudo, Audios.dead);
+            self.audio.replayObjectSound(user.pseudo, Audios.dead2);
             this._isDead = true;
           }
         }
