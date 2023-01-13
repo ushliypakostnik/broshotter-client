@@ -4,7 +4,7 @@ import createPersistedState from 'vuex-persistedstate';
 
 import preloader from '@/store/modules/preloader';
 import api from '@/store/modules/api';
-import layout from '@/store/modules/layout';
+import persist from '@/store/modules/persist';
 import not from '@/store/modules/not';
 
 declare module '@vue/runtime-core' {
@@ -37,12 +37,12 @@ export const store = createStore<State>({
   modules: {
     preloader,
     api,
-    layout,
+    persist,
     not,
   },
   plugins: [
     createPersistedState({
-      paths: ['layout'],
+      paths: ['persist'],
     }),
   ],
 });

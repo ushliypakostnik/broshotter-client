@@ -134,7 +134,7 @@ export default class Hero {
   }
 
   public init(self: ISelf, weapon: Group): void {
-    const id = self.store.getters['layout/id'];
+    const id = self.store.getters['persist/id'];
     const game = self.store.getters['api/game'];
     if (id && game) {
       const user = game.users.find((player: IUser) => player.id === id);
@@ -343,7 +343,7 @@ export default class Hero {
 
     return {
       id: null,
-      player: self.store.getters['layout/id'],
+      player: self.store.getters['persist/id'],
       positionX: this._position.x,
       positionY: this._number,
       positionZ: this._position.z,
@@ -400,7 +400,7 @@ export default class Hero {
           // Sound
           if (
             Math.abs(this._jumpFinish) > 0.1 &&
-            !self.store.getters['layout/isPause']
+            !self.store.getters['persist/isPause']
           )
             self.audio.replayHeroSound(Audios.jumpend);
         }
@@ -481,14 +481,14 @@ export default class Hero {
   public animate(self: ISelf): void {
     if (!this._isEnter) this._isEnter = self.store.getters['api/isEnter'];
     else {
-      this._endurance = self.store.getters['layout/endurance'];
-      this._isHide = self.store.getters['layout/isHide'];
-      this._isPause = self.store.getters['layout/isPause'];
-      this._isRun = self.store.getters['layout/isRun'];
-      this._isTired = self.store.getters['layout/isTired'];
+      this._endurance = self.store.getters['persist/endurance'];
+      this._isHide = self.store.getters['persist/isHide'];
+      this._isPause = self.store.getters['persist/isPause'];
+      this._isRun = self.store.getters['persist/isRun'];
+      this._isTired = self.store.getters['persist/isTired'];
       this._isOnHit = self.store.getters['api/isOnHit'];
       this._isOnBodyHit = self.store.getters['api/isOnBodyHit'];
-      this._isGameOver = self.store.getters['layout/isGameOver'];
+      this._isGameOver = self.store.getters['persist/isGameOver'];
 
       if (this._isOnHit !== this._isOnHitStore) {
         if (this._isOnHit && this._isOnBodyHit)
@@ -526,7 +526,7 @@ export default class Hero {
           this._enduranceTime += this._enduranceClock.getDelta();
 
         if (this._enduranceTime > 0.035) {
-          self.store.dispatch('layout/setLayoutState', {
+          self.store.dispatch('persist/setPersistState', {
             field: 'endurance',
             value: !this._isEnduranceRecoveryStart ? -1 : 1,
           });
@@ -559,7 +559,7 @@ export default class Hero {
               !this._isTired &&
               !this._isRun
             ) {
-              self.store.dispatch('layout/setLayoutState', {
+              self.store.dispatch('persist/setPersistState', {
                 field: 'isRun',
                 value: true,
               });

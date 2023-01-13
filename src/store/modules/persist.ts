@@ -22,7 +22,7 @@ const initialState: IStoreModule = {
   day: 0,
 };
 
-const layout: Module<IStoreModule, IStore> = {
+const persist: Module<IStoreModule, IStore> = {
   namespaced: true,
   state: initialState,
 
@@ -42,20 +42,20 @@ const layout: Module<IStoreModule, IStore> = {
   },
 
   actions: {
-    setLayoutState: (context, payload: TFieldPayload): void => {
+    setPersistState: (context, payload: TFieldPayload): void => {
       if (
         payload.field === 'endurance' &&
         context.getters.endurance < 1 &&
         !context.getters.isTired
       )
-        context.commit('setLayoutState', { field: 'isTired', value: true });
+        context.commit('setPersistState', { field: 'isTired', value: true });
       else if (
         payload.field === 'endurance' &&
         context.getters.endurance > 100 &&
         context.getters.isTired
       )
-        context.commit('setLayoutState', { field: 'isTired', value: false });
-      else context.commit('setLayoutState', payload);
+        context.commit('setPersistState', { field: 'isTired', value: false });
+      else context.commit('setPersistState', payload);
     },
 
     reload: ({ commit }): void => {
@@ -64,7 +64,7 @@ const layout: Module<IStoreModule, IStore> = {
   },
 
   mutations: {
-    setLayoutState: (state: IStoreModule, payload: TFieldPayload): void => {
+    setPersistState: (state: IStoreModule, payload: TFieldPayload): void => {
       if (payload.field === 'endurance') {
         if (state[payload.field] < 100 && payload.value > 0)
           state[payload.field] += payload.value;
@@ -88,4 +88,4 @@ const layout: Module<IStoreModule, IStore> = {
   },
 };
 
-export default layout;
+export default persist;

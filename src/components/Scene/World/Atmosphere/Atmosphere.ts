@@ -164,8 +164,8 @@ export default class Atmosphere {
   ];
 
   public init(self: ISelf): void {
-    this._index = self.store.getters['layout/day'];
-    self.store.dispatch('layout/setLayoutState', {
+    this._index = self.store.getters['persist/day'];
+    self.store.dispatch('persist/setPersistState', {
       field: 'day',
       value: this._index === this._DAY.length - 1 ? 0 : this._index + 1,
     });

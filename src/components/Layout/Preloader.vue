@@ -29,14 +29,14 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
     );
 
-    const isReload = computed(() => store.getters['layout/isReload']);
+    const isReload = computed(() => store.getters['persist/isReload']);
 
     // Следим загрузилась ли игра
     watch(
       () => store.getters['preloader/isGameLoaded'],
       (value) => {
         if (value) {
-          store.dispatch('layout/setLayoutState', {
+          store.dispatch('persist/setPersistState', {
             field: 'isReload',
             value: false,
           });

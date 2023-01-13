@@ -162,7 +162,7 @@ export default class Shots {
 
           // Делаем выстрел игрока видимым при небольшом отлете
           if (
-            shot.player === self.store.getters['layout/id'] &&
+            shot.player === self.store.getters['persist/id'] &&
             !this._shotClone.visible &&
             this._shotClone.position.distanceTo(
               new THREE.Vector3(shot.startX, shot.startY, shot.startZ),
@@ -171,7 +171,7 @@ export default class Shots {
             this._shotClone.visible = true;
 
           // Проверяем столкновения с миром и другими игроками
-          if (shot.player === self.store.getters['layout/id']) {
+          if (shot.player === self.store.getters['persist/id']) {
             this._result = self.octree.sphereIntersect(
               new THREE.Sphere(this._shotClone.position, this._SIZE),
             );
@@ -179,20 +179,24 @@ export default class Shots {
               new THREE.Sphere(this._shotClone.position, this._SIZE),
             );
             this._id = '';
-            if (this._result2) this._id = this._findEnemyOnShot(self, this._shotClone.position, enemies);
-            if (this._result || this._result2)
-              this._explosion(shot, this._id);
+            if (this._result2)
+              this._id = this._findEnemyOnShot(
+                self,
+                this._shotClone.position,
+                enemies,
+              );
+            if (this._result || this._result2) this._explosion(shot, this._id);
           }
           // Сносим выстрел если он улетел за пределы локации
           else if (
-            shot.player === self.store.getters['layout/id'] &&
+            shot.player === self.store.getters['persist/id'] &&
             this._shotClone.position.distanceTo(new THREE.Vector3(0, 0, 0)) >
               DESIGN.SIZE * 2
           )
             this._unshot(shot.id as number);
           // Если ушел под пол или улетел слишком высоко
           else if (
-            shot.player === self.store.getters['layout/id'] &&
+            shot.player === self.store.getters['persist/id'] &&
             (this._shotClone.position.y < 0 ||
               this._shotClone.position.y > DESIGN.SIZE * 1.5)
           )

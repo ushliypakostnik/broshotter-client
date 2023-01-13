@@ -317,7 +317,7 @@ export default class Enemies {
       if (this._isTest) this._listNew = self.store.getters['api/game'].users;
       else
         this._listNew = self.store.getters['api/game'].users.filter(
-          (user: IUser) => user.id !== self.store.getters['layout/id'],
+          (user: IUser) => user.id !== self.store.getters['persist/id'],
         );
 
       this._listNew.forEach((user) => {

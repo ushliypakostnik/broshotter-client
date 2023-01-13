@@ -130,7 +130,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, ref, Ref, watch } from 'vue';
+import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 import { useI18n } from 'vue-i18n';
@@ -139,10 +139,10 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/utils/emitter';
 
 // Constants
-import { DESIGN, ScreenHelper } from '@/utils/constants';
+import { ScreenHelper } from '@/utils/constants';
 
 // Types
-import { EmitterEvents, IUser } from '@/models/api';
+import { EmitterEvents } from '@/models/api';
 
 // Components
 import Connect from '@/components/Connect.vue';
@@ -184,11 +184,11 @@ export default defineComponent({
     const isEnter = computed(() => store.getters['api/isEnter']);
     const isOnHit = computed(() => store.getters['api/isOnHit']);
     const health = computed(() => store.getters['api/health']);
-    const name = computed(() => store.getters['layout/name']);
-    const isGameOver = computed(() => store.getters['layout/isGameOver']);
-    const isPause = computed(() => store.getters['layout/isPause']);
-    const endurance = computed(() => store.getters['layout/endurance']);
-    const isTired = computed(() => store.getters['layout/isTired']);
+    const name = computed(() => store.getters['persist/name']);
+    const isGameOver = computed(() => store.getters['persist/isGameOver']);
+    const isPause = computed(() => store.getters['persist/isPause']);
+    const endurance = computed(() => store.getters['persist/endurance']);
+    const isTired = computed(() => store.getters['persist/isTired']);
     const isOptical = computed(() => store.getters['not/isOptical']);
     const messages = computed(() => store.getters['not/messages']);
 
@@ -208,14 +208,14 @@ export default defineComponent({
 
     enter = () => {
       emitter.emit(EmitterEvents.enter, nickname.value);
-      store.dispatch('layout/setLayoutState', {
+      store.dispatch('persist/setPersistState', {
         field: 'name',
         value: nickname.value,
       });
     };
 
     play = () => {
-      store.dispatch('layout/setLayoutState', {
+      store.dispatch('persist/setPersistState', {
         field: 'isPause',
         value: !isPause.value,
       });

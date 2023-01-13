@@ -89,11 +89,11 @@ export default {
       game: 'api/game',
       updates: 'api/updates',
 
-      id: 'layout/id',
-      name: 'layout/name',
-      isHide: 'layout/isHide',
-      isRun: 'layout/isRun',
-      isPause: 'layout/isPause',
+      id: 'persist/id',
+      name: 'persist/name',
+      isHide: 'persist/isHide',
+      isRun: 'persist/isRun',
+      isPause: 'persist/isPause',
     }),
   },
 
@@ -201,7 +201,7 @@ export default {
   methods: {
     ...mapActions({
       setApiState: 'api/setApiState',
-      setLayoutState: 'layout/setLayoutState',
+      setPersistState: 'persist/setPersistState',
     }),
 
     // Произошло соединение с сервером
@@ -212,7 +212,7 @@ export default {
     // Реагировать на установку нового игрока
     setNewPlayer(player) {
       console.log('Connect setNewPlayer', player);
-      this.setLayoutState({
+      this.setPersistState({
         field: 'id',
         value: player.id,
       });
@@ -226,7 +226,7 @@ export default {
           const item = this.game.users.find((player) => player.id === this.id);
 
           if (item && item.name) {
-            this.setLayoutState({
+            this.setPersistState({
               field: 'isPause',
               value: false,
             }).then(() => {
@@ -310,7 +310,7 @@ export default {
       if (user) {
         if (user.health <= 0) {
           // Проиграл
-          this.setLayoutState({
+          this.setPersistState({
             field: 'isGameOver',
             value: true,
           });

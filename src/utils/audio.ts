@@ -4,11 +4,7 @@
 import * as THREE from 'three';
 
 // Constants
-import {
-  Colors,
-  Audios,
-  Names,
-} from '@/utils/constants';
+import { Colors, Audios, Names } from '@/utils/constants';
 
 // Types
 import type { ISelf } from '@/models/modules';
@@ -177,7 +173,7 @@ export default class AudioBus {
         this._item = self.scene.getObjectByProperty('uuid', record.id) as Mesh;
         this._item.add(this._positionalAudio);
 
-        this._is = self.store.getters['layout/isPause'];
+        this._is = self.store.getters['persist/isPause'];
         if (this._is) record.isStopped = true;
         else this._positionalAudio.play();
       });
@@ -201,18 +197,14 @@ export default class AudioBus {
       this._item = self.scene.getObjectByProperty('uuid', id) as Mesh;
       this._item.add(this._positionalAudio);
 
-      this._is = self.store.getters['layout/isPause'];
+      this._is = self.store.getters['persist/isPause'];
       if (this._is) this._record.isStopped = true;
       else if (this._record?.audio && !this._record.audio.isPlaying)
         this._record.audio.play();
     }
   }
 
-  private _addAudioOnObjectHelper(
-    self: ISelf,
-    id: string,
-    name: Audios,
-  ) {
+  private _addAudioOnObjectHelper(self: ISelf, id: string, name: Audios) {
     this._is = this._getIsLoopByName(name);
     this.addPositionalAudioToBus(id, name, this._is);
 
@@ -231,20 +223,12 @@ export default class AudioBus {
   }
 
   // Добавить и отыграть трек на одном объекте
-  public addAudioOnObject(
-    self: ISelf,
-    id: string,
-    name: Audios,
-  ): void {
+  public addAudioOnObject(self: ISelf, id: string, name: Audios): void {
     this._addAudioOnObjectHelper(self, id, name);
   }
 
   // Добавить и отыграть трек на одном объекте
-  public addAndPlayAudioOnObject(
-    self: ISelf,
-    id: string,
-    name: Audios,
-  ): void {
+  public addAndPlayAudioOnObject(self: ISelf, id: string, name: Audios): void {
     this._addAudioOnObjectHelper(self, id, name);
 
     this._positionalAudio.play();
@@ -339,7 +323,11 @@ export default class AudioBus {
   }
 
   // Изменить скорость звука на объекте
-  public setPlaybackRateOnObjectSound(id: string, name: Audios, rate: number): void {
+  public setPlaybackRateOnObjectSound(
+    id: string,
+    name: Audios,
+    rate: number,
+  ): void {
     this._record = this._getRecordByIdAndName(id, name);
     if (this._record && this._record.audio)
       this._record.audio.setPlaybackRate(rate);

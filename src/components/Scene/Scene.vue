@@ -95,11 +95,11 @@ export default defineComponent({
     );
     const isEnter = computed(() => store.getters['api/isEnter']);
     const game = computed(() => store.getters['api/game']);
-    const id = computed(() => store.getters['layout/id']);
-    const isGameOver = computed(() => store.getters['layout/isGameOver']);
-    const isPause = computed(() => store.getters['layout/isPause']);
-    const isHide = computed(() => store.getters['layout/isHide']);
-    const isRun = computed(() => store.getters['layout/isRun']);
+    const id = computed(() => store.getters['persist/id']);
+    const isGameOver = computed(() => store.getters['persist/isGameOver']);
+    const isPause = computed(() => store.getters['persist/isPause']);
+    const isHide = computed(() => store.getters['persist/isHide']);
+    const isRun = computed(() => store.getters['persist/isRun']);
     const isOptical = computed(() => store.getters['not/isOptical']);
 
     const isSet = ref(false);
@@ -146,7 +146,7 @@ export default defineComponent({
       // Controls
       controls = new PointerLockControls(camera, renderer.domElement);
       controls.addEventListener('unlock', () => {
-        store.dispatch('layout/setLayoutState', {
+        store.dispatch('persist/setPersistState', {
           field: 'isPause',
           value: true,
         });
@@ -203,7 +203,7 @@ export default defineComponent({
             !isPause.value &&
             isRun.value
           )
-            store.dispatch('layout/setLayoutState', {
+            store.dispatch('persist/setPersistState', {
               field: 'isRun',
               value: false,
             });
@@ -211,7 +211,7 @@ export default defineComponent({
 
         case 80: // P
           if (isEnter.value && !isGameOver.value)
-            store.dispatch('layout/setLayoutState', {
+            store.dispatch('persist/setPersistState', {
               field: 'isPause',
               value: !isPause.value,
             });
@@ -221,7 +221,7 @@ export default defineComponent({
         case 18: // Alt
           if (isEnter.value && !isGameOver.value && !isPause.value) {
             self.audio.replayHeroSound(Audios.jumpstart);
-            store.dispatch('layout/setLayoutState', {
+            store.dispatch('persist/setPersistState', {
               field: 'isHide',
               value: !isHide.value,
             });
@@ -356,7 +356,7 @@ export default defineComponent({
 
     // Следим за паузой
     watch(
-      () => store.getters['layout/isPause'],
+      () => store.getters['persist/isPause'],
       (value) => {
         if (value) controls.unlock();
         else controls.lock();
@@ -373,7 +373,7 @@ export default defineComponent({
 
     // Следим за концом игры
     watch(
-      () => store.getters['layout/isGameOver'],
+      () => store.getters['persist/isGameOver'],
       (value) => {
         setTimeout(() => {
           controls.unlock();
@@ -401,7 +401,7 @@ export default defineComponent({
 
     // Следим за скрытным режимом
     watch(
-      () => store.getters['layout/isHide'],
+      () => store.getters['persist/isHide'],
       (value) => {
         if (value) {
           self.events.messagesByIdDispatchHelper(self, 'hiddenMoveEnabled');
@@ -412,10 +412,10 @@ export default defineComponent({
 
     // Следим за усталостью
     watch(
-      () => store.getters['layout/isTired'],
+      () => store.getters['persist/isTired'],
       (value) => {
         if (value && isRun.value)
-          store.dispatch('layout/setLayoutState', {
+          store.dispatch('persist/setPersistState', {
             field: 'isRun',
             value: false,
           });
