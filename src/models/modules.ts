@@ -1,7 +1,7 @@
 // Types
 import type { Store } from 'vuex';
 import type { State } from '@/store';
-import type {Scene, AudioListener, PerspectiveCamera, Group} from 'three';
+import type { Scene, AudioListener, PerspectiveCamera, Group } from 'three';
 import type Helper from '@/utils/helper';
 import type Assets from '@/utils/assets';
 import type Events from '@/utils/events';
@@ -27,15 +27,15 @@ export interface ISelf {
   audio: AudioBus; // аудиомикшер
 
   // Math
-  octree: Octree, // основное "октодерево"-мир
-  octree2: Octree, // дополнительное октодерево - для движущихся объектов
-  octree3: Octree, // дополнительное октодерево - для обсчета выстрелов
+  octree: Octree; // основное "октодерево"-мир
+  octree2: Octree; // дополнительное октодерево - для движущихся объектов
+  octree3: Octree; // дополнительное октодерево - для обсчета выстрелов
 
   // State
   keys: KeysState; // состояние клавиш клавиатуры
 
   // Emiitter
-  emitter: typeof emitter,
+  emitter: typeof emitter;
 
   // Core
   store: Store<State>;

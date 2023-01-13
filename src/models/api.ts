@@ -1,6 +1,6 @@
 import type { Text } from 'troika-three-text';
 
-import { AnimationAction, AnimationMixer } from 'three';
+import type { AnimationAction, AnimationMixer } from 'three';
 
 // API Interfaces
 ///////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ export interface IExplosionThree extends IShot {
 
 export interface IOnExplosion {
   message: IExplosion;
-  updates: IUpdateMessage[],
+  updates: IUpdateMessage[];
 }
 
 // Игрок

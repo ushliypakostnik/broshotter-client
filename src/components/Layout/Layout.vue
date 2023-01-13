@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isDesktop && isBro" class="layout" :class="{ 'layout--dead' : isGameOver }">
+  <div v-if="isDesktop && isBro" class="layout" :class="{ 'layout--dead' : isGameOver && isEnter }">
     <Preloader>
       <Connect />
 
@@ -100,7 +100,8 @@
               </button>
 
               <button
-                class="layout__button layout__button--enter layout__button--dead"
+                class="layout__button layout__button--enter"
+                :class="{ 'layout__button--dead' : isGameOver }"
                 type="button"
                 @click.prevent.stop="reenter"
               >
