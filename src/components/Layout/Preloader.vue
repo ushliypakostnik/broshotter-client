@@ -13,6 +13,7 @@ import { defineComponent, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 
+// Components
 import Loader from '@/components/Layout/Loader.vue';
 
 export default defineComponent({

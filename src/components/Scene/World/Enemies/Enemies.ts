@@ -15,14 +15,16 @@ import type {
   Vector3,
 } from 'three';
 import type { ISelf } from '@/models/modules';
-import type { IUser, IUserThree, IUserOnShot } from '@/models/api';
+import type { IUser, IUserThree, IUserOnShot, IShotThree } from '@/models/api';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Constants
 import { Animations, Audios, Names, Textures, DESIGN } from '@/utils/constants';
+import { EmitterEvents } from '@/models/api';
 
 // Modules
 import Octree from '@/components/Scene/World/Math/Octree';
+import emitter from '@/utils/emitter';
 
 export default class Enemies {
   public name = Names.enemies;
@@ -68,6 +70,7 @@ export default class Enemies {
   private _isDead = false;
 
   private _list: IUserThree[];
+  private _item!: IUserThree;
   private _listNew: IUserThree[];
 
   private _mixer!: AnimationMixer;
@@ -133,6 +136,12 @@ export default class Enemies {
         self.helper.loaderDispatchHelper(self.store, this.name, true);
       },
     );
+
+    // Реагировать на переход на другую локацию
+    emitter.on(EmitterEvents.onRelocation, (id) => {
+      this._item = this._list.find((user) => user.id === id) as IUserThree;
+      if (this._item) this._removePlayer(self, this._item);
+    });
   }
 
   // Взять врагов
@@ -252,16 +261,16 @@ export default class Enemies {
 
     // Добавляем звуки
     if (this._soundClone) {
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.steps2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.steps);
       self.audio.addAudioOnObject(
         self,
         this._soundClone.uuid,
-        Audios.jumpstart2,
+        Audios.jumpstart,
       );
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.jumpend2);
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.shot2);
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.hit2);
-      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.dead2);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.jumpend);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.shot);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.hit);
+      self.audio.addAudioOnObject(self, this._soundClone.uuid, Audios.dead);
     }
   }
 
@@ -405,7 +414,7 @@ export default class Enemies {
       this._isRight = user.animation.includes('right');
 
       if (this._isOnHit !== user.isOnHit) {
-        self.audio.replayObjectSound(user.pseudo, Audios.hit2);
+        self.audio.replayObjectSound(user.pseudo, Audios.hit);
         user.isOnHit = this._isOnHit;
       }
 
@@ -432,7 +441,7 @@ export default class Enemies {
               user.isFireOff = false;
               user.fireScale = 0;
               this._weaponFire.visible = true;
-              self.audio.replayObjectSound(user.fire, Audios.shot2);
+              self.audio.replayObjectSound(user.fire, Audios.shot);
             } else {
               user.isFire = false;
               user.isFireOff = false;
@@ -465,11 +474,11 @@ export default class Enemies {
             this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
             self.audio.setPlaybackRateOnObjectSound(
               user.pseudo,
-              Audios.steps2,
+              Audios.steps,
               this._speed,
             );
-            self.audio.replayObjectSound(user.pseudo, Audios.steps2);
-          } else self.audio.stopObjectSound(user.pseudo, Audios.steps2);
+            self.audio.replayObjectSound(user.pseudo, Audios.steps);
+          } else self.audio.stopObjectSound(user.pseudo, Audios.steps);
 
           user.isMove = this._isMove;
         }
@@ -480,8 +489,8 @@ export default class Enemies {
           self.store.getters['api/isEnter']
         ) {
           if (!this._isNotJump)
-            self.audio.replayObjectSound(user.pseudo, Audios.jumpstart2);
-          else self.audio.replayObjectSound(user.pseudo, Audios.jumpend2);
+            self.audio.replayObjectSound(user.pseudo, Audios.jumpstart);
+          else self.audio.replayObjectSound(user.pseudo, Audios.jumpend);
 
           user.isNotJump = this._isNotJump;
         }
@@ -523,7 +532,7 @@ export default class Enemies {
           user.prevAction = user.nextAction;
 
           if (user.animation === 'dead' && !this._isDead) {
-            self.audio.replayObjectSound(user.pseudo, Audios.dead2);
+            self.audio.replayObjectSound(user.pseudo, Audios.dead);
             this._isDead = true;
           }
         }

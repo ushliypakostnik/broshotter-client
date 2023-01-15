@@ -14,12 +14,12 @@ import type {
   BoxGeometry,
   ConeGeometry,
   Vector3,
+  Object3D,
 } from 'three';
 import type { Store } from 'vuex';
 import type { State } from '@/store';
 import type { ISelf } from '@/models/modules';
 import type { TPosition, TPositions } from '@/models/utils';
-import { Object3D } from 'three';
 
 export default class Helper {
   // Private working variables
@@ -119,82 +119,6 @@ export default class Helper {
     return position;
   }
 
-  // Loading helpers
-  ///////////////////////////////////////////////////////////
-
-  // Помощник загрузки текстур
-  public textureLoaderHelper(self: ISelf, name: Textures): Texture {
-    let path: string;
-    let folder: string;
-    let number = 0;
-    // Папка
-    switch (name) {
-      case Textures.sky:
-        folder = 'sky';
-        number = self.helper.randomInteger(1, 5);
-        break;
-      case Textures.night:
-        folder = 'night';
-        number = self.helper.randomInteger(1, 5);
-        break;
-      case Textures.ground:
-        folder = 'ground';
-        number = self.helper.randomInteger(1, 12);
-        break;
-      case Textures.concrette:
-      case Textures.concrette2:
-      case Textures.metall:
-      case Textures.metall2:
-      case Textures.fire:
-      default:
-        folder = 'material';
-        break;
-    }
-
-    if (number) path = `./images/textures/${folder}/${name}${number}.jpg`;
-    else path = `./images/textures/${folder}/${name}.jpg`;
-
-    return this.textureLoader.load(path, (map: Texture) => {
-      this._number = self.assets.getRepeatByName(name);
-      map.repeat.set(this._number, this._number);
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.encoding = THREE.sRGBEncoding;
-
-      self.render();
-      this.loaderDispatchHelper(self.store, name);
-
-      return map;
-    });
-  }
-
-  // Помощник прелодера
-  public loaderDispatchHelper(
-    store: Store<State>,
-    name: Names | Textures | Audios,
-    isBuild = false,
-  ): void {
-    this._string = isBuild ? `${name}IsBuild` : `${name}IsLoaded`;
-    store
-      .dispatch('preloader/preloadOrBuilt', this._string)
-      .then(() => {
-        store.dispatch('preloader/isAllLoadedAndBuild');
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-
-  // Помощник загрузки звуков
-  public setAudioToHeroHelper(self: ISelf, name: Audios): void {
-    self.assets.audioLoader.load(`./audio/${name}.mp3`, (buffer) => {
-      self.audio.addAudioToHero(self, buffer, name);
-      this.loaderDispatchHelper(self.store, name);
-
-      // Ветер
-      if (name === Audios.wind) self.audio.startHeroSound(Audios.wind);
-    });
-  }
-
   // Utils
 
   public getForwardVector(self: ISelf): Vector3 {
@@ -229,5 +153,71 @@ export default class Helper {
     this._direction.cross(obj.up);
 
     return this._direction;
+  }
+
+  // Loading helpers
+  ///////////////////////////////////////////////////////////
+
+  // Помощник загрузки текстур
+  public textureLoaderHelper(self: ISelf, name: Textures): Texture {
+    return this.textureLoader.load(`./images/textures/material/${name}.jpg`, (map: Texture) => {
+      this._number = self.assets.getRepeatByName(name);
+      map.repeat.set(this._number, this._number);
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.encoding = THREE.sRGBEncoding;
+
+      self.render();
+      this.loaderDispatchHelper(self.store, name);
+
+      return map;
+    });
+  }
+
+  // Помощник прелодера
+  public loaderDispatchHelper(
+    store: Store<State>,
+    name: Names | Textures | Audios,
+    isBuild = false,
+  ): void {
+    this._string = isBuild ? `${name}IsBuild` : `${name}IsLoaded`;
+    store
+      .dispatch('preloader/preloadOrBuilt', this._string)
+      .then(() => {
+        store.dispatch('preloader/isAllLoadedAndBuild');
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  // Помощник прелодера локации
+  public loaderLocationDispatchHelper(
+    store: Store<State>,
+    name: Names | Textures,
+    isBuild = false,
+  ): void {
+    this._string = isBuild ? `${name}IsBuild` : `${name}IsLoaded`;
+    store
+      .dispatch('location/preloadOrBuilt', this._string)
+      .then(() => {
+        store.dispatch('location/isAllLoadedAndBuild');
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  // Помощник загрузки звуков
+  public setAudioToHeroHelper(self: ISelf, name: Audios, buffer?: AudioBuffer): void {
+    if (buffer) self.audio.addAudioToHero(self, buffer, name);
+    else {
+      self.assets.audioLoader.load(`./audio/${name}.mp3`, (buffer) => {
+        self.audio.addAudioToHero(self, buffer, name);
+        this.loaderDispatchHelper(self.store, name);
+
+        // Ветер
+        if (name === Audios.wind) self.audio.startHeroSound(Audios.wind);
+      });
+    }
   }
 }

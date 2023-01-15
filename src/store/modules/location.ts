@@ -3,7 +3,7 @@ import { Module } from 'vuex';
 // Types
 import type { IStore, IPreloader } from '@/models/store';
 
-const FLAG = 'isGameLoaded';
+const FLAG = 'isLocationLoaded';
 
 let stateCopy;
 let result;
@@ -12,41 +12,25 @@ const initialState: IPreloader = {
   [`${FLAG}`]: false,
 
   // Textures
-  concretteIsLoaded: false,
-  concrette2IsLoaded: false,
-  metallIsLoaded: false,
-  metall2IsLoaded: false,
-  fireIsLoaded: false,
-  glassIsLoaded: false,
+  skyIsLoaded: false,
+  groundIsLoaded: false,
 
   // Models
-  enemiesIsLoaded: false,
-  worldIsLoaded: false,
-  playersIsLoaded: false,
-
-  // Audio
-  windIsLoaded: false,
-  stepsIsLoaded: false,
-  jumpstartIsLoaded: false,
-  jumpendIsLoaded: false,
-  shotIsLoaded: false,
-  hitIsLoaded: false,
-  explosionIsLoaded: false,
-  deadIsLoaded: false,
+  treesIsLoaded: false,
 
   // World build
-  playersIsBuild: false,
-  heroIsBuild: false,
-  enemiesIsBuild: false,
-  worldIsBuild: false,
+  skyIsBuild: false,
+  groundIsBuild: false,
+  treesIsBuild: false,
+  atmosphereIsBuild: false,
 };
 
-const preloader: Module<IPreloader, IStore> = {
+const location: Module<IPreloader, IStore> = {
   namespaced: true,
   state: initialState,
 
   getters: {
-    isGameLoaded: (state: IPreloader) => state[FLAG],
+    isLocationLoaded: (state: IPreloader) => state[FLAG],
   },
 
   actions: {
@@ -75,4 +59,4 @@ const preloader: Module<IPreloader, IStore> = {
   },
 };
 
-export default preloader;
+export default location;

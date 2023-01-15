@@ -9,7 +9,6 @@ import {
   computed,
   watch,
   reactive,
-  ref,
 } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
@@ -43,7 +42,6 @@ import Octree from '@/components/Scene/World/Math/Octree';
 
 // Stats
 import Stats from 'three/examples/jsm/libs/stats.module';
-import { IUser } from '@/models/api';
 
 export default defineComponent({
   name: 'Scene',
@@ -94,15 +92,15 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
     );
     const isEnter = computed(() => store.getters['api/isEnter']);
-    const game = computed(() => store.getters['api/game']);
-    const id = computed(() => store.getters['persist/id']);
+    const isLocationLoaded = computed(
+      () => store.getters['location/isLocationLoaded'],
+    );
     const isGameOver = computed(() => store.getters['persist/isGameOver']);
     const isPause = computed(() => store.getters['persist/isPause']);
     const isHide = computed(() => store.getters['persist/isHide']);
     const isRun = computed(() => store.getters['persist/isRun']);
     const isOptical = computed(() => store.getters['not/isOptical']);
-
-    const isSet = ref(false);
+    const isMap = computed(() => store.getters['not/isMap']);
 
     // Utils
     const keys: KeysState = reactive({});
@@ -172,11 +170,6 @@ export default defineComponent({
         world.onShot(self, shot);
       });
 
-      // Modules
-      assets.init(self);
-      audio.init(self);
-      world.init(self);
-
       container.appendChild(stats.dom);
 
       // First render
@@ -214,6 +207,14 @@ export default defineComponent({
             store.dispatch('persist/setPersistState', {
               field: 'isPause',
               value: !isPause.value,
+            });
+          break;
+
+        case 77: // M
+          if (isEnter.value && !isPause.value && !isGameOver.value)
+            store.dispatch('not/setNotState', {
+              field: 'isMap',
+              value: !isMap.value,
             });
           break;
 
@@ -271,7 +272,7 @@ export default defineComponent({
     };
 
     animate = () => {
-      if (isGameLoaded.value && isEnter.value) {
+      if (isGameLoaded.value && isLocationLoaded.value && isEnter.value) {
         events.animate();
         world.animate(self);
       }
@@ -324,36 +325,6 @@ export default defineComponent({
 
     self.camera.fov = DESIGN.CAMERA.fov;
 
-    // Следим за данными мира чтобы установить правильную позицию игроку
-    watch(
-      () => store.getters['api/game'],
-      (value) => {
-        if (value && !isSet.value) {
-          // Set camera start
-          if (id.value && game.value) {
-            const user = game.value.users.find(
-              (player: IUser) => player.id === id.value,
-            );
-            if (user && user.name && user.name.length) {
-              self.camera.position.x = user.positionX;
-              self.camera.position.y = user.positionY;
-              self.camera.position.z = user.positionZ;
-            } else {
-              self.camera.position.x = DESIGN.GAMEPLAY.START.positionX;
-              self.camera.position.y = DESIGN.GAMEPLAY.START.positionY;
-              self.camera.position.z = DESIGN.GAMEPLAY.START.positionZ;
-            }
-          } else {
-            self.camera.position.x = DESIGN.GAMEPLAY.START.positionX;
-            self.camera.position.y = DESIGN.GAMEPLAY.START.positionY;
-            self.camera.position.z = DESIGN.GAMEPLAY.START.positionZ;
-          }
-
-          isSet.value = true;
-        }
-      },
-    );
-
     // Следим за паузой
     watch(
       () => store.getters['persist/isPause'],
@@ -365,6 +336,14 @@ export default defineComponent({
         if (!value && isOptical.value) {
           store.dispatch('not/setNotState', {
             field: 'isOptical',
+            value: false,
+          });
+        }
+
+        // Если на паузу - карту
+        if (value && isMap.value) {
+          store.dispatch('not/setNotState', {
+            field: 'isMap',
             value: false,
           });
         }
@@ -429,6 +408,29 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
       (value) => {
         if (value) animate();
+      },
+    );
+
+    // Следим за локацией
+    watch(
+      () => store.getters['api/location'],
+      (value) => {
+        if (value) {
+          store.dispatch('api/getLocation', value);
+        }
+      },
+    );
+
+    // Следим за данными локации
+    watch(
+      () => store.getters['api/locationData'],
+      (value) => {
+        if (value) {
+          // Init modules
+          assets.init(self);
+          audio.init(self);
+          world.init(self);
+        }
       },
     );
 

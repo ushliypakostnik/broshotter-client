@@ -10,6 +10,7 @@ import type {
 
 const initialState: IStoreModule = {
   isOptical: false,
+  isMap: false,
   messages: [], // Сообщения сейчас
 };
 
@@ -21,6 +22,7 @@ const not: Module<IStoreModule, IStore> = {
 
   getters: {
     isOptical: (state: IStoreModule) => state.isOptical,
+    isMap: (state: IStoreModule) => state.isMap,
     messages: (state: IStoreModule) => state.messages,
   },
 

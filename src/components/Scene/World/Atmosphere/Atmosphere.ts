@@ -1,28 +1,27 @@
+// Types
 import * as THREE from 'three';
 
-// Types
-import {
+import type {
   AmbientLight,
   Color,
   DirectionalLight,
   Group,
   HemisphereLight,
   Mesh,
-  MeshBasicMaterial,
   SphereBufferGeometry,
+  Texture
 } from 'three';
-import { ISelf, ITree } from '@/models/modules';
-import { TPosition, TPositions } from '@/models/utils';
+import type { ISelf } from '@/models/modules';
+import type { ILocation, ITree, ITreeScene } from '@/models/api';
 
 // Constants
-import { Colors, DESIGN, Names, Textures } from '@/utils/constants';
+import { Colors, Names, Textures, DESIGN } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Atmosphere {
   public name = Names.atmosphere;
 
   private _skyGeometry!: SphereBufferGeometry;
-  private _skyMaterial!: MeshBasicMaterial;
   private _sky!: Mesh;
   private _light!: HemisphereLight;
   private _sun!: DirectionalLight;
@@ -30,11 +29,7 @@ export default class Atmosphere {
   private _ground2!: Mesh;
   private _model!: Group;
   private _modelClone!: Group;
-  private _trees: ITree[] = [];
-  private _position!: TPosition;
-  private _positions!: TPositions;
-  private _scale!: number;
-  private _rotate!: number;
+  private _trees: ITreeScene[] = [];
   private _ambient!: AmbientLight;
   private _index!: number;
   private _time = 0;
@@ -47,7 +42,10 @@ export default class Atmosphere {
   private _direction = 1;
   private _direction2!: boolean;
   private _isFirst = false;
+  private _location!: ILocation;
+  private _number!: number;
 
+  // Освещение - "время суток"
   private _DAY = [
     {
       ambient: 0xf885a6,
@@ -165,6 +163,8 @@ export default class Atmosphere {
 
   public init(self: ISelf): void {
     this._index = self.store.getters['persist/day'];
+    this._location = self.store.getters['api/locationData'];
+
     self.store.dispatch('persist/setPersistState', {
       field: 'day',
       value: this._index === this._DAY.length - 1 ? 0 : this._index + 1,
@@ -217,74 +217,108 @@ export default class Atmosphere {
     self.scene.add(this._sun);
 
     // Sky
-    this._skyGeometry = new THREE.SphereBufferGeometry(DESIGN.SIZE * 2, 64, 64);
-    // invert the geometry on the x-axis so that all of the faces point inward
-    this._skyGeometry.scale(-1, 1, 1);
-    this._skyMaterial = self.assets.getMaterial(
-      this._DAY[this._index].mode === 'day' ? Textures.sky : Textures.night,
-    ) as MeshBasicMaterial;
-    this._sky = new THREE.Mesh(this._skyGeometry, this._skyMaterial);
+    const folder = this._DAY[this._index].mode === 'day' ? 'day' : 'night';
+    const number = self.helper.randomInteger(1, 5);
+    self.assets.textureLoader.load(`./images/textures/${folder}/${folder + number}.jpg`, (map: Texture) => {
+      self.helper.loaderLocationDispatchHelper(self.store, Textures.sky);
 
-    this._sky.rotateX(Math.PI / 4);
-    this._sky.rotateY(Math.PI / 6);
-    this._sky.rotateZ(Math.PI / 3);
+      this._number = self.assets.getRepeatByName(Textures.sky);
+      map.repeat.set(this._number, this._number);
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.encoding = THREE.sRGBEncoding;
 
-    self.scene.add(this._sky);
+      this._skyGeometry = new THREE.SphereBufferGeometry(DESIGN.SIZE * 2, 64, 64);
+      // invert the geometry on the x-axis so that all of the faces point inward
+      this._skyGeometry.scale(-1, 1, 1);
+      this._sky = new THREE.Mesh(this._skyGeometry,
+        new THREE.MeshStandardMaterial({
+          map,
+          color: Colors.sky,
+        }),
+      );
 
-    // Sand 1
+      this._sky.rotateX(Math.PI / 4);
+      this._sky.rotateY(Math.PI / 6);
+      this._sky.rotateZ(Math.PI / 3);
 
-    this._ground = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(DESIGN.SIZE * 2, DESIGN.SIZE * 2, 32, 32),
-      self.assets.getMaterial(Textures.ground),
-    );
-    this._ground.rotation.x = -Math.PI / 2;
-    this._ground.position.set(0, -1.5, 0);
-    this._ground.receiveShadow = true;
-    self.scene.add(this._ground);
+      self.scene.add(this._sky);
 
-    // Sand 2
+      self.helper.loaderLocationDispatchHelper(self.store, Textures.sky, true);
+    });
 
-    self.helper.geometry = new THREE.PlaneBufferGeometry(
-      DESIGN.SIZE * 4,
-      DESIGN.SIZE * 4,
-      32,
-      32,
-    );
+    // Ground
+    self.assets.textureLoader.load(`./images/textures/ground/${this._location.ground}.jpg`, (map: Texture) => {
+      self.helper.loaderLocationDispatchHelper(self.store, Textures.ground);
 
-    // Искажение
-    const vertex = new THREE.Vector3();
-    const { position } = self.helper.geometry.attributes;
-    for (let i = 0, l = position.count; i < l; i++) {
-      vertex.fromBufferAttribute(position, i);
+      this._number = self.assets.getRepeatByName(Textures.ground);
+      map.repeat.set(this._number, this._number);
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.encoding = THREE.sRGBEncoding;
 
-      if (
-        self.helper.distance2D(0, 0, vertex.x, vertex.y) > DESIGN.SIZE * 1 &&
-        self.helper.distance2D(0, 0, vertex.x, vertex.y) < DESIGN.SIZE * 2
-      ) {
-        vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
-        vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
-        vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
-        vertex.z *= Math.random() * 10;
+      // Ground 1
+
+      this._ground = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(DESIGN.SIZE * 2, DESIGN.SIZE * 2, 32, 32),
+        new THREE.MeshStandardMaterial({
+          map,
+          color: Colors.yellowDark,
+        }),
+      );
+      this._ground.rotation.x = -Math.PI / 2;
+      this._ground.position.set(0, -1.5, 0);
+      this._ground.receiveShadow = true;
+
+      self.scene.add(this._ground);
+
+      // Ground 2
+
+      self.helper.geometry = new THREE.PlaneBufferGeometry(
+        DESIGN.SIZE * 4,
+        DESIGN.SIZE * 4,
+        32,
+        32,
+      );
+
+      // Искажение
+      const vertex = new THREE.Vector3();
+      const { position } = self.helper.geometry.attributes;
+      for (let i = 0, l = position.count; i < l; i++) {
+        vertex.fromBufferAttribute(position, i);
+
+        if (
+          self.helper.distance2D(0, 0, vertex.x, vertex.y) > DESIGN.SIZE * 1 &&
+          self.helper.distance2D(0, 0, vertex.x, vertex.y) < DESIGN.SIZE * 2
+        ) {
+          vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
+          vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
+          vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
+          vertex.z *= Math.random() * 10;
+        }
+
+        position.setXYZ(i, vertex.x, vertex.y, vertex.z);
       }
 
-      position.setXYZ(i, vertex.x, vertex.y, vertex.z);
-    }
+      this._ground2 = new THREE.Mesh(
+        self.helper.geometry,
+        new THREE.MeshStandardMaterial({
+          map: map,
+          color: this._DAY[this._index].ambient,
+        }),
+      );
+      this._ground2.rotation.x = -Math.PI / 2;
+      this._ground2.position.set(0, -1.6, 0);
+      this._ground2.updateMatrix();
 
-    this._ground2 = new THREE.Mesh(
-      self.helper.geometry,
-      self.assets.getMaterialWithColor(
-        Textures.ground,
-        this._DAY[this._index].ambient,
-      ),
-    );
-    this._ground2.rotation.x = -Math.PI / 2;
-    this._ground2.position.set(0, -1.6, 0);
-    this._ground2.updateMatrix();
-    self.scene.add(this._ground2);
+      self.scene.add(this._ground2);
+
+      self.render();
+
+      self.helper.loaderLocationDispatchHelper(self.store, Textures.ground, true);
+    });
 
     // Trees
     self.assets.GLTFLoader.load('./images/models/tree.glb', (model: GLTF) => {
-      self.helper.loaderDispatchHelper(self.store, Names.tree);
+      self.helper.loaderLocationDispatchHelper(self.store, Names.trees);
 
       this._model = model.scene;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -297,34 +331,13 @@ export default class Atmosphere {
       });
       this._model.castShadow = true;
 
-      this._positions = [];
-      for (let n = 0; n < 20; ++n) {
-        this._position = self.helper.getUniqueRandomPosition(
-          this._positions,
-          0,
-          0,
-          20,
-          DESIGN.SIZE * 0.5,
-          true,
-        );
-        this._positions.push(this._position);
-
+      this._location.trees.forEach((tree: ITree) => {
         this._modelClone = this._model.clone();
-        this._modelClone.position.set(this._position.x, -3, this._position.z);
-        this._scale = self.helper.randomInteger(-0.5, 45);
-        this._modelClone.scale.set(this._scale, this._scale, this._scale);
-        this._rotate = self.helper.degreesToRadians(
-          self.helper.randomInteger(-1, 360),
-        );
-        this._modelClone.rotateY(this._rotate);
-        this._rotate = self.helper.degreesToRadians(
-          self.helper.randomInteger(-1, 15),
-        );
-        this._modelClone.rotateX(this._rotate);
-        this._rotate = self.helper.degreesToRadians(
-          self.helper.randomInteger(-1, 15),
-        );
-        this._modelClone.rotateZ(this._rotate);
+        this._modelClone.position.set(tree.x, -3, tree.z);
+        this._modelClone.scale.set(tree.scale, tree.scale, tree.scale);
+        this._modelClone.rotateX(self.helper.degreesToRadians(tree.rotateX));
+        this._modelClone.rotateY(self.helper.degreesToRadians(tree.rotateY));
+        this._modelClone.rotateZ(self.helper.degreesToRadians(tree.rotateZ));
 
         this._trees.push({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -333,13 +346,15 @@ export default class Atmosphere {
           rotate: 1,
         });
         self.scene.add(this._modelClone);
-      }
+      });
+
+      self.helper.loaderLocationDispatchHelper(self.store, Names.trees, true);
     });
 
     this._setRandom(self);
     this._direction2 = self.helper.yesOrNo();
 
-    self.helper.loaderDispatchHelper(self.store, this.name, true);
+    self.helper.loaderLocationDispatchHelper(self.store, this.name, true);
   }
 
   private _setRandom(self: ISelf) {

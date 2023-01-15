@@ -21,13 +21,10 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Assets {
   // Textures
-  private _ground!: Texture;
   private _concrette!: Texture;
   private _concrette2!: Texture;
   private _metall!: Texture;
   private _metall2!: Texture;
-  private _sky!: Texture;
-  private _night!: Texture;
   private _fire!: Texture;
   private _glass!: Texture;
 
@@ -38,13 +35,12 @@ export default class Assets {
 
   // Audios
   public explosion!: AudioBuffer;
-  public shot2!: AudioBuffer;
-  public steps2!: AudioBuffer;
-  public hit2!: AudioBuffer;
-  public jumpstart2!: AudioBuffer;
-  public jumpend2!: AudioBuffer;
+  public shot!: AudioBuffer;
+  public steps!: AudioBuffer;
+  public hit!: AudioBuffer;
+  public jumpstart!: AudioBuffer;
+  public jumpend!: AudioBuffer;
   public dead!: AudioBuffer;
-  public dead2!: AudioBuffer;
 
   constructor() {
     this.GLTFLoader = new GLTFLoader();
@@ -55,76 +51,75 @@ export default class Assets {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public init(self: ISelf) {
     // Textures
-    this._ground = self.helper.textureLoaderHelper(self, Textures.ground);
     this._concrette = self.helper.textureLoaderHelper(self, Textures.concrette);
     this._concrette2 = self.helper.textureLoaderHelper(
       self,
       Textures.concrette2,
     );
-    this._sky = self.helper.textureLoaderHelper(self, Textures.sky);
-    this._night = self.helper.textureLoaderHelper(self, Textures.night);
     this._metall = self.helper.textureLoaderHelper(self, Textures.metall);
     this._metall2 = self.helper.textureLoaderHelper(self, Textures.metall2);
     this._fire = self.helper.textureLoaderHelper(self, Textures.fire);
     this._glass = self.helper.textureLoaderHelper(self, Textures.glass);
 
     // Audio
-    // На герое
-    self.helper.setAudioToHeroHelper(self, Audios.wind);
-    self.helper.setAudioToHeroHelper(self, Audios.steps);
-    self.helper.setAudioToHeroHelper(self, Audios.jumpstart);
-    self.helper.setAudioToHeroHelper(self, Audios.jumpend);
-    self.helper.setAudioToHeroHelper(self, Audios.shot);
-    self.helper.setAudioToHeroHelper(self, Audios.hit);
-    self.helper.setAudioToHeroHelper(self, Audios.dead);
 
     // Позиционированные на объектах
+
     this.audioLoader.load(`./audio/${Audios.explosion}.mp3`, (buffer) => {
       self.helper.loaderDispatchHelper(self.store, Audios.explosion, false);
       this.explosion = buffer;
       self.audio.initAudioByName(self, Audios.explosion);
     });
 
-    this.audioLoader.load(`./audio/${Audios.shot2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.shot2, false);
-      this.shot2 = buffer;
-      self.audio.initAudioByName(self, Audios.shot2);
+    this.audioLoader.load(`./audio/${Audios.shot}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.shot, false);
+      this.shot = buffer;
+      self.audio.initAudioByName(self, Audios.shot);
     });
 
-    this.audioLoader.load(`./audio/${Audios.steps2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.steps2, false);
-      this.steps2 = buffer;
+    this.audioLoader.load(`./audio/${Audios.steps}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.steps, false);
+      this.steps = buffer;
 
-      self.audio.initAudioByName(self, Audios.steps2);
+      self.audio.initAudioByName(self, Audios.steps);
     });
 
-    this.audioLoader.load(`./audio/${Audios.jumpstart2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.jumpstart2, false);
-      this.jumpstart2 = buffer;
+    this.audioLoader.load(`./audio/${Audios.jumpstart}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.jumpstart, false);
+      this.jumpstart = buffer;
 
-      self.audio.initAudioByName(self, Audios.jumpstart2);
+      self.audio.initAudioByName(self, Audios.jumpstart);
     });
 
-    this.audioLoader.load(`./audio/${Audios.jumpend2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.jumpend2, false);
-      this.jumpend2 = buffer;
+    this.audioLoader.load(`./audio/${Audios.jumpend}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.jumpend, false);
+      this.jumpend = buffer;
 
-      self.audio.initAudioByName(self, Audios.jumpend2);
+      self.audio.initAudioByName(self, Audios.jumpend);
     });
 
-    this.audioLoader.load(`./audio/${Audios.hit2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.hit2, false);
-      this.hit2 = buffer;
+    this.audioLoader.load(`./audio/${Audios.hit}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.hit, false);
+      this.hit = buffer;
 
-      self.audio.initAudioByName(self, Audios.hit2);
+      self.audio.initAudioByName(self, Audios.hit);
     });
 
-    this.audioLoader.load(`./audio/${Audios.dead2}.mp3`, (buffer) => {
-      self.helper.loaderDispatchHelper(self.store, Audios.dead2, false);
-      this.dead2 = buffer;
+    this.audioLoader.load(`./audio/${Audios.dead}.mp3`, (buffer) => {
+      self.helper.loaderDispatchHelper(self.store, Audios.dead, false);
+      this.dead = buffer;
 
-      self.audio.initAudioByName(self, Audios.dead2);
+      self.audio.initAudioByName(self, Audios.dead);
     });
+
+    // На герое
+    self.helper.setAudioToHeroHelper(self, Audios.wind);
+    self.helper.setAudioToHeroHelper(self, Audios.jumpstart, this.jumpstart);
+    self.helper.setAudioToHeroHelper(self, Audios.steps, this.steps);
+    self.helper.setAudioToHeroHelper(self, Audios.jumpend, this.jumpend);
+    self.helper.setAudioToHeroHelper(self, Audios.shot, this.shot);
+    self.helper.setAudioToHeroHelper(self, Audios.hit, this.hit);
+    self.helper.setAudioToHeroHelper(self, Audios.dead, this.dead);
   }
 
   // Texture utils
@@ -161,12 +156,6 @@ export default class Assets {
   // Получить текстуру
   public getTexture(name: Textures): Texture {
     switch (name) {
-      case Textures.sky:
-        return this._sky;
-      case Textures.night:
-        return this._night;
-      case Textures.concrette:
-        return this._concrette;
       case Textures.concrette2:
         return this._concrette2;
       case Textures.metall:
@@ -177,9 +166,9 @@ export default class Assets {
         return this._fire;
       case Textures.glass:
         return this._glass;
-      case Textures.ground:
+      case Textures.concrette:
       default:
-        return this._ground;
+        return this._concrette;
     }
   }
 
@@ -235,17 +224,6 @@ export default class Assets {
         return new THREE.MeshStandardMaterial({
           color: Colors.black,
         });
-      case Textures.ground:
-        return new THREE.MeshStandardMaterial({
-          map: this.getTexture(name),
-          color: Colors.yellowDark,
-        });
-      case Textures.sky:
-      case Textures.night:
-        return new THREE.MeshBasicMaterial({
-          map: this.getTexture(name),
-          color: Colors.sky,
-        });
       case Textures.fire:
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
@@ -299,27 +277,17 @@ export default class Assets {
         return 0.3;
       case Audios.steps:
         return 0.3;
-      case Audios.steps2:
-        return 0.4;
       case Audios.jumpstart:
-      case Audios.jumpstart2:
         return 1;
       case Audios.jumpend:
         return 0.3;
-      case Audios.jumpend2:
-        return 0.4;
       case Audios.shot:
-        return 0.8;
-      case Audios.shot2:
         return 0.8;
       case Audios.explosion:
         return 0.9;
       case Audios.hit:
         return 0.15;
-      case Audios.hit2:
-        return 0.25;
       case Audios.dead:
-      case Audios.dead2:
         return 0.7;
     }
     return DESIGN.DEFAULT_VOLUME;
@@ -331,18 +299,16 @@ export default class Assets {
     switch (name) {
       case Audios.explosion:
         return this.explosion;
-      case Audios.shot2:
-        return this.shot2;
-      case Audios.jumpstart2:
-        return this.jumpstart2;
-      case Audios.jumpend2:
-        return this.jumpend2;
-      case Audios.steps2:
-        return this.steps2;
-      case Audios.hit2:
-        return this.hit2;
-      case Audios.dead2:
-        return this.dead2;
+      case Audios.shot:
+        return this.shot;
+      case Audios.jumpend:
+        return this.jumpend;
+      case Audios.steps:
+        return this.steps;
+      case Audios.hit:
+        return this.hit;
+      case Audios.dead:
+        return this.dead;
     }
     return this.explosion;
   }

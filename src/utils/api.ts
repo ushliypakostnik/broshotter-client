@@ -1,11 +1,10 @@
 // Client
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
+// Types
+
 // Constants
 import { API_URL } from '@/utils/constants';
-
-// Types
-import type { IIndex } from '@/models/api';
 
 const instance: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -15,7 +14,9 @@ const instance: AxiosInstance = axios.create({
 const responseBody = (response: AxiosResponse) => response.data;
 
 export const APIService = {
-  // Test REST API
-  index: (payload: IIndex): Promise<IIndex> =>
-    instance.post<IIndex>('/', payload).then(responseBody),
+  getLocation: (id: string): Promise<any> =>
+    instance.get(`/${id}`).then(responseBody),
+
+  getMap: (): Promise<any> =>
+    instance.get('/map').then(responseBody),
 };

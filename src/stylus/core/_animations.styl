@@ -27,7 +27,7 @@
 .effect
   animation effect ($effects.duration * 10) infinite
 
-@keyframes hit
+@keyframes effect
   from
     opacity 0
 
@@ -56,4 +56,7 @@
     animation fade ($effects.duration * 2) reverse
 
 .hit
-  animation hit 0.25s infinite
+  animation effect 0.25s infinite
+
+.point
+  animation effect 1s infinite

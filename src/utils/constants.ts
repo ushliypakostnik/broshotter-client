@@ -17,7 +17,7 @@ export enum Names {
   enemies = 'enemies',
 
   // Others
-  tree = 'tree',
+  trees = 'trees',
   lenin = 'lenin',
 }
 
@@ -77,18 +77,12 @@ export enum Textures {
 export enum Audios {
   wind = 'wind',
   steps = 'steps',
-  steps2 = 'steps2',
   jumpstart = 'jumpstart',
   jumpend = 'jumpend',
-  jumpstart2 = 'jumpstart2',
-  jumpend2 = 'jumpend2',
   shot = 'shot',
-  shot2 = 'shot2',
   hit = 'hit',
-  hit2 = 'hit2',
   explosion = 'explosion',
   dead = 'dead',
-  dead2 = 'dead2',
 }
 
 export enum Colors {
@@ -146,15 +140,14 @@ export const DESIGN: TConfig = {
     JUMP: 20,
     GRAVITY: 40,
     SHOTS: 50,
-    START: {
-      positionX: 0,
-      positionY: 30,
-      positionZ: 0,
-      directionX: 0.7,
-      directionY: 0,
-      directionZ: 0.7,
-    },
   },
+  MODELS: [
+    { x: -2, y: -2 },
+    { x: -2, y: -1 },
+    { x: -1, y: -2 },
+    { x: -2, y: -3 },
+    { x: -1, y: -1 },
+  ],
 };
 
 // Экранный помощник
@@ -184,7 +177,7 @@ export const ScreenHelper = (() => {
 export const MESSAGES: TMessages = {
   [Languages.en]: {
     enter: 'Enter',
-    name: 'BroShotter',
+    name: 'BroShooter',
     nick: 'Your nickname:',
     nick2: '(Only latin)',
     gadgetsgate: 'The game is for desktop browsers only!',
@@ -201,7 +194,8 @@ export const MESSAGES: TMessages = {
     control6: 'Look: Mouse',
     // control7: 'Take a thing / Open door : E',
     control8: 'Optical sight: Right mouse button',
-    control9: 'Menu: P',
+    control9: 'Map: M',
+    control10: 'Menu: P',
 
     copyright: '© Levon Gambaryan Bro Games',
 
@@ -209,6 +203,8 @@ export const MESSAGES: TMessages = {
     hiddenMoveDisabled: 'Stealth mode disabled',
     tired: 'Your is tired of running',
     recovered: 'Your can run again',
+    exitOn: 'You are at the exit from the location!',
+    exitOff: 'Exit from a location far away',
 
     gameover: 'Game Over',
   },
@@ -216,7 +212,7 @@ export const MESSAGES: TMessages = {
     enter: 'Играть',
     nick: 'Тебя зовут:',
     nick2: '(Только латиницей, к сожалению)',
-    name: 'BroShotter',
+    name: 'BroShooter',
     gadgetsgate: 'Игра только для десктопных браузеров!',
     chromegate:
       'Для того чтобы играть откройте в браузере Google Chrome (или Яндекс), Firefox не рекомендуется',
@@ -231,7 +227,8 @@ export const MESSAGES: TMessages = {
     control6: 'Осмотреться: Мышь',
     // control7: 'Взять предмет / Открыть дверь: Е',
     control8: 'Оптический прицел: Правая кнопка мыши',
-    control9: 'Меню: P',
+    control9: 'Карта: M',
+    control10: 'Меню: P',
 
     copyright: '© Levon Gambaryan Bro Games',
 
@@ -239,6 +236,8 @@ export const MESSAGES: TMessages = {
     hiddenMoveDisabled: 'Скрытный режим отключен',
     tired: 'Вы устали от бега',
     recovered: 'Вы снова можете бегать',
+    exitOn: 'Вы на выходе с локации!',
+    exitOff: 'Выход с локации далеко',
 
     gameover: 'Проиграл',
   },

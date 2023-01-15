@@ -4,10 +4,10 @@ import * as THREE from 'three';
 import type { Group } from 'three';
 import type { ISelf } from '@/models/modules';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import type { IShot } from '@/models/api';
+import type { ILocation, IShot } from '@/models/api';
 
 // Constants
-import { Names } from '@/utils/constants';
+import { Names, DESIGN } from '@/utils/constants';
 
 // Modules
 import Atmosphere from '@/components/Scene/World/Atmosphere/Atmosphere';
@@ -21,6 +21,7 @@ export default class World {
   private _model!: Group;
   private _lenin!: Group;
   private _places!: Group[];
+  private _location!: ILocation;
 
   // Modules
   private _athmosphere: Atmosphere;
@@ -49,8 +50,17 @@ export default class World {
       self.render();
     }); */
 
+    this._location = self.store.getters['api/locationData'];
+    let name = 'empty';
+    const isModel = DESIGN.MODELS.find(
+      (model: { x: number; y: number }) =>
+        model.x === this._location.x && model.y === this._location.y,
+    );
+    if (isModel)
+      name = `location_${this._location.y.toString()}_${this._location.x.toString()}`;
+
     self.assets.GLTFLoader.load(
-      `./images/models/${this.name}.glb`,
+      `./images/models/locations/${name}.glb`,
       (model: GLTF) => {
         self.helper.loaderDispatchHelper(self.store, this.name);
 
@@ -87,10 +97,10 @@ export default class World {
         self.scene.add(this._model);
 
         // Modules
-        this._athmosphere.init(self);
         this._players.init(self);
         this._shots.init(self);
         this._explosions.init(self);
+        this._athmosphere.init(self);
 
         self.render();
         self.helper.loaderDispatchHelper(self.store, this.name, true);
@@ -108,9 +118,9 @@ export default class World {
 
   public animate(self: ISelf): void {
     // Animated modules
-    this._athmosphere.animate(self);
     this._players.animate(self);
     this._shots.animate(self, this._players.getList());
     this._explosions.animate(self);
+    this._athmosphere.animate(self);
   }
 }

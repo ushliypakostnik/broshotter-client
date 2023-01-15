@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Types
 import type { Clock, Group, Object3D, PointLight, Vector3 } from 'three';
 import type { ISelf } from '@/models/modules';
-import type { IUser, IShot } from '@/models/api';
+import type { IShot } from '@/models/api';
 import type { TResult } from '@/models/utils';
 
 // Constants
@@ -14,6 +14,9 @@ import { EmitterEvents } from '@/models/api';
 // Modules
 import Capsule from '@/components/Scene/World/Math/Capsule';
 import emitter from '@/utils/emitter';
+
+// Utils
+import { relocationDispatchHelper } from '@/utils/utils';
 
 export default class Hero {
   public name = Names.hero;
@@ -65,6 +68,8 @@ export default class Hero {
   private _isGameOver = false;
   private _isEnter = false;
   private _isDead = false;
+  private _time = 0;
+  private _isExit = false;
 
   // Animations
   private _animation!: string;
@@ -103,35 +108,21 @@ export default class Hero {
   }
 
   public init(self: ISelf, weapon: Group): void {
-    const id = self.store.getters['persist/id'];
-    const game = self.store.getters['api/game'];
-    if (id && game) {
-      const user = game.users.find((player: IUser) => player.id === id);
-      if (user && user.directionX && user.directionZ) {
-        this._direction.copy(
-          new THREE.Vector3(user.directionX, 0, user.directionZ),
-        );
-      } else
-        this._direction.copy(
-          new THREE.Vector3(
-            DESIGN.GAMEPLAY.START.directionX,
-            0,
-            DESIGN.GAMEPLAY.START.directionZ,
-          ),
-        );
-    } else
-      this._direction.copy(
-        new THREE.Vector3(
-          DESIGN.GAMEPLAY.START.directionX,
-          0,
-          DESIGN.GAMEPLAY.START.directionZ,
-        ),
-      );
+    console.log('Hero init');
 
+    const start = self.store.getters['api/start'];
+    self.camera.position.x = start.positionX;
+    self.camera.position.y = start.positionY;
+    self.camera.position.z = start.positionZ;
+    this._direction.copy(
+      new THREE.Vector3(start.directionX, 0, start.directionZ),
+    );
     self.camera.lookAt(this._direction.multiplyScalar(1000));
 
     this._setCapsule(self);
     this._jumpStart = this._collider.end.y;
+
+    this._checkPosition(self);
 
     this._weapon = weapon;
     this._weapon.traverse((child: Object3D) => {
@@ -332,7 +323,7 @@ export default class Hero {
     this._position = this._isOptical
       ? this._optical.position
       : this._weapon.position;
-    if (this._isOptical) this._position.y = -0.2;
+    if (this._isOptical) this._position.y = this._isHide ? -1 : -0.2;
     if (this._isLeft)
       this._position.add(
         this._velocity.normalize().negate().multiplyScalar(0.25),
@@ -346,6 +337,7 @@ export default class Hero {
     return {
       id: null,
       player: self.store.getters['persist/id'],
+      location: self.store.getters['api/location'],
       positionX: this._position.x,
       positionY: this._number,
       positionZ: this._position.z,
@@ -727,10 +719,74 @@ export default class Hero {
         });
 
         this._animateWeapon(self);
+
+        this._time += self.events.delta;
+        if (this._time > 2) {
+          this._checkPosition(self);
+          this._time = 0;
+        }
       }
     }
   }
 
+  // Проверить позицию
+  private _checkPosition(self: ISelf) {
+    if (
+      self.helper.distance2D(
+        0,
+        0,
+        self.camera.position.x,
+        self.camera.position.z,
+      ) >
+        DESIGN.SIZE * 0.55 &&
+      !this._isExit
+    ) {
+      self.events.messagesByIdDispatchHelper(self, 'exitOn');
+      this._isExit = true;
+    }
+
+    if (
+      self.helper.distance2D(
+        0,
+        0,
+        self.camera.position.x,
+        self.camera.position.z,
+      ) <
+        DESIGN.SIZE * 0.55 &&
+      this._isExit
+    ) {
+      self.events.messagesByIdDispatchHelper(self, 'exitOff');
+      this._isExit = false;
+    }
+
+    // Выход на другую локацию
+    if (
+      self.helper.distance2D(
+        0,
+        0,
+        self.camera.position.x,
+        self.camera.position.z,
+      ) >
+      DESIGN.SIZE * 0.7
+    ) {
+      const isRight = self.camera.position.x >= 0;
+      const isBottom = self.camera.position.z >= 0;
+      let result;
+      if (
+        Math.abs(self.camera.position.x) >= Math.abs(self.camera.position.z)
+      ) {
+        if (isRight) result = 'right';
+        else result = 'left';
+      } else {
+        if (isBottom) result = 'bottom';
+        else result = 'top';
+      }
+      emitter.emit(EmitterEvents.relocation, result);
+      relocationDispatchHelper(self.store);
+    }
+  }
+
+  // Взять следующее движение
   private _getMove(): Animations {
     if (this._isHide) {
       if (this._isForward) {

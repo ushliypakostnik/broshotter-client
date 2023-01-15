@@ -44,8 +44,3 @@ export interface ISelf {
   listener: AudioListener;
   render: () => void;
 }
-
-export interface ITree {
-  model: Group;
-  rotate: number;
-}

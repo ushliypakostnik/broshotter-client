@@ -66,14 +66,16 @@ export default class Shots {
 
   // Ответ на выстрел
   public onShot(self: ISelf, shot: IShot): void {
-    // console.log('Shots onShot!!!', shot);
+    console.log('Shots onShot!!!', shot);
     this._shotClone = this._shot.clone();
     this._shotClone.position.set(
       shot.positionX,
       shot.positionY,
       shot.positionZ,
     );
-    this._shotClone.visible = false;
+    // Если это собственный выстрел - скрываем на старте
+    if (shot.player === self.store.getters['persist/id'])
+      this._shotClone.visible = false;
     this._list.push({
       ...shot,
       model: this._shotClone.uuid,
@@ -170,11 +172,14 @@ export default class Shots {
           )
             this._shotClone.visible = true;
 
-          // Проверяем столкновения с миром и другими игроками
+          // Проверяем столкновения собственных выстрелов с миром и другими игроками
           if (shot.player === self.store.getters['persist/id']) {
-            this._result = self.octree.sphereIntersect(
-              new THREE.Sphere(this._shotClone.position, this._SIZE),
-            );
+            // С миром только если отлетел на 3 метра
+            this._result =
+              this._shotClone.visible &&
+              self.octree.sphereIntersect(
+                new THREE.Sphere(this._shotClone.position, this._SIZE),
+              );
             this._result2 = self.octree2.sphereIntersect(
               new THREE.Sphere(this._shotClone.position, this._SIZE),
             );

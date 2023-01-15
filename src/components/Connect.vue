@@ -28,9 +28,9 @@ export default {
     },
 
     // Ответ сервера на соединение
-    onConnect: (game) => {
-      console.log('Connect sockets onConnect', game);
-      emitter.emit(EmitterEvents.onConnect, game);
+    onConnect: () => {
+      console.log('Connect sockets onConnect');
+      emitter.emit(EmitterEvents.onConnect);
     },
 
     // Установка нового игрока
@@ -82,27 +82,35 @@ export default {
       // console.log('Connect sockets onSelfharm', message);
       emitter.emit(EmitterEvents.onSelfharm, message);
     },
+
+    onRelocation: (id) => {
+      // console.log('Connect sockets onRelocation', id);
+      emitter.emit(EmitterEvents.onRelocation, id);
+    },
   },
 
   computed: {
     ...mapGetters({
       game: 'api/game',
       updates: 'api/updates',
+      location: 'api/location',
 
       id: 'persist/id',
       name: 'persist/name',
       isHide: 'persist/isHide',
       isRun: 'persist/isRun',
       isPause: 'persist/isPause',
+      isGameOver: 'persist/isGameOver',
+      isReload: 'persist/isReload',
     }),
   },
 
   created() {
     // Среагировать на ответ сервера на соединение
-    this.emitter.on(EmitterEvents.onConnect, (game) => {
-      console.log('Connect created onConnect', game);
+    this.emitter.on(EmitterEvents.onConnect, () => {
+      console.log('Connect created onConnect!');
       this.$socket.emit(EmitterEvents.onOnConnect, { id: this.id });
-      this.onConnect(game);
+      this.onConnect();
     });
 
     // Реагировать на установку нового игрока
@@ -151,10 +159,10 @@ export default {
       // console.log('Connect created updateToServer', updates);
       this.sendUpdates(updates);
     });
-
     // Запускаем регулярную отправку обновлений на сервер
     this.timeout = setInterval(() => {
-      this.sendUpdates(this.getUpdates());
+      if (!this.isGameOver && !this.isReload)
+        this.sendUpdates(this.getUpdates());
     }, process.env.VUE_APP_TIMEOUT || 25);
 
     // Реагировать на выстрел
@@ -192,6 +200,12 @@ export default {
       // console.log('Connect created onSelfharm', message);
       this.onOnSelfharm(message);
     });
+
+    // Переход на другую локацию
+    this.emitter.on(EmitterEvents.relocation, (direction) => {
+      // console.log('Connect created relocation', direction);
+      this.relocation(direction);
+    });
   },
 
   beforeDestroy() {
@@ -205,16 +219,62 @@ export default {
     }),
 
     // Произошло соединение с сервером
-    onConnect(game) {
-      console.log('Запускаем процесс!!!', game);
+    onConnect() {
+      console.log('Запускаем процесс!!!');
     },
 
     // Реагировать на установку нового игрока
-    setNewPlayer(player) {
-      console.log('Connect setNewPlayer', player);
+    setNewPlayer(user) {
+      console.log('Connect setNewPlayer', user);
+      this.setPlayer(user);
+
       this.setPersistState({
         field: 'id',
-        value: player.id,
+        value: user.id,
+      }).then(() => {
+        // Установливаем локацию
+        this.setApiState({
+          field: 'location',
+          value: user.location,
+        });
+      });
+    },
+
+    // На подтверждение старого игрока
+    onUpdatePlayer(user) {
+      console.log('Connect onUpdatePlayer', user);
+      this.setPlayer(user);
+
+      // Установливаем локацию
+      this.setApiState({
+        field: 'location',
+        value: user.location,
+      });
+
+      // Проверяем ник и пускаем в игру
+      if (this.name && this.name === user.name) {
+        this.setApiState({
+          field: 'health',
+          value: user.health,
+        }).then(() => {
+          this.setApiState({
+            field: 'isEnter',
+            value: true,
+          });
+        });
+      }
+    },
+
+    setPlayer(user) {
+      this.setApiState({
+        field: 'start',
+        value: {
+          positionX: user.positionX,
+          positionY: user.positionY,
+          positionZ: user.positionZ,
+          directionX: user.directionX,
+          directionY: user.directionX,
+        },
       });
     },
 
@@ -240,23 +300,7 @@ export default {
       }, process.env.VUE_APP_TIMEOUT || 25);
     },
 
-    // Подтверждение старого игрока
-    onUpdatePlayer(user) {
-      const item = this.game.users.find((player) => player.id === this.id);
-      if (this.name && item && item.name && this.name === item.name) {
-        this.setApiState({
-          field: 'health',
-          value: user.health,
-        }).then(() => {
-          this.setApiState({
-            field: 'isEnter',
-            value: true,
-          });
-        });
-      }
-    },
-
-    // Постоянные на обновления от сервера
+    // Постоянные обновления от сервера
     updateToClients(game) {
       // console.log('Connect updateToClients!!!', game);
       this.setApiState({
@@ -267,6 +311,7 @@ export default {
 
     // Отобрать обновления для отправки
     getUpdates() {
+      // console.log('Connect getUpdates!!!');
       return JSON.parse(JSON.stringify(this.updates));
     },
 
@@ -349,9 +394,14 @@ export default {
       }
     },
 
+    // Самоповреждение
     onSelfharm(value) {
       // console.log('Connect onSelfharm()', value);
-      this.$socket.emit(EmitterEvents.selfharm, { id: this.id, value });
+      this.$socket.emit(EmitterEvents.selfharm, {
+        id: this.id,
+        location: this.location,
+        value,
+      });
       this.setApiState({
         field: 'isOnHit',
         value: true,
@@ -365,6 +415,7 @@ export default {
       });
     },
 
+    // На самоповреждение
     onOnSelfharm(message) {
       console.log('Connect onOnSelfharm()', message, this.id);
       if (message.id === this.id) {
@@ -373,6 +424,14 @@ export default {
           value: message.health,
         });
       }
+    },
+
+    relocation(direction) {
+      this.$socket.emit(EmitterEvents.relocation, {
+        id: this.id,
+        location: this.location,
+        direction,
+      });
     },
   },
 };

@@ -5,30 +5,36 @@ import { APIService } from '@/utils/api';
 
 // Types
 import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
-import type { IGameUpdates, IIndex, IUser } from '@/models/api';
+import type { IGameUpdates } from '@/models/api';
 
 const initialState: IStoreModule = {
+  start: null,
+  location: null,
+  locationData: null,
   isEnter: false, // Cервер знает имя пользователя?
   game: null,
   updates: {},
-  health: 100,
+  health: 100, // Не менять на null!!!
   isOnHit: false,
   isOnBodyHit: false,
+  map: null,
 };
-
-let player;
 
 const api: Module<IStoreModule, IStore> = {
   namespaced: true,
   state: initialState,
 
   getters: {
+    start: (state: IStoreModule) => state.start,
+    location: (state: IStoreModule) => state.location,
+    locationData: (state: IStoreModule) => state.locationData,
     isEnter: (state: IStoreModule) => state.isEnter,
     game: (state: IStoreModule) => state.game,
     updates: (state: IStoreModule) => state.updates,
     health: (state: IStoreModule) => state.health,
     isOnHit: (state: IStoreModule) => state.isOnHit,
     isOnBodyHit: (state: IStoreModule) => state.isOnBodyHit,
+    map: (state: IStoreModule) => state.map,
   },
 
   actions: {
@@ -36,10 +42,15 @@ const api: Module<IStoreModule, IStore> = {
       commit('setApiState', payload);
     },
 
-    // Test REST API
-    index: ({ commit }, payload: IIndex): void => {
-      APIService.index(payload).then((res: IIndex) => {
-        commit('index', res);
+    getLocation: ({ commit }, id): void => {
+      APIService.getLocation(id).then((res) => {
+        commit('getLocation', res);
+      });
+    },
+
+    getMap: ({ commit }): void => {
+      APIService.getMap().then((res) => {
+        commit('getMap', res);
       });
     },
 
@@ -66,15 +77,25 @@ const api: Module<IStoreModule, IStore> = {
       } else state[payload.field] = payload.value;
     },
 
-    // Test REST API
-    index: (state: IStoreModule): void => {
-      console.log('api store mutation: ', state);
+    getLocation: (state: IStoreModule, payload): void => {
+      console.log('getLocation api store mutation: ', payload);
+      state.locationData = payload;
+    },
+
+    getMap: (state: IStoreModule, payload): void => {
+      console.log('getMap api store mutation: ', payload);
+      state.map = payload;
     },
 
     reload: (state: IStoreModule): void => {
+      state.location = initialState.location;
+      state.locationData = initialState.locationData;
       state.isEnter = initialState.isEnter;
       state.game = initialState.game;
       state.updates = initialState.updates;
+      state.health = initialState.health;
+      state.isOnHit = initialState.isOnHit;
+      state.isOnBodyHit = initialState.isOnBodyHit;
     },
 
     // Websockets

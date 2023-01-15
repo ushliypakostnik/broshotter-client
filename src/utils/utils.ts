@@ -18,3 +18,20 @@ export const restartDispatchHelper = (store: Store<State>): void => {
       });
     });
 };
+
+// Помощник перехода на другую локацию
+export const relocationDispatchHelper = (store: Store<State>): void => {
+  store
+    .dispatch('persist/setPersistState', {
+      field: 'isReload',
+      value: true,
+    })
+    .then(() => {
+      store.dispatch('api/reload').then(() => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        window.location.reload(true);
+      });
+    });
+};
+

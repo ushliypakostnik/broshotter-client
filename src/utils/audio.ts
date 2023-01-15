@@ -114,7 +114,7 @@ export default class AudioBus {
   public addAudioToHero(self: ISelf, buffer: AudioBuffer, name: Audios): void {
     this._audio = new THREE.Audio(self.listener);
 
-    this._is = this._getIsLoopByName(name);
+    this._is = this._getIsLoopByName(name, true);
 
     this._audio.setBuffer(buffer);
     this._audio.setVolume(self.assets.getVolumeByName(name));
@@ -125,15 +125,22 @@ export default class AudioBus {
     this._heroSound.add(this._audio);
   }
 
-  // Узнать закольцован ли звук по имени
-  private _getIsLoopByName(name: Audios): boolean {
-    switch (name) {
-      case Audios.wind:
-        return true;
-      case Audios.steps2:
-        return true;
-      default:
-        return false;
+  // Узнать закольцован ли звук по имени на герое
+  private _getIsLoopByName(name: Audios, isHeroSound: boolean): boolean {
+    if (isHeroSound) {
+      switch (name) {
+        case Audios.wind:
+          return true;
+        default:
+          return false;
+      }
+    } else {
+      switch (name) {
+        case Audios.steps:
+          return true;
+        default:
+          return false;
+      }
     }
   }
 
@@ -185,7 +192,7 @@ export default class AudioBus {
 
     if (this._record) {
       this._positionalAudio = new THREE.PositionalAudio(self.listener);
-      this._is = this._getIsLoopByName(name);
+      this._is = this._getIsLoopByName(name, false);
 
       this._setPositionalAudio(self, this._positionalAudio, name, this._is);
 
@@ -205,7 +212,7 @@ export default class AudioBus {
   }
 
   private _addAudioOnObjectHelper(self: ISelf, id: string, name: Audios) {
-    this._is = this._getIsLoopByName(name);
+    this._is = this._getIsLoopByName(name, false);
     this.addPositionalAudioToBus(id, name, this._is);
 
     this._positionalAudio = new THREE.PositionalAudio(self.listener);

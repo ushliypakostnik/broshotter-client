@@ -1,13 +1,9 @@
 import type { Text } from 'troika-three-text';
 
-import type { AnimationAction, AnimationMixer } from 'three';
+import type {AnimationAction, AnimationMixer, Group} from 'three';
 
 // API Interfaces
 ///////////////////////////////////////////////////////
-// Тест REST API
-export interface IIndex {
-  name: string;
-}
 
 // Websockets
 export enum EmitterEvents {
@@ -31,6 +27,33 @@ export enum EmitterEvents {
   hits = 'hits', // Урон
   selfharm = 'selfharm', // Самоповреждение
   onSelfharm = 'onSelfharm', // На самоповреждение
+  relocation = 'relocation', // Переход на другую локацию
+  onRelocation = 'onRelocation', // На переход на другую локацию
+}
+
+// Мир
+export interface ITree {
+  x: number;
+  z: number;
+  scale: number;
+  rotateX: number;
+  rotateY: number;
+  rotateZ: number;
+}
+
+export interface ITreeScene {
+  model: Group;
+  rotate: number;
+}
+
+export interface ILocation {
+  id: string;
+  x: number;
+  y: number;
+  name: string;
+  ground: string;
+  trees: ITree[];
+  users: string[];
 }
 
 // Движущийся объект принадлежащий игроку (выстрел) или сам игрок
@@ -47,6 +70,7 @@ export interface IMoveObject {
 export interface IShot extends IMoveObject {
   id: number | null;
   player: string;
+  location: string;
   startX: number;
   startY: number;
   startZ: number;
@@ -101,6 +125,8 @@ export interface IUserThree extends IUser {
   isFireOff: boolean;
   fireScale: number;
 }
+
+// Оружие
 
 export interface IUserOnShot {
   id: string;

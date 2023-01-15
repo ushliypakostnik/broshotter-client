@@ -1,5 +1,9 @@
 <template>
-  <div v-if="isDesktop && isBro" class="layout" :class="{ 'layout--dead' : isGameOver && isEnter }">
+  <div
+    v-if="isDesktop && isBro"
+    class="layout"
+    :class="{ 'layout--dead': isGameOver && isEnter }"
+  >
     <Preloader>
       <Connect />
 
@@ -17,7 +21,12 @@
 
             <div class="layout__nick">{{ $t('nick') }}</div>
             <div class="layout__nick2">{{ $t('nick2') }}</div>
-            <input class="layout__input" v-model="nickname" maxlength="25" />
+            <input
+              class="layout__input"
+              v-model="nickname"
+              maxlength="25"
+              pattern="^[a-zA-Z]+$"
+            />
 
             <div class="layout__buttons">
               <button
@@ -38,21 +47,21 @@
       </template>
 
       <template v-else>
+        <div class="layout__optical-preload" />
+        <div class="layout__optical" v-if="isOptical">
+          <div class="layout__optical--side" />
+          <div class="layout__optical--center" />
+          <div class="layout__optical--side" />
+        </div>
+
         <div class="layout__scales">
-          <Scale face="health" :progress="!isGameOver ? health : 0" />
+          <Scale face="health" :progress="!isGameOver && health ? health : 0" />
           <Scale
             face="endurance"
             :progress="endurance"
             :lock="isTired && !isGameOver"
             :not="isTired && !isGameOver"
           />
-        </div>
-
-        <div class="layout__optical-preload" />
-        <div class="layout__optical" v-if="isOptical">
-          <div class="layout__optical--side" />
-          <div class="layout__optical--center" />
-          <div class="layout__optical--side" />
         </div>
 
         <div
@@ -73,7 +82,12 @@
           </li>
         </transition-group>
 
+        <div class="layout__location">
+          {{ locationData && locationData.name[language] }}
+        </div>
         <div class="layout__name">{{ name }}</div>
+
+        <Map class="layout__map" v-if="isMap" />
 
         <div class="layout__effect" />
 
@@ -101,7 +115,7 @@
 
               <button
                 class="layout__button layout__button--enter"
-                :class="{ 'layout__button--dead' : isGameOver }"
+                :class="{ 'layout__button--dead': isGameOver }"
                 type="button"
                 @click.prevent.stop="reenter"
               >
@@ -118,6 +132,7 @@
               <div class="layout__keys">{{ $t('control6') }}</div>
               <div class="layout__keys">{{ $t('control8') }}</div>
               <div class="layout__keys">{{ $t('control9') }}</div>
+              <div class="layout__keys">{{ $t('control10') }}</div>
             </div>
             <div class="layout__copy">{{ $t('copyright') }}</div>
           </div>
@@ -152,6 +167,7 @@ import Gate from '@/components/Layout/Gate.vue';
 import Scene from '@/components/Scene/Scene.vue';
 import LangSwitch from '@/components/Layout/LangSwitch.vue';
 import Scale from '@/components/Layout/Scale.vue';
+import Map from '@/components/Layout/Map.vue';
 
 // Utils
 import { restartDispatchHelper } from '@/utils/utils';
@@ -166,6 +182,7 @@ export default defineComponent({
     LangSwitch,
     Gate,
     Scale,
+    Map,
   },
 
   setup() {
@@ -183,6 +200,7 @@ export default defineComponent({
       () => store.getters['preloader/isGameLoaded'],
     );
     const isEnter = computed(() => store.getters['api/isEnter']);
+    const locationData = computed(() => store.getters['api/locationData']);
     const isOnHit = computed(() => store.getters['api/isOnHit']);
     const health = computed(() => store.getters['api/health']);
     const name = computed(() => store.getters['persist/name']);
@@ -191,7 +209,9 @@ export default defineComponent({
     const endurance = computed(() => store.getters['persist/endurance']);
     const isTired = computed(() => store.getters['persist/isTired']);
     const isOptical = computed(() => store.getters['not/isOptical']);
+    const isMap = computed(() => store.getters['not/isMap']);
     const messages = computed(() => store.getters['not/messages']);
+    const language = computed(() => store.getters['persist/language']);
 
     onMounted(() => {
       onWindowResize();
@@ -241,6 +261,9 @@ export default defineComponent({
       reenter,
       nickname,
       isOnHit,
+      locationData,
+      isMap,
+      language,
     };
   },
 });
@@ -337,11 +360,15 @@ $name = '.layout'
       opacity 0
       background url("../../assets/optical.png") no-repeat center top
 
+  &__map
+    @extend $viewport
+    z-index 10000
+
   &__messages
     @extend $viewport
     text-align left
     list-style none
-    padding 0.5vw 1vw
+    padding 10px 25vw 0 0
     pointer-events none
     // color $colors.sea
     color $colors.stone
@@ -350,12 +377,18 @@ $name = '.layout'
     margin-bottom 0.5vw
     $text("maria")
 
+  &__location,
   &__name
     position absolute
-    top 0
-    right 0
+    right 10px
     color $colors.stone
     $text("maria")
+
+  &__location
+    top 10px
+
+  &__name
+    top 30px
 
   &__blocker
     @extend $viewport
