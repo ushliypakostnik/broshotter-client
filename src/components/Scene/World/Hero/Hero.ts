@@ -660,17 +660,19 @@ export default class Hero {
           self.audio.startHeroSound(Audios.dead);
           this._isDead = true;
         }
-      } else if (!this._isHide && this._isOnHit) this._animation = this._hit;
-      else if (!this._isHide && this._isRun !== this._isRunStore) {
-        if (this._isRun) this._animation = this._run;
-        else this._animation = this._getMove();
-        this._isRunStore = this._isRun;
       } else {
-        if (!this._isNotJump && !this._isHide && !this._isPause)
-          this._animation = this._jump;
-        else {
-          if (this._isRun && !this._isPause) this._animation = this._run;
+        if (!this._isHide && this._isOnHit) this._animation = this._hit;
+        else if (!this._isHide && this._isRun !== this._isRunStore) {
+          if (this._isRun) this._animation = this._run;
           else this._animation = this._getMove();
+          this._isRunStore = this._isRun;
+        } else {
+          if (!this._isNotJump && !this._isHide && !this._isPause)
+            this._animation = this._jump;
+          else {
+            if (this._isRun && !this._isPause) this._animation = this._run;
+            else this._animation = this._getMove();
+          }
         }
       }
 
@@ -714,7 +716,6 @@ export default class Hero {
 
             animation: this._animation,
             isFire: this._isFire,
-            isOnHit: this._isOnHit && this._isOnBodyHit,
           },
         });
 

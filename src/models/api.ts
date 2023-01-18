@@ -1,6 +1,6 @@
 import type { Text } from 'troika-three-text';
 
-import type {AnimationAction, AnimationMixer, Group} from 'three';
+import type { AnimationAction, AnimationMixer, Group, Vector3 } from 'three';
 
 // API Interfaces
 ///////////////////////////////////////////////////////
@@ -118,6 +118,7 @@ export interface IUserThree extends IUser {
   isRun: boolean;
   isMove: boolean;
   isNotJump: boolean;
+  isDead: boolean;
   mixer: AnimationMixer;
   prevAction: AnimationAction;
   nextAction: AnimationAction;
@@ -134,6 +135,15 @@ export interface IUserOnShot {
   positionX: number;
   positionY: number;
   positionZ: number;
+}
+
+// Кровь
+export interface IBlood {
+  id: number;
+  velocity: Vector3;
+  mesh: string;
+  scale: number;
+  isOff: boolean;
 }
 
 // Обновления игрока

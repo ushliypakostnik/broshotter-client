@@ -19,6 +19,7 @@ export default {
   data() {
     return {
       timeout: null,
+      counter: DESIGN.UPDATE_TIME,
     };
   },
 
@@ -71,7 +72,7 @@ export default {
 
     // Реакция на ответ на взрыв
     onExplosion: (updates) => {
-      // console.log('Connect sockets onExplosion', message);
+      // console.log('Connect sockets onExplosion', updates);
       emitter.emit(EmitterEvents.onUnshot, updates.message.id);
       emitter.emit(EmitterEvents.onExplosion, updates.message);
       emitter.emit(EmitterEvents.hits, updates.updates);
@@ -312,6 +313,14 @@ export default {
     // Отобрать обновления для отправки
     getUpdates() {
       // console.log('Connect getUpdates!!!');
+      ++this.counter;
+      if (this.counter > DESIGN.UPDATE_TIME) {
+        this.counter = 0;
+        return {
+          ...JSON.parse(JSON.stringify(this.updates)),
+          time: Math.round(new Date().getTime() / 1000.0),
+        };
+      }
       return JSON.parse(JSON.stringify(this.updates));
     },
 
@@ -392,6 +401,17 @@ export default {
           value: user.health,
         });
       }
+
+      const users = updates
+        .filter((player) => player.is)
+        .map((player) => {
+          return player.id;
+        });
+      if (users && users.length)
+        this.setApiState({
+          field: 'usersOnHit',
+          value: users,
+        });
     },
 
     // Самоповреждение

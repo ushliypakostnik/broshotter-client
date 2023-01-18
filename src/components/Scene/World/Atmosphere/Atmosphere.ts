@@ -9,10 +9,12 @@ import type {
   HemisphereLight,
   Mesh,
   SphereBufferGeometry,
-  Texture
+  BoxGeometry,
+  Texture,
 } from 'three';
 import type { ISelf } from '@/models/modules';
 import type { ILocation, ITree, ITreeScene } from '@/models/api';
+import type { TPositions } from '@/models/utils';
 
 // Constants
 import { Colors, Names, Textures, DESIGN } from '@/utils/constants';
@@ -21,10 +23,10 @@ import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 export default class Atmosphere {
   public name = Names.atmosphere;
 
-  private _skyGeometry!: SphereBufferGeometry;
-  private _sky!: Mesh;
   private _light!: HemisphereLight;
   private _sun!: DirectionalLight;
+  private _skyGeometry!: SphereBufferGeometry;
+  private _sky!: Mesh;
   private _ground!: Mesh;
   private _ground2!: Mesh;
   private _model!: Group;
@@ -218,103 +220,128 @@ export default class Atmosphere {
 
     // Sky
     const folder = this._DAY[this._index].mode === 'day' ? 'day' : 'night';
-    const number = self.helper.randomInteger(1, 5);
-    self.assets.textureLoader.load(`./images/textures/${folder}/${folder + number}.jpg`, (map: Texture) => {
-      self.helper.loaderLocationDispatchHelper(self.store, Textures.sky);
+    this._number = self.helper.randomInteger(1, 5);
+    self.assets.textureLoader.load(
+      `./images/textures/${folder}/${folder + this._number}.jpg`,
+      (map: Texture) => {
+        self.helper.loaderLocationDispatchHelper(self.store, Textures.sky);
 
-      this._number = self.assets.getRepeatByName(Textures.sky);
-      map.repeat.set(this._number, this._number);
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.encoding = THREE.sRGBEncoding;
+        this._number = self.assets.getRepeatByName(Textures.sky);
+        map.repeat.set(this._number, this._number);
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.encoding = THREE.sRGBEncoding;
 
-      this._skyGeometry = new THREE.SphereBufferGeometry(DESIGN.SIZE * 2, 64, 64);
-      // invert the geometry on the x-axis so that all of the faces point inward
-      this._skyGeometry.scale(-1, 1, 1);
-      this._sky = new THREE.Mesh(this._skyGeometry,
-        new THREE.MeshStandardMaterial({
-          map,
-          color: Colors.sky,
-        }),
-      );
+        this._skyGeometry = new THREE.SphereBufferGeometry(
+          DESIGN.SIZE * 2,
+          64,
+          64,
+        );
+        // invert the geometry on the x-axis so that all of the faces point inward
+        this._skyGeometry.scale(-1, 1, 1);
+        this._sky = new THREE.Mesh(
+          this._skyGeometry,
+          new THREE.MeshStandardMaterial({
+            map,
+            color: Colors.sky,
+          }),
+        );
 
-      this._sky.rotateX(Math.PI / 4);
-      this._sky.rotateY(Math.PI / 6);
-      this._sky.rotateZ(Math.PI / 3);
+        this._sky.rotateX(Math.PI / 4);
+        this._sky.rotateY(Math.PI / 6);
+        this._sky.rotateZ(Math.PI / 3);
 
-      self.scene.add(this._sky);
+        self.scene.add(this._sky);
 
-      self.helper.loaderLocationDispatchHelper(self.store, Textures.sky, true);
-    });
+        self.helper.loaderLocationDispatchHelper(
+          self.store,
+          Textures.sky,
+          true,
+        );
+      },
+    );
 
     // Ground
-    self.assets.textureLoader.load(`./images/textures/ground/${this._location.ground}.jpg`, (map: Texture) => {
-      self.helper.loaderLocationDispatchHelper(self.store, Textures.ground);
+    self.assets.textureLoader.load(
+      `./images/textures/ground/${this._location.ground}.jpg`,
+      (map: Texture) => {
+        self.helper.loaderLocationDispatchHelper(self.store, Textures.ground);
 
-      this._number = self.assets.getRepeatByName(Textures.ground);
-      map.repeat.set(this._number, this._number);
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.encoding = THREE.sRGBEncoding;
+        this._number = self.assets.getRepeatByName(Textures.ground);
+        map.repeat.set(this._number, this._number);
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.encoding = THREE.sRGBEncoding;
 
-      // Ground 1
+        // Ground 1
 
-      this._ground = new THREE.Mesh(
-        new THREE.PlaneBufferGeometry(DESIGN.SIZE * 2, DESIGN.SIZE * 2, 32, 32),
-        new THREE.MeshStandardMaterial({
-          map,
-          color: Colors.yellowDark,
-        }),
-      );
-      this._ground.rotation.x = -Math.PI / 2;
-      this._ground.position.set(0, -1.5, 0);
-      this._ground.receiveShadow = true;
+        this._ground = new THREE.Mesh(
+          new THREE.PlaneBufferGeometry(
+            DESIGN.SIZE * 2,
+            DESIGN.SIZE * 2,
+            32,
+            32,
+          ),
+          new THREE.MeshStandardMaterial({
+            map,
+            color: Colors.yellowDark,
+          }),
+        );
+        this._ground.rotation.x = -Math.PI / 2;
+        this._ground.position.set(0, -1.5, 0);
+        this._ground.receiveShadow = true;
 
-      self.scene.add(this._ground);
+        self.scene.add(this._ground);
 
-      // Ground 2
+        // Ground 2
 
-      self.helper.geometry = new THREE.PlaneBufferGeometry(
-        DESIGN.SIZE * 4,
-        DESIGN.SIZE * 4,
-        32,
-        32,
-      );
+        self.helper.geometry = new THREE.PlaneBufferGeometry(
+          DESIGN.SIZE * 4,
+          DESIGN.SIZE * 4,
+          32,
+          32,
+        );
 
-      // Искажение
-      const vertex = new THREE.Vector3();
-      const { position } = self.helper.geometry.attributes;
-      for (let i = 0, l = position.count; i < l; i++) {
-        vertex.fromBufferAttribute(position, i);
+        // Искажение
+        const vertex = new THREE.Vector3();
+        const { position } = self.helper.geometry.attributes;
+        for (let i = 0, l = position.count; i < l; i++) {
+          vertex.fromBufferAttribute(position, i);
 
-        if (
-          self.helper.distance2D(0, 0, vertex.x, vertex.y) > DESIGN.SIZE * 1 &&
-          self.helper.distance2D(0, 0, vertex.x, vertex.y) < DESIGN.SIZE * 2
-        ) {
-          vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
-          vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
-          vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
-          vertex.z *= Math.random() * 10;
+          if (
+            self.helper.distance2D(0, 0, vertex.x, vertex.y) >
+              DESIGN.SIZE * 1 &&
+            self.helper.distance2D(0, 0, vertex.x, vertex.y) < DESIGN.SIZE * 2
+          ) {
+            vertex.x += Math.random() * self.helper.plusOrMinus() * 2;
+            vertex.y += Math.random() * self.helper.plusOrMinus() * 2;
+            vertex.z += Math.random() * self.helper.plusOrMinus() * 2;
+            vertex.z *= Math.random() * 10;
+          }
+
+          position.setXYZ(i, vertex.x, vertex.y, vertex.z);
         }
 
-        position.setXYZ(i, vertex.x, vertex.y, vertex.z);
-      }
+        this._ground2 = new THREE.Mesh(
+          self.helper.geometry,
+          new THREE.MeshStandardMaterial({
+            map: map,
+            color: this._DAY[this._index].ambient,
+          }),
+        );
+        this._ground2.rotation.x = -Math.PI / 2;
+        this._ground2.position.set(0, -1.6, 0);
+        this._ground2.updateMatrix();
 
-      this._ground2 = new THREE.Mesh(
-        self.helper.geometry,
-        new THREE.MeshStandardMaterial({
-          map: map,
-          color: this._DAY[this._index].ambient,
-        }),
-      );
-      this._ground2.rotation.x = -Math.PI / 2;
-      this._ground2.position.set(0, -1.6, 0);
-      this._ground2.updateMatrix();
+        self.scene.add(this._ground2);
 
-      self.scene.add(this._ground2);
+        self.render();
 
-      self.render();
-
-      self.helper.loaderLocationDispatchHelper(self.store, Textures.ground, true);
-    });
+        self.helper.loaderLocationDispatchHelper(
+          self.store,
+          Textures.ground,
+          true,
+        );
+      },
+    );
 
     // Trees
     self.assets.GLTFLoader.load('./images/models/tree.glb', (model: GLTF) => {

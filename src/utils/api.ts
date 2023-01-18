@@ -14,9 +14,10 @@ const instance: AxiosInstance = axios.create({
 const responseBody = (response: AxiosResponse) => response.data;
 
 export const APIService = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getLocation: (id: string): Promise<any> =>
-    instance.get(`/${id}`).then(responseBody),
+    instance.get(`/locations/${id}`).then(responseBody),
 
-  getMap: (): Promise<any> =>
-    instance.get('/map').then(responseBody),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getMap: (): Promise<any> => instance.get('/map').then(responseBody),
 };

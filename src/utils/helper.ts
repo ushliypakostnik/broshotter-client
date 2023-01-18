@@ -160,17 +160,20 @@ export default class Helper {
 
   // Помощник загрузки текстур
   public textureLoaderHelper(self: ISelf, name: Textures): Texture {
-    return this.textureLoader.load(`./images/textures/material/${name}.jpg`, (map: Texture) => {
-      this._number = self.assets.getRepeatByName(name);
-      map.repeat.set(this._number, this._number);
-      map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.encoding = THREE.sRGBEncoding;
+    return this.textureLoader.load(
+      `./images/textures/material/${name}.jpg`,
+      (map: Texture) => {
+        this._number = self.assets.getRepeatByName(name);
+        map.repeat.set(this._number, this._number);
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.encoding = THREE.sRGBEncoding;
 
-      self.render();
-      this.loaderDispatchHelper(self.store, name);
+        self.render();
+        this.loaderDispatchHelper(self.store, name);
 
-      return map;
-    });
+        return map;
+      },
+    );
   }
 
   // Помощник прелодера
@@ -208,7 +211,11 @@ export default class Helper {
   }
 
   // Помощник загрузки звуков
-  public setAudioToHeroHelper(self: ISelf, name: Audios, buffer?: AudioBuffer): void {
+  public setAudioToHeroHelper(
+    self: ISelf,
+    name: Audios,
+    buffer?: AudioBuffer,
+  ): void {
     if (buffer) self.audio.addAudioToHero(self, buffer, name);
     else {
       self.assets.audioLoader.load(`./audio/${name}.mp3`, (buffer) => {

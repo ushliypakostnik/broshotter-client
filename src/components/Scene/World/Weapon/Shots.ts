@@ -66,7 +66,7 @@ export default class Shots {
 
   // Ответ на выстрел
   public onShot(self: ISelf, shot: IShot): void {
-    console.log('Shots onShot!!!', shot);
+    // console.log('Shots onShot!!!', shot);
     this._shotClone = this._shot.clone();
     this._shotClone.position.set(
       shot.positionX,

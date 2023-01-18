@@ -17,6 +17,7 @@ const initialState: IStoreModule = {
   health: 100, // Не менять на null!!!
   isOnHit: false,
   isOnBodyHit: false,
+  usersOnHit: [],
   map: null,
 };
 
@@ -34,6 +35,7 @@ const api: Module<IStoreModule, IStore> = {
     health: (state: IStoreModule) => state.health,
     isOnHit: (state: IStoreModule) => state.isOnHit,
     isOnBodyHit: (state: IStoreModule) => state.isOnBodyHit,
+    usersOnHit: (state: IStoreModule) => state.usersOnHit,
     map: (state: IStoreModule) => state.map,
   },
 
@@ -96,6 +98,7 @@ const api: Module<IStoreModule, IStore> = {
       state.health = initialState.health;
       state.isOnHit = initialState.isOnHit;
       state.isOnBodyHit = initialState.isOnBodyHit;
+      state.usersOnHit = initialState.usersOnHit;
     },
 
     // Websockets

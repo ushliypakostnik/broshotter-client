@@ -3,13 +3,7 @@
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  onMounted,
-  computed,
-  watch,
-  reactive,
-} from 'vue';
+import { defineComponent, onMounted, computed, watch, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { key } from '@/store';
 
@@ -312,9 +306,6 @@ export default defineComponent({
       // state
       keys,
 
-      // emits
-      emitter,
-
       // Core
       store,
       scene,
@@ -430,6 +421,20 @@ export default defineComponent({
           assets.init(self);
           audio.init(self);
           world.init(self);
+        }
+      },
+    );
+
+    // Следим за уроном
+    watch(
+      () => store.getters['api/usersOnHit'],
+      (value) => {
+        if (value.length) {
+          world.hits(self, value);
+          store.dispatch('api/setApiState', {
+            field: 'usersOnHit',
+            value: [],
+          });
         }
       },
     );

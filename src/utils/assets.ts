@@ -224,10 +224,18 @@ export default class Assets {
         return new THREE.MeshStandardMaterial({
           color: Colors.black,
         });
+      case Textures.blood:
+        return new THREE.MeshPhongMaterial({
+          color: Colors.blood,
+          transparent: true,
+          opacity: 0,
+        });
       case Textures.fire:
         return new THREE.MeshStandardMaterial({
           map: this.getTexture(name),
           color: Colors.white,
+          transparent: true,
+          opacity: 0,
         });
       case Textures.concrette:
         return new THREE.MeshPhongMaterial({
@@ -286,7 +294,7 @@ export default class Assets {
       case Audios.explosion:
         return 0.9;
       case Audios.hit:
-        return 0.15;
+        return 0.8;
       case Audios.dead:
         return 0.7;
     }

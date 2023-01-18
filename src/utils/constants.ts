@@ -72,6 +72,7 @@ export enum Textures {
   pseudo = 'pseudo',
   scale = 'scale',
   hole = 'hole',
+  blood = 'blood',
 }
 
 export enum Audios {
@@ -90,9 +91,7 @@ export enum Colors {
   black = 0x000000,
   yellow = 0xfed564,
   yellowDark = 0xe6a800,
-
   fog = 0xa48ed8,
-
   sun = 0xfdb813,
   toruch = 0xffff99,
   sky = 0x77deac,
@@ -101,6 +100,7 @@ export enum Colors {
   fire = 0xff6666,
   scale = 0x681a13,
   glass = 0xaaaaaa,
+  blood = 0x480613,
 }
 
 enum Breakpoints {
@@ -148,6 +148,7 @@ export const DESIGN: TConfig = {
     { x: -2, y: -3 },
     { x: -1, y: -1 },
   ],
+  UPDATE_TIME: 400,
 };
 
 // Экранный помощник

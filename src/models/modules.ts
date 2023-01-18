@@ -1,7 +1,7 @@
 // Types
 import type { Store } from 'vuex';
 import type { State } from '@/store';
-import type { Scene, AudioListener, PerspectiveCamera, Group } from 'three';
+import type { Scene, AudioListener, PerspectiveCamera } from 'three';
 import type Helper from '@/utils/helper';
 import type Assets from '@/utils/assets';
 import type Events from '@/utils/events';
@@ -33,9 +33,6 @@ export interface ISelf {
 
   // State
   keys: KeysState; // состояние клавиш клавиатуры
-
-  // Emiitter
-  emitter: typeof emitter;
 
   // Core
   store: Store<State>;

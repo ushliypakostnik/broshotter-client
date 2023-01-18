@@ -1,10 +1,8 @@
-import * as THREE from 'three';
-
 // Types
 import type { Group } from 'three';
 import type { ISelf } from '@/models/modules';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import type { ILocation, IShot } from '@/models/api';
+import type { ILocation, IShot, IUserOnShot } from '@/models/api';
 
 // Constants
 import { Names, DESIGN } from '@/utils/constants';
@@ -14,12 +12,12 @@ import Atmosphere from '@/components/Scene/World/Atmosphere/Atmosphere';
 import Players from '@/components/Scene/World/Players';
 import Shots from '@/components/Scene/World/Weapon/Shots';
 import Explosions from '@/components/Scene/World/Weapon/Explosions';
+import Bloods from '@/components/Scene/World/Atmosphere/Bloods';
 
 export default class World {
   public name = Names.world;
 
   private _model!: Group;
-  private _lenin!: Group;
   private _places!: Group[];
   private _location!: ILocation;
 
@@ -28,6 +26,7 @@ export default class World {
   private _players: Players;
   private _shots: Shots;
   private _explosions: Explosions;
+  private _bloods: Bloods;
 
   constructor() {
     // Modules
@@ -35,21 +34,12 @@ export default class World {
     this._players = new Players();
     this._shots = new Shots();
     this._explosions = new Explosions();
+    this._bloods = new Bloods();
 
     this._places = [];
-    this._lenin = new THREE.Group();
   }
 
   public init(self: ISelf): void {
-    /* self.assets.GLTFLoader.load('./images/models/lenin.glb', (model: GLTF) => {
-      self.helper.loaderDispatchHelper(self.store, Names.lenin);
-
-      this._lenin.add(self.assets.traverseHelper(self, model).scene);
-      self.scene.add(this._lenin);
-
-      self.render();
-    }); */
-
     this._location = self.store.getters['api/locationData'];
     let name = 'empty';
     const isModel = DESIGN.MODELS.find(
@@ -101,6 +91,7 @@ export default class World {
         this._shots.init(self);
         this._explosions.init(self);
         this._athmosphere.init(self);
+        this._bloods.init(self);
 
         self.render();
         self.helper.loaderDispatchHelper(self.store, this.name, true);
@@ -116,11 +107,22 @@ export default class World {
     this._shots.onShot(self, shot);
   }
 
+  public hits(self: ISelf, users: string[]): void {
+    this._players.hits(self, users);
+    this._bloods.hits(
+      self,
+      this._players
+        .getList()
+        .filter((player: IUserOnShot) => users.includes(player.id)),
+    );
+  }
+
   public animate(self: ISelf): void {
     // Animated modules
     this._players.animate(self);
     this._shots.animate(self, this._players.getList());
     this._explosions.animate(self);
     this._athmosphere.animate(self);
+    this._bloods.animate(self);
   }
 }

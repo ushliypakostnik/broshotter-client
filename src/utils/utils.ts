@@ -34,4 +34,3 @@ export const relocationDispatchHelper = (store: Store<State>): void => {
       });
     });
 };
-

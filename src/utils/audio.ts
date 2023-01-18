@@ -216,11 +216,7 @@ export default class AudioBus {
     this.addPositionalAudioToBus(id, name, this._is);
 
     this._positionalAudio = new THREE.PositionalAudio(self.listener);
-
     this._setPositionalAudio(self, this._positionalAudio, name, this._is);
-
-    if (!this._is)
-      this._positionalAudio.onEnded = () => this._positionalAudio.stop();
 
     this._record = this._getRecordByIdAndName(id, name);
     if (this._record) this._record.audio = this._positionalAudio;
@@ -357,7 +353,6 @@ export default class AudioBus {
   // Переиграть звук на объекте
   public replayObjectSound(id: string, name: Audios): void {
     this._record = this._getRecordByIdAndName(id, name);
-
     if (this._record && this._record.audio) {
       if (!this._record.audio.isPlaying) {
         this._record.audio.play();

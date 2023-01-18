@@ -15,7 +15,7 @@ import type {
   Vector3,
 } from 'three';
 import type { ISelf } from '@/models/modules';
-import type { IUser, IUserThree, IUserOnShot, IShotThree } from '@/models/api';
+import type { IUser, IUserThree, IUserOnShot } from '@/models/api';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Constants
@@ -30,7 +30,7 @@ export default class Enemies {
   public name = Names.enemies;
 
   private _isTest!: boolean;
-  private _isTestLocal = false;
+  private _isTestLocal = true;
 
   private _gltf!: GLTF;
   private _model!: Group;
@@ -51,7 +51,6 @@ export default class Enemies {
   private _isMove = false;
   private _isRun = false;
   private _isNotJump = false;
-  private _isOnHit = false;
   private _isForward = false;
   private _isBackward = false;
   private _isLeft = false;
@@ -67,7 +66,6 @@ export default class Enemies {
   private _weaponFire!: Object3D;
   private _animation!: string;
   private _dead!: AnimationAction;
-  private _isDead = false;
 
   private _list: IUserThree[];
   private _item!: IUserThree;
@@ -250,6 +248,7 @@ export default class Enemies {
       isFire: false,
       isFireOff: false,
       fireScale: 0,
+      isDead: player.animation === 'dead',
     };
     this._userThree.prevAction.play();
     self.scene.add(this._modelClone);
@@ -304,6 +303,17 @@ export default class Enemies {
     this._list = this._list.filter((user) => user.id !== player.id);
   }
 
+  // Урон игроков
+  public hits(self: ISelf, users: string[]): void {
+    users.forEach((id: string) => {
+      this._userThree = this._list.find(
+        (player) => player.id === id,
+      ) as IUserThree;
+      if (this._userThree)
+        self.audio.replayObjectSound(this._userThree.sound, Audios.hit);
+    });
+  }
+
   public animate(self: ISelf): void {
     this._time += self.events.delta;
     if (this._time > 0.5) {
@@ -336,9 +346,8 @@ export default class Enemies {
           this._userThree = this._list.find(
             (player) => player.id === user.id,
           ) as IUserThree;
-          if (this._userThree) {
-            this._animatePlayer(self, this._userThree);
-          } else this._addPlayer(self, user);
+          if (this._userThree) this._animatePlayer(self, this._userThree);
+          else this._addPlayer(self, user);
         }
       });
 
@@ -353,7 +362,7 @@ export default class Enemies {
     }
   }
 
-  private _redrawFire(self: ISelf, user: IUserThree) {
+  private _redrawFire(self: ISelf, user: IUserThree): void {
     if (!user.isFireOff) user.fireScale += self.events.delta * 50;
     else user.fireScale -= self.events.delta * 50;
 
@@ -394,15 +403,13 @@ export default class Enemies {
     }
   }
 
-  private _animatePlayer(self: ISelf, user: IUserThree) {
+  private _animatePlayer(self: ISelf, user: IUserThree): void {
     this._user = self.store.getters['api/game'].users.find(
       (player: IUser) => player.id === user.id,
     );
 
     if (this._user) {
       if (this._user.animation) user.animation = this._user.animation;
-      if (this._user.isOnHit) user.isOnHit = this._user.isOnHit;
-      else this._isOnHit = false;
       if (this._user.isFire) this._isFire = this._user.isFire;
       else this._isFire = false;
       this._isNotJump = !user.animation.includes('jump');
@@ -412,11 +419,6 @@ export default class Enemies {
       this._isBackward = user.animation.includes('back');
       this._isLeft = user.animation.includes('left');
       this._isRight = user.animation.includes('right');
-
-      if (this._isOnHit !== user.isOnHit) {
-        self.audio.replayObjectSound(user.pseudo, Audios.hit);
-        user.isOnHit = this._isOnHit;
-      }
 
       if (user.animation === 'dead') {
         user.isFire = false;
@@ -430,6 +432,11 @@ export default class Enemies {
           user.weapon,
         ) as Mesh;
         if (this._weaponClone) this._weaponClone.visible = false;
+
+        if (!user.isDead) {
+          self.audio.replayObjectSound(user.sound, Audios.dead);
+          user.isDead = true;
+        }
       } else {
         if (this._isFire !== user.isFire) {
           this._weaponFire = self.scene.getObjectByProperty(
@@ -462,48 +469,50 @@ export default class Enemies {
       ) as Mesh;
 
       if (this._modelClone) {
-        // Steps sound
-        this._isMove =
-          this._isRun ||
-          this._isForward ||
-          this._isBackward ||
-          this._isLeft ||
-          this._isRight;
-        if (this._isMove !== user.isMove) {
-          if (this._isMove) {
-            this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
-            self.audio.setPlaybackRateOnObjectSound(
-              user.pseudo,
-              Audios.steps,
-              this._speed,
-            );
-            self.audio.replayObjectSound(user.pseudo, Audios.steps);
-          } else self.audio.stopObjectSound(user.pseudo, Audios.steps);
+        if (user.animation !== 'dead') {
+          // Steps sound
+          this._isMove =
+            this._isRun ||
+            this._isForward ||
+            this._isBackward ||
+            this._isLeft ||
+            this._isRight;
+          if (this._isMove !== user.isMove) {
+            if (this._isMove) {
+              this._speed = this._isHide ? 0.5 : this._isRun ? 2 : 1;
+              self.audio.setPlaybackRateOnObjectSound(
+                user.pseudo,
+                Audios.steps,
+                this._speed,
+              );
+              self.audio.replayObjectSound(user.sound, Audios.steps);
+            } else self.audio.stopObjectSound(user.sound, Audios.steps);
 
-          user.isMove = this._isMove;
-        }
+            user.isMove = this._isMove;
+          }
 
-        // Jumps sounds
-        if (
-          this._isNotJump !== user.isNotJump &&
-          self.store.getters['api/isEnter']
-        ) {
-          if (!this._isNotJump)
-            self.audio.replayObjectSound(user.pseudo, Audios.jumpstart);
-          else self.audio.replayObjectSound(user.pseudo, Audios.jumpend);
+          // Jumps sounds
+          if (
+            this._isNotJump !== user.isNotJump &&
+            self.store.getters['api/isEnter']
+          ) {
+            if (!this._isNotJump)
+              self.audio.replayObjectSound(user.sound, Audios.jumpstart);
+            else self.audio.replayObjectSound(user.sound, Audios.jumpend);
 
-          user.isNotJump = this._isNotJump;
-        }
+            user.isNotJump = this._isNotJump;
+          }
 
-        this._pseudoClone = self.scene.getObjectByProperty(
-          'uuid',
-          user.pseudo,
-        ) as Mesh;
-        if (this._pseudoClone) {
-          if (this._isHide !== user.isHide) {
-            if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
-            else this._pseudoClone.scale.set(1, 1, 1);
-            user.isHide = this._isHide;
+          this._pseudoClone = self.scene.getObjectByProperty(
+            'uuid',
+            user.pseudo,
+          ) as Mesh;
+          if (this._pseudoClone) {
+            if (this._isHide !== user.isHide) {
+              if (this._isHide) this._pseudoClone.scale.set(1, 0.6, 1);
+              else this._pseudoClone.scale.set(1, 1, 1);
+              user.isHide = this._isHide;
+            }
           }
         }
 
@@ -530,21 +539,25 @@ export default class Enemies {
           user.prevAction.fadeOut(0.25);
           user.nextAction.reset().fadeIn(0.25).play();
           user.prevAction = user.nextAction;
-
-          if (user.animation === 'dead' && !this._isDead) {
-            self.audio.replayObjectSound(user.pseudo, Audios.dead);
-            this._isDead = true;
-          }
         }
 
         user.mixer.update(self.events.delta);
       }
 
       this._target.set(
-        this._user.positionX + 2,
+        this._user.positionX + (this._isTest ? 2 : 0),
         this._user.positionY - (!this._isHide ? 1.5 : 0.75),
-        this._user.positionZ + 2,
+        this._user.positionZ + (this._isTest ? 2 : 0),
       );
+
+      this._item = this._list.find(
+        (player) => player.id === this._user.id,
+      ) as IUserThree;
+      if (this._item) {
+        this._item.positionX = this._target.x;
+        this._item.positionY = this._target.y;
+        this._item.positionZ = this._target.z;
+      }
 
       this._speed = this._isHide ? 0.5 : this._isRun ? 2.5 : 1;
       this._speed *= self.events.delta * 8;

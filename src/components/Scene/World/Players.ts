@@ -49,6 +49,10 @@ export default class Players {
     return this._hero.shot(self);
   }
 
+  public hits(self: ISelf, users: string[]) {
+    this._enemies.hits(self, users);
+  }
+
   public getList(): IUserOnShot[] {
     return this._enemies.getList();
   }
