@@ -368,7 +368,7 @@ $name = '.layout'
     @extend $viewport
     text-align left
     list-style none
-    padding 10px 25vw 0 0
+    padding 10px 25vw 0 10px
     pointer-events none
     // color $colors.sea
     color $colors.stone
