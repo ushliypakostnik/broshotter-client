@@ -33,7 +33,7 @@ export default class Bloods {
   }
 
   private _addBlood(self: ISelf, user: IUserOnShot): void {
-    this._number = self.helper.randomInteger(1, 5);
+    this._number = self.helper.randomInteger(3, 10);
     for (let n = 0; n < this._number; ++n) {
       ++this._counter;
       this._bloodClone = this._blood.clone();
@@ -75,7 +75,7 @@ export default class Bloods {
     );
     blood.velocity.y -= self.events.delta / 2;
     this._bloodClone.position.add(
-      blood.velocity.clone().multiplyScalar(self.events.delta * 5),
+      blood.velocity.clone().multiplyScalar(self.events.delta * 7.5),
     );
 
     if (blood.scale >= 0)

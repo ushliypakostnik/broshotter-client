@@ -89,7 +89,7 @@ export enum Audios {
 export enum Colors {
   white = 0xffffff,
   black = 0x000000,
-  yellow = 0xfed564,
+  // yellow = 0xfed564,
   yellowDark = 0xe6a800,
   fog = 0xa48ed8,
   sun = 0xfdb813,
@@ -100,7 +100,7 @@ export enum Colors {
   fire = 0xff6666,
   scale = 0x681a13,
   glass = 0xaaaaaa,
-  blood = 0x480613,
+  blood = 0x8d0000,
 }
 
 enum Breakpoints {

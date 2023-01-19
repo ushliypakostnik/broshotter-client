@@ -225,7 +225,7 @@ export default class Assets {
           color: Colors.black,
         });
       case Textures.blood:
-        return new THREE.MeshPhongMaterial({
+        return new THREE.MeshBasicMaterial({
           color: Colors.blood,
           transparent: true,
           opacity: 0,

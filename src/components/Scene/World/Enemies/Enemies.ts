@@ -30,7 +30,7 @@ export default class Enemies {
   public name = Names.enemies;
 
   private _isTest!: boolean;
-  private _isTestLocal = true;
+  private _isTestLocal = false;
 
   private _gltf!: GLTF;
   private _model!: Group;
