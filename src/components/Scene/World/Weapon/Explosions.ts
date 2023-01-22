@@ -96,14 +96,14 @@ export default class Explosions {
         if (record.scale >= this._MAX) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this._explosionClone.material.opacity = 1;
+          this._explosionClone.material.opacity = 0.7;
         } else if (record.scale < 0) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           this._explosionClone.material.opacity = 0;
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-        } else this._explosionClone.material.opacity = record.scale / this._MAX;
+        } else this._explosionClone.material.opacity = record.scale / this._MAX * 0.7;
 
         this._explosionClone.rotateX(self.events.delta * -3);
         this._explosionClone.rotateY(self.events.delta * -3);

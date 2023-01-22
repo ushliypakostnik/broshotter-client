@@ -82,9 +82,6 @@ export default defineComponent({
     let onMouseUp: (event: MouseEvent) => void;
 
     // Store getters
-    const isGameLoaded = computed(
-      () => store.getters['preloader/isGameLoaded'],
-    );
     const isEnter = computed(() => store.getters['api/isEnter']);
     const isLocationLoaded = computed(
       () => store.getters['location/isLocationLoaded'],
@@ -266,7 +263,7 @@ export default defineComponent({
     };
 
     animate = () => {
-      if (isGameLoaded.value && isLocationLoaded.value && isEnter.value) {
+      if (isLocationLoaded.value && isEnter.value) {
         events.animate();
         world.animate(self);
       }
@@ -394,7 +391,7 @@ export default defineComponent({
       },
     );
 
-    // Один первый рендер - когда все загрузилось и построилось
+    // Запускаем рендер когда все загрузилось и построилось
     watch(
       () => store.getters['preloader/isGameLoaded'],
       (value) => {

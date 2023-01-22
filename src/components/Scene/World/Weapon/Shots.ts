@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Types
 import type { ISelf } from '@/models/modules';
-import type { IShot, IShotThree, IUserOnShot } from '@/models/api';
+import type { IShot, IShotThree, IUnitInfo } from '@/models/api';
 import type { Group, Mesh, Vector3 } from 'three';
 
 // Constants
@@ -17,7 +17,7 @@ import Octree from '@/components/Scene/World/Math/Octree';
 export default class Shots {
   private _list: IShotThree[];
   private _listNew: IShotThree[];
-  private _enemies: IUserOnShot[];
+  private _enemies: IUnitInfo[];
   private _ids: number[];
   private _shot!: Mesh;
   private _shotClone: Mesh;
@@ -97,10 +97,10 @@ export default class Shots {
   private _findEnemyOnShot(
     self: ISelf,
     position: Vector3,
-    enemies: IUserOnShot[],
+    enemies: IUnitInfo[],
   ): string {
     this._enemies = enemies;
-    this._enemies.sort((a: IUserOnShot, b: IUserOnShot) => {
+    this._enemies.sort((a: IUnitInfo, b: IUnitInfo) => {
       this._p1 = new THREE.Vector3(a.positionX, a.positionY, a.positionZ);
       this._p2 = new THREE.Vector3(b.positionX, b.positionY, b.positionZ);
       return position.distanceTo(this._p1) - position.distanceTo(this._p2);
@@ -131,11 +131,12 @@ export default class Shots {
     return this._result3 ? this._id : '';
   }
 
-  public animate(self: ISelf, enemies: IUserOnShot[]): void {
+  public animate(self: ISelf, enemies: IUnitInfo[]): void {
     if (
       self.store.getters['api/game'] &&
-      self.store.getters['api/game'].shots &&
-      (self.store.getters['api/game'].shots.length || this._list.length)
+      self.store.getters['api/game'].weapon &&
+      self.store.getters['api/game'].weapon.shots &&
+      (self.store.getters['api/game'].weapon.shots.length || this._list.length)
     ) {
       this._is = false;
       this._time += self.events.delta;
@@ -144,7 +145,7 @@ export default class Shots {
         this._time = 0;
       }
 
-      this._listNew = self.store.getters['api/game'].shots;
+      this._listNew = self.store.getters['api/game'].weapon.shots;
       if (this._is) this._ids = [];
       this._listNew.forEach((shot) => {
         if (this._is) this._ids.push(shot.id as number);

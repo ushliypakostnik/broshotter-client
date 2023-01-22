@@ -9,12 +9,10 @@ import type {
   HemisphereLight,
   Mesh,
   SphereBufferGeometry,
-  BoxGeometry,
   Texture,
 } from 'three';
 import type { ISelf } from '@/models/modules';
 import type { ILocation, ITree, ITreeScene } from '@/models/api';
-import type { TPositions } from '@/models/utils';
 
 // Constants
 import { Colors, Names, Textures, DESIGN } from '@/utils/constants';
@@ -127,10 +125,10 @@ export default class Atmosphere {
       mode: 'night',
     },
     {
-      ambient: 0x000000,
-      fog: 0x000000,
-      intensity: 0,
-      sun: 0,
+      ambient: 0x222222,
+      fog: 0x111111,
+      intensity: 0.03,
+      sun: 0.03,
       mode: 'night',
     },
     {

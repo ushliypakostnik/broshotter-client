@@ -42,7 +42,7 @@ import { useStore } from 'vuex';
 import { key } from '@/store';
 
 // Types
-import type { IUser } from '@/models/api';
+import type { IUnit } from '@/models/api';
 
 // Constants
 import { DESIGN } from '@/utils/constants';
@@ -65,7 +65,7 @@ export default defineComponent({
     const map = computed(() => store.getters['api/map']);
     const hero = computed(() => store.getters['persist/id']);
 
-    const getPlayerPositionById = (id: string, users: IUser[]) => {
+    const getPlayerPositionById = (id: string, users: IUnit[]) => {
       const user = users.find((player) => player.id === id);
       let x;
       let y;

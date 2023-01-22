@@ -318,7 +318,7 @@ export default class Hero {
 
     this._directionShot = this._direction
       .negate()
-      .multiplyScalar(DESIGN.GAMEPLAY.SHOTS);
+      .normalize();
 
     this._position = this._isOptical
       ? this._optical.position
@@ -429,14 +429,14 @@ export default class Hero {
       if (this._fireScale >= 5) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this._weaponFire.material.opacity = 1;
+        this._weaponFire.material.opacity = 0.7;
       } else if (this._fireScale < 0) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this._weaponFire.material.opacity = 0;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-      } else this._weaponFire.material.opacity = this._fireScale / 5;
+      } else this._weaponFire.material.opacity = this._fireScale / 5 * 0.7;
       this._weaponFire.rotateX(self.events.delta * -3);
       this._weaponFire.rotateZ(self.events.delta * -3);
       this._weaponFire.rotateY(self.events.delta * -3);

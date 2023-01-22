@@ -35,9 +35,9 @@ export default {
     },
 
     // Установка нового игрока
-    setNewPlayer: (id) => {
-      console.log('Connect sockets setNewPlayer', id);
-      emitter.emit(EmitterEvents.setNewPlayer, id);
+    setNewPlayer: (player) => {
+      console.log('Connect sockets setNewPlayer', player);
+      emitter.emit(EmitterEvents.setNewPlayer, player);
     },
 
     // Подтверждение старого игрока
@@ -115,9 +115,9 @@ export default {
     });
 
     // Реагировать на установку нового игрока
-    this.emitter.on(EmitterEvents.setNewPlayer, (id) => {
-      // console.log('Connect created setNewPlayer', id);
-      this.setNewPlayer(id);
+    this.emitter.on(EmitterEvents.setNewPlayer, (player) => {
+      // console.log('Connect created setNewPlayer', player);
+      this.setNewPlayer(player);
     });
 
     // Реагировать на подтверждение старого игрока
@@ -221,42 +221,42 @@ export default {
 
     // Произошло соединение с сервером
     onConnect() {
-      console.log('Запускаем процесс!!!');
+      console.log('Connect Запускаем процесс!!!');
     },
 
     // Реагировать на установку нового игрока
-    setNewPlayer(user) {
-      console.log('Connect setNewPlayer', user);
-      this.setPlayer(user);
-
+    setNewPlayer(player) {
+      console.log('Connect setNewPlayer', player);
       this.setPersistState({
         field: 'id',
-        value: user.id,
+        value: player.id,
       }).then(() => {
+        this.setStart(player);
+
         // Установливаем локацию
         this.setApiState({
           field: 'location',
-          value: user.location,
+          value: player.location,
         });
       });
     },
 
     // На подтверждение старого игрока
-    onUpdatePlayer(user) {
-      console.log('Connect onUpdatePlayer', user);
-      this.setPlayer(user);
+    onUpdatePlayer(player) {
+      console.log('Connect onUpdatePlayer', player);
+      this.setStart(player);
 
       // Установливаем локацию
       this.setApiState({
         field: 'location',
-        value: user.location,
+        value: player.location,
       });
 
       // Проверяем ник и пускаем в игру
-      if (this.name && this.name === user.name) {
+      if (this.name && this.name === player.name) {
         this.setApiState({
           field: 'health',
-          value: user.health,
+          value: player.health,
         }).then(() => {
           this.setApiState({
             field: 'isEnter',
@@ -266,15 +266,17 @@ export default {
       }
     },
 
-    setPlayer(user) {
+    // Установка стартовых значений игрока
+    setStart(player) {
       this.setApiState({
         field: 'start',
         value: {
-          positionX: user.positionX,
-          positionY: user.positionY,
-          positionZ: user.positionZ,
-          directionX: user.directionX,
-          directionY: user.directionX,
+          positionX: player.positionX,
+          positionY: player.positionY,
+          positionZ: player.positionZ,
+          directionX: player.directionX,
+          directionY: player.directionY,
+          directionZ: player.directionZ,
         },
       });
     },

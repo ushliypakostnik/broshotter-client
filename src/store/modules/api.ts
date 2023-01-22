@@ -8,7 +8,7 @@ import type { IStore, IStoreModule, TFieldPayload } from '@/models/store';
 import type { IGameUpdates } from '@/models/api';
 
 const initialState: IStoreModule = {
-  start: null,
+  start: null, // Стартовые данные игрока и мира
   location: null,
   locationData: null,
   isEnter: false, // Cервер знает имя пользователя?
@@ -90,6 +90,7 @@ const api: Module<IStoreModule, IStore> = {
     },
 
     reload: (state: IStoreModule): void => {
+      state.start = initialState.start;
       state.location = initialState.location;
       state.locationData = initialState.locationData;
       state.isEnter = initialState.isEnter;
@@ -99,6 +100,7 @@ const api: Module<IStoreModule, IStore> = {
       state.isOnHit = initialState.isOnHit;
       state.isOnBodyHit = initialState.isOnBodyHit;
       state.usersOnHit = initialState.usersOnHit;
+      state.map = initialState.map;
     },
 
     // Websockets

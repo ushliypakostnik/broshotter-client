@@ -15,7 +15,7 @@ import type {
   Vector3,
 } from 'three';
 import type { ISelf } from '@/models/modules';
-import type { IUser, IUserThree, IUserOnShot } from '@/models/api';
+import type { IUnit, IUserThree, IUnitInfo } from '@/models/api';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Constants
@@ -39,12 +39,10 @@ export default class Enemies {
   private _pseudoClone!: Mesh;
   private _sound!: Mesh;
   private _soundClone!: Mesh;
-  private _group!: Group;
   private _scale!: Mesh;
   private _scaleClone!: Mesh;
-  private _time = 0;
   private _is = false;
-  private _time2 = 0;
+  private _time = 0;
   private _ids: string[];
   private _name!: Text;
   private _isHide = false;
@@ -56,7 +54,7 @@ export default class Enemies {
   private _isLeft = false;
   private _isRight = false;
   private _isFire = false;
-  private _user!: IUser;
+  private _user!: IUnit;
   private _userThree!: IUserThree;
   private _target!: Vector3;
   private _direction = new THREE.Vector3();
@@ -74,7 +72,6 @@ export default class Enemies {
   private _mixer!: AnimationMixer;
 
   constructor() {
-    this._group = new THREE.Group();
     this._target = new THREE.Vector3();
 
     this._list = [];
@@ -142,8 +139,8 @@ export default class Enemies {
     });
   }
 
-  // Взять врагов
-  public getList(): IUserOnShot[] {
+  // Взять информацию о противниках
+  public getList(): IUnitInfo[] {
     return this._list.map((player) => {
       return {
         id: player.id,
@@ -151,30 +148,12 @@ export default class Enemies {
         positionX: player.positionX,
         positionY: player.positionY,
         positionZ: player.positionZ,
+        animation: player.animation,
       };
     });
   }
 
-  // Пересоздание октодерева
-  private _updateOctree2(self: ISelf): void {
-    this._group = new THREE.Group();
-    this._list.forEach((player) => {
-      if (player.animation !== 'dead') {
-        this._pseudoClone = self.scene.getObjectByProperty(
-          'uuid',
-          player.pseudo,
-        ) as Mesh;
-        if (this._pseudoClone) this._group.add(this._pseudoClone);
-      }
-    });
-    if (this._group.children.length) {
-      self.scene.add(this._group);
-      self.octree2 = new Octree();
-      self.octree2.fromGraphNode(this._group);
-    }
-  }
-
-  private _addPlayer(self: ISelf, player: IUserThree): void {
+  private _addPlayer(self: ISelf, player: IUnit): void {
     console.log('Enemies _addPlayer(): ', player);
     this._isHide = player.animation.includes('hide');
     this._modelClone = clone(this._model);
@@ -214,18 +193,21 @@ export default class Enemies {
       }
     });
 
-    this._user = self.store.getters['api/game'].users.find(
-      (user: IUser) => user.id === player.id,
-    );
     this._modelClone.position.set(
-      this._user.positionX,
-      this._user.positionY,
-      this._user.positionZ,
+      player.positionX,
+      player.positionY,
+      player.positionZ,
     );
 
     this._mixer = new THREE.AnimationMixer(this._modelClone);
     this._userThree = {
       ...player,
+      isRun: false,
+      isMove: false,
+      isNotJump: false,
+      health: player.health,
+      animation: player.animation,
+      isOnHit: player.isOnHit,
       model: this._modelClone.uuid,
       pseudo: this._pseudoClone.uuid,
       sound: this._soundClone.uuid,
@@ -315,31 +297,25 @@ export default class Enemies {
   }
 
   public animate(self: ISelf): void {
-    this._time += self.events.delta;
-    if (this._time > 0.5) {
-      this._updateOctree2(self);
-      this._time = 0;
-    }
-
     if (
       self.store.getters['api/game'] &&
       self.store.getters['api/game'].users &&
       (self.store.getters['api/game'].users.length || this._list.length)
     ) {
       this._is = false;
-      this._time2 += self.events.delta;
+      this._time += self.events.delta;
       if (this._time > 1) {
         this._is = true;
-        this._time2 = 0;
+        this._time = 0;
       }
 
       if (this._isTest) this._listNew = self.store.getters['api/game'].users;
       else
         this._listNew = self.store.getters['api/game'].users.filter(
-          (user: IUser) => user.id !== self.store.getters['persist/id'],
+          (user: IUnit) => user.id !== self.store.getters['persist/id'],
         );
 
-      this._listNew.forEach((user) => {
+      this._listNew.forEach((user: IUnit) => {
         if (user.animation && user.animation.length) {
           if (this._is) this._ids.push(user.id as string);
 
@@ -405,7 +381,7 @@ export default class Enemies {
 
   private _animatePlayer(self: ISelf, user: IUserThree): void {
     this._user = self.store.getters['api/game'].users.find(
-      (player: IUser) => player.id === user.id,
+      (player: IUnit) => player.id === user.id,
     );
 
     if (this._user) {

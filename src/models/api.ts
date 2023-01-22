@@ -97,7 +97,7 @@ export interface IOnExplosion {
 
 // Игрок
 
-export interface IUser extends IMoveObject {
+export interface IUnit extends IMoveObject {
   id: string;
   name: string;
   health: number;
@@ -106,7 +106,7 @@ export interface IUser extends IMoveObject {
   isOnHit: boolean;
 }
 
-export interface IUserThree extends IUser {
+export interface IUserThree extends IUnit {
   model: string;
   pseudo: string;
   sound: string;
@@ -129,12 +129,13 @@ export interface IUserThree extends IUser {
 
 // Оружие
 
-export interface IUserOnShot {
+export interface IUnitInfo {
   id: string;
   pseudo: string;
   positionX: number;
   positionY: number;
   positionZ: number;
+  animation: string;
 }
 
 // Кровь
@@ -152,7 +153,22 @@ export interface IUpdateMessage {
 }
 
 // Обновления игры
+
+export interface IWeaponModule {
+  [key: string]: IShot[];
+}
+
+export interface IModule {
+  [key: string]: IUnit[];
+}
+
 export interface IGameUpdates {
-  users: IUser[];
-  shots: IShot[];
+  users: IUnit[];
+  weapon: IWeaponModule;
+  npc: IModule,
+}
+
+export interface IUserUpdate {
+  player: IUpdateMessage;
+  npc: IUnit[],
 }

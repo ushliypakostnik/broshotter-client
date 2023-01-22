@@ -2,7 +2,7 @@
 import type { ISelf } from '@/models/modules';
 import type { Group } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { IShot, IUserOnShot } from '@/models/api';
+import { IShot, IUnitInfo} from '@/models/api';
 
 // Constants
 import { Names } from '@/utils/constants';
@@ -53,7 +53,7 @@ export default class Players {
     this._enemies.hits(self, users);
   }
 
-  public getList(): IUserOnShot[] {
+  public getList(): IUnitInfo[] {
     return this._enemies.getList();
   }
 

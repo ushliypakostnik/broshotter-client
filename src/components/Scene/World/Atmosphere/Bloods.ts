@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Types
 import type { ISelf } from '@/models/modules';
-import type { IBlood, IUserOnShot } from '@/models/api';
+import type { IBlood, IUnitInfo } from '@/models/api';
 import type { Mesh } from 'three';
 
 // Constants
@@ -32,15 +32,15 @@ export default class Bloods {
     );
   }
 
-  private _addBlood(self: ISelf, user: IUserOnShot): void {
+  private _addBlood(self: ISelf, unit: IUnitInfo): void {
     this._number = self.helper.randomInteger(3, 10);
     for (let n = 0; n < this._number; ++n) {
       ++this._counter;
       this._bloodClone = this._blood.clone();
       this._bloodClone.position.set(
-        user.positionX,
-        user.positionY + 1.4,
-        user.positionZ,
+        unit.positionX,
+        unit.positionY + 1.4,
+        unit.positionZ,
       );
       this._number2 = Math.random() + 0.5;
       this._bloodClone.scale.set(this._number2, this._number2, this._number2);
@@ -99,10 +99,10 @@ export default class Bloods {
     }
   }
 
-  public hits(self: ISelf, users: IUserOnShot[]): void {
-    users.forEach((user: IUserOnShot) => {
-      console.log('Bloods blood:', user);
-      this._addBlood(self, user);
+  public hits(self: ISelf, units: IUnitInfo[]): void {
+    units.forEach((unit: IUnitInfo) => {
+      console.log('Bloods blood:', unit);
+      this._addBlood(self, unit);
     });
   }
 

@@ -75,7 +75,6 @@ const persist: Module<IStoreModule, IStore> = {
     },
 
     reload: (state: IStoreModule): void => {
-      state.id = initialState.id;
       state.name = initialState.name;
       state.isPause = initialState.isPause;
       state.endurance = initialState.endurance;

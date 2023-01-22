@@ -15,6 +15,7 @@ export enum Names {
   players = 'players',
   hero = 'hero',
   enemies = 'enemies',
+  zombies = 'zombies',
 
   // Others
   trees = 'trees',
@@ -53,6 +54,9 @@ export enum Animations {
   hit = 'hit',
   jump = 'jump',
   dead = 'dead',
+
+  // NPC
+  idle = 'idle'
 }
 
 // GUI
@@ -139,7 +143,7 @@ export const DESIGN: TConfig = {
     PLAYER_HEIGHT: 2,
     JUMP: 20,
     GRAVITY: 40,
-    SHOTS: 50,
+    SHOTS: 0.05,
   },
   MODELS: [
     { x: -2, y: -2 },

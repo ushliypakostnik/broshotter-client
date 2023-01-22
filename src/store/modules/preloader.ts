@@ -21,6 +21,7 @@ const initialState: IPreloader = {
 
   // Models
   enemiesIsLoaded: false,
+  zombiesIsLoaded: false,
   worldIsLoaded: false,
   playersIsLoaded: false,
 
@@ -38,6 +39,7 @@ const initialState: IPreloader = {
   playersIsBuild: false,
   heroIsBuild: false,
   enemiesIsBuild: false,
+  zombiesIsBuild: false,
   worldIsBuild: false,
 };
 
