@@ -15,9 +15,10 @@ import type {
   MeshBasicMaterial,
   MeshStandardMaterial,
 } from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Modules
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class Assets {
   // Textures

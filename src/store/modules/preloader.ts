@@ -22,7 +22,6 @@ const initialState: IPreloader = {
   // Models
   enemiesIsLoaded: false,
   zombiesIsLoaded: false,
-  worldIsLoaded: false,
   playersIsLoaded: false,
 
   // Audio

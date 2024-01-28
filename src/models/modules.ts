@@ -8,9 +8,6 @@ import type Events from '@/utils/events';
 import type AudioBus from '@/utils/audio';
 import type Octree from '@/components/Scene/World/Math/Octree';
 
-// Emmiter
-import type emitter from '@/utils/emitter';
-
 // Interfaces
 ///////////////////////////////////////////////////////
 

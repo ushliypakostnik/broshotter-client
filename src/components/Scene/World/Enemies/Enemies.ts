@@ -99,7 +99,6 @@ export default class Enemies {
             child.castShadow = true;
           }
         });
-        this._model.rotation.y = Math.PI / 2;
         this._model.name = this.name;
 
         const pseudoGeometry = new THREE.BoxBufferGeometry(
@@ -522,7 +521,7 @@ export default class Enemies {
 
       this._target.set(
         this._user.positionX + (this._isTest ? 2 : 0),
-        this._user.positionY - (!this._isHide ? 1.5 : 0.75),
+        this._user.positionY - (!this._isHide ? 1.5 : 1),
         this._user.positionZ + (this._isTest ? 2 : 0),
       );
 
@@ -560,6 +559,7 @@ export default class Enemies {
             : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 2 - 0.4),
         this._modelClone.position.z,
       );
+
       this._soundClone.position.set(
         this._pseudoClone.position.x,
         this._pseudoClone.position.y,

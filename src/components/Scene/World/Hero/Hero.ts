@@ -11,7 +11,7 @@ import { Names, Audios, Colors, Animations, DESIGN } from '@/utils/constants';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { EmitterEvents } from '@/models/api';
 
-// Modules
+// Utils
 import Capsule from '@/components/Scene/World/Math/Capsule';
 import emitter from '@/utils/emitter';
 
@@ -316,9 +316,7 @@ export default class Hero {
         .multiplyScalar(-1 * self.events.delta),
     );
 
-    this._directionShot = this._direction
-      .negate()
-      .normalize();
+    this._directionShot = this._direction.negate().normalize();
 
     this._position = this._isOptical
       ? this._optical.position
@@ -362,7 +360,7 @@ export default class Hero {
     }
   }
 
-  private _playerCollitions = (self: ISelf) => {
+  private _playerCollitions(self: ISelf): void {
     if (self.octree) {
       this._result = self.octree.capsuleIntersect(this._collider);
       this._isOnFloor = false;
@@ -411,7 +409,7 @@ export default class Hero {
         );
       }
     }
-  };
+  }
 
   private _redrawFire(self: ISelf) {
     if (!this._isFireOff) this._fireScale += self.events.delta * 50;
@@ -436,7 +434,7 @@ export default class Hero {
         this._weaponFire.material.opacity = 0;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-      } else this._weaponFire.material.opacity = this._fireScale / 5 * 0.7;
+      } else this._weaponFire.material.opacity = (this._fireScale / 5) * 0.7;
       this._weaponFire.rotateX(self.events.delta * -3);
       this._weaponFire.rotateZ(self.events.delta * -3);
       this._weaponFire.rotateY(self.events.delta * -3);
@@ -600,11 +598,6 @@ export default class Hero {
             }
           }
 
-          this._velocity.addScaledVector(
-            this._velocity,
-            self.helper.damping(self.events.delta),
-          );
-
           // Steps sound
           if (
             self.keys['KeyW'] ||
@@ -643,12 +636,12 @@ export default class Hero {
             this._isLeft = false;
             this._isRight = false;
           }
-        } else {
-          this._velocity.addScaledVector(
-            this._velocity,
-            self.helper.damping(self.events.delta),
-          );
         }
+
+        this._velocity.addScaledVector(
+          this._velocity,
+          self.helper.damping(self.events.delta),
+        );
       } else {
         self.audio.pauseHeroSound(Audios.steps);
         this._velocity.y -= DESIGN.GAMEPLAY.GRAVITY * self.events.delta;
@@ -695,7 +688,7 @@ export default class Hero {
         self.camera.position.set(
           this._collider.end.x,
           this._collider.end.y -
-            (!this._isHide ? 0 : DESIGN.GAMEPLAY.PLAYER_HEIGHT / 1.1),
+            (!this._isHide ? 0 : 1.5),
           this._collider.end.z,
         );
 
@@ -722,7 +715,7 @@ export default class Hero {
         this._animateWeapon(self);
 
         this._time += self.events.delta;
-        if (this._time > 2) {
+        if (this._time > 1) {
           this._checkPosition(self);
           this._time = 0;
         }

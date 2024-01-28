@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 // Types
-import type { ISelf } from '@/models/modules';
+import type { ISelf }  from '@/models/modules';
 import type { IShot, IShotThree, IUnitInfo } from '@/models/api';
 import type { Group, Mesh, Vector3 } from 'three';
 
@@ -34,6 +34,8 @@ export default class Shots {
   private _group!: Group;
   private _pseudo!: Mesh;
   private _pseudoClone!: Mesh;
+  private _distance!: number;
+  private _velocity: Vector3;
   private _id!: string;
 
   constructor() {
@@ -42,6 +44,7 @@ export default class Shots {
     this._enemies = [];
     this._ids = [];
     this._shotClone = new THREE.Mesh();
+    this._velocity = new THREE.Vector3();
   }
 
   public init(self: ISelf): void {
@@ -157,56 +160,87 @@ export default class Shots {
             'uuid',
             this._shotItem.model,
           ) as Mesh;
-          this._shotClone.position.set(
-            shot.positionX,
-            shot.positionY,
-            shot.positionZ,
-          );
-
-          // Делаем выстрел игрока видимым при небольшом отлете
-          if (
-            shot.player === self.store.getters['persist/id'] &&
-            !this._shotClone.visible &&
-            this._shotClone.position.distanceTo(
+          if (this._shotClone) {
+            this._distance = this._shotClone.position.distanceTo(
               new THREE.Vector3(shot.startX, shot.startY, shot.startZ),
-            ) > 3
-          )
-            this._shotClone.visible = true;
+            );
 
-          // Проверяем столкновения собственных выстрелов с миром и другими игроками
-          if (shot.player === self.store.getters['persist/id']) {
-            // С миром только если отлетел на 3 метра
-            this._result =
-              this._shotClone.visible &&
-              self.octree.sphereIntersect(
+            this._velocity = new THREE.Vector3(
+              shot.directionX,
+              shot.directionY,
+              shot.directionZ,
+            );
+
+            this._velocity.addScaledVector(
+              this._velocity,
+              self.helper.damping(self.events.delta) / 100,
+            );
+            if (this._distance > 10) {
+              this._velocity.addScaledVector(
+                new THREE.Vector3(0, -1, 0),
+                (self.events.delta + 1) / 250 * this._distance,
+              );
+            }
+            this._shotClone.position.add(
+              this._velocity
+                .clone()
+                .multiplyScalar(
+                  self.events.delta * DESIGN.GAMEPLAY.SHOTS_SPEED,
+                ),
+            );
+
+            // Делаем выстрел игрока видимым при небольшом отлете
+            if (
+              shot.player === self.store.getters['persist/id'] &&
+              !this._shotClone.visible &&
+              this._distance > 3
+            )
+              this._shotClone.visible = true;
+
+            // Проверяем столкновения собственных выстрелов с миром и другими игроками
+            if (shot.player === self.store.getters['persist/id']) {
+              // С миром только если отлетел на 3 метра
+              this._result =
+                this._shotClone.visible &&
+                self.octree.sphereIntersect(
+                  new THREE.Sphere(this._shotClone.position, this._SIZE),
+                );
+              this._result2 = self.octree2.sphereIntersect(
                 new THREE.Sphere(this._shotClone.position, this._SIZE),
               );
-            this._result2 = self.octree2.sphereIntersect(
-              new THREE.Sphere(this._shotClone.position, this._SIZE),
-            );
-            this._id = '';
-            if (this._result2)
-              this._id = this._findEnemyOnShot(
-                self,
-                this._shotClone.position,
-                enemies,
-              );
-            if (this._result || this._result2) this._explosion(shot, this._id);
+              this._id = '';
+              if (this._result2)
+                this._id = this._findEnemyOnShot(
+                  self,
+                  this._shotClone.position,
+                  enemies,
+                );
+              if (this._result || this._result2)
+                this._explosion(
+                  {
+                    ...shot,
+                    positionX: this._shotClone.position.x,
+                    positionY: this._shotClone.position.y,
+                    positionZ: this._shotClone.position.z,
+                  },
+                  this._id,
+                );
+            }
+            // Сносим выстрел если он улетел за пределы локации
+            else if (
+              shot.player === self.store.getters['persist/id'] &&
+              this._shotClone.position.distanceTo(new THREE.Vector3(0, 0, 0)) >
+                DESIGN.SIZE * 2
+            )
+              this._unshot(shot.id as number);
+            // Если ушел под пол или улетел слишком высоко
+            else if (
+              shot.player === self.store.getters['persist/id'] &&
+              (this._shotClone.position.y < 0 ||
+                this._shotClone.position.y > DESIGN.SIZE * 1.5)
+            )
+              this._unshot(shot.id as number);
           }
-          // Сносим выстрел если он улетел за пределы локации
-          else if (
-            shot.player === self.store.getters['persist/id'] &&
-            this._shotClone.position.distanceTo(new THREE.Vector3(0, 0, 0)) >
-              DESIGN.SIZE * 2
-          )
-            this._unshot(shot.id as number);
-          // Если ушел под пол или улетел слишком высоко
-          else if (
-            shot.player === self.store.getters['persist/id'] &&
-            (this._shotClone.position.y < 0 ||
-              this._shotClone.position.y > DESIGN.SIZE * 1.5)
-          )
-            this._unshot(shot.id as number);
         }
       });
 

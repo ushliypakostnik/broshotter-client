@@ -56,7 +56,9 @@ export enum Animations {
   dead = 'dead',
 
   // NPC
-  idle = 'idle'
+  idle = 'idle',
+  walking = 'walking',
+  kick = 'kick',
 }
 
 // GUI
@@ -143,7 +145,7 @@ export const DESIGN: TConfig = {
     PLAYER_HEIGHT: 2,
     JUMP: 20,
     GRAVITY: 40,
-    SHOTS: 0.05,
+    SHOTS_SPEED: 50,
   },
   MODELS: [
     { x: -2, y: -2 },

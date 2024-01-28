@@ -188,7 +188,7 @@ export default class Atmosphere {
     // Fog
     self.scene.fog = new THREE.Fog(
       this._DAY[this._index].fog,
-      DESIGN.SIZE / 10,
+      DESIGN.SIZE / 20,
       DESIGN.SIZE * 3,
     );
 
@@ -284,7 +284,7 @@ export default class Atmosphere {
           }),
         );
         this._ground.rotation.x = -Math.PI / 2;
-        this._ground.position.set(0, -1.5, 0);
+        this._ground.position.set(0, -1, 0);
         this._ground.receiveShadow = true;
 
         self.scene.add(this._ground);
@@ -326,7 +326,7 @@ export default class Atmosphere {
           }),
         );
         this._ground2.rotation.x = -Math.PI / 2;
-        this._ground2.position.set(0, -1.6, 0);
+        this._ground2.position.set(0, -1.1, 0);
         this._ground2.updateMatrix();
 
         self.scene.add(this._ground2);
@@ -358,7 +358,7 @@ export default class Atmosphere {
 
       this._location.trees.forEach((tree: ITree) => {
         this._modelClone = this._model.clone();
-        this._modelClone.position.set(tree.x, -3, tree.z);
+        this._modelClone.position.set(tree.x, -1 + -1 * tree.scale / 5, tree.z);
         this._modelClone.scale.set(tree.scale, tree.scale, tree.scale);
         this._modelClone.rotateX(self.helper.degreesToRadians(tree.rotateX));
         this._modelClone.rotateY(self.helper.degreesToRadians(tree.rotateY));
